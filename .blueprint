@@ -1,0 +1,19 @@
+created:
+    - database/factories/CommuneFactory.php
+    - database/factories/SheetFactory.php
+    - database/factories/ZipcodeFactory.php
+    - database/factories/BatchFactory.php
+    - database/migrations/2024_05_08_120427_create_communes_table.php
+    - database/migrations/2024_05_08_120428_create_sheets_table.php
+    - database/migrations/2024_05_08_120429_create_zipcodes_table.php
+    - database/migrations/2024_05_08_120430_create_batches_table.php
+    - app/Models/Commune.php
+    - app/Models/Sheet.php
+    - app/Models/Zipcode.php
+    - app/Models/Batch.php
+models:
+    User: { name: string, email: string, email_verified_at: 'timestamp nullable default:NULL', password: string, remember_token: 'string:100 nullable default:NULL' }
+    Commune: { name: string, officialId: 'integer unique', address: 'string nullable', email: 'email nullable', relationships: { hasMany: 'Sheet, Zipcode' } }
+    Sheet: { softdeletes: softDeletes, label: integer, source: string, signatureCount: integer, verifiedCount: 'integer nullable', user_id: unsignedInteger, commune_id: unsignedInteger, batch_id: 'unsignedInteger nullable', status: 'enum:recorded,added2batch,processed,faulty default:recorded', relationships: { belongsTo: 'Commune, User, Batch' } }
+    Zipcode: { name: string, code: string, commune_id: unsignedInteger, relationships: { belongsTo: Commune } }
+    Batch: { status: 'enum:pending,sent,returned default:pending', sendDate: 'date nullable', commune_id: unsignedInteger, relationships: { hasMany: Sheet, belongsTo: Commune } }

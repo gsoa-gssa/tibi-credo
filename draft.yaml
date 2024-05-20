@@ -1,0 +1,37 @@
+models:
+  Commune:
+    name: string
+    officialId: integer unique
+    address: string nullable
+    email: email nullable
+    relationships:
+      hasMany: Sheet, Zipcode
+
+  Sheet:
+    softDeletes
+    label: integer
+    source: string
+    signatureCount: integer
+    verifiedCount: integer nullable
+    user_id: unsignedInteger
+    commune_id: unsignedInteger
+    batch_id: unsignedInteger nullable
+    status: enum:recorded,added2batch,processed,faulty default:recorded
+    relationships:
+      belongsTo: Commune, User, Batch
+
+  Zipcode:
+    name: string
+    code: string
+    commune_id: unsignedInteger
+    relationships:
+      belongsTo: Commune
+
+  Batch:
+    status: enum:pending,sent,returned default:pending
+    sendDate: date nullable
+    commune_id: unsignedInteger
+    relationships:
+      hasMany: Sheet
+      belongsTo: Commune
+
