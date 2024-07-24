@@ -14,6 +14,7 @@ return new class extends Migration
     {
         Sheet::truncate();
         Schema::table('sheets', function (Blueprint $table) {
+            $table->dropForeign(['numerator_id']);
             $table->dropColumn('numerator_id');
             $table->string('label')->after('id');
         });
