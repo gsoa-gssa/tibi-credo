@@ -39,9 +39,9 @@ class Sheet extends Model
         return $this->belongsTo(Batch::class);
     }
 
-    public function numerator(): BelongsTo
+    public function source(): BelongsTo
     {
-        return $this->belongsTo(Numerator::class);
+        return $this->belongsTo(Source::class);
     }
 
     /**
@@ -67,20 +67,6 @@ class Sheet extends Model
                     ->send();
                 return false;
             }
-
-            // Find the scan and move it back to unassigned folder
-            $scan = glob(storage_path('app/public/sheet-scans/assigned/' . $sheet->numerator_id . '_*'));
-            if (count($scan) === 0) {
-                Notification::make()
-                    ->info()
-                    ->title("No scan found for sheet {$sheet->numerator_id}. This sheet is fishy. Please contact support.")
-                    ->send();
-                return false;
-            }
-            $scan = $scan[0];
-            $filename = File::basename($scan);
-            $oldname = explode("_", $filename)[1];
-            Storage::move('public/sheet-scans/assigned/' . $filename, 'public/sheet-scans/unassigned/' . $oldname);
         });
     }
 
@@ -88,5 +74,21 @@ class Sheet extends Model
     {
         return LogOptions::defaults()
             ->logAll();
+    }
+
+    /**
+     * Get formatted label
+     */
+    public function getLabel()
+    {
+        return sprintf('%06d', $this->label);
+    }
+
+    /**
+     * Get Contacts for this Sheet
+     */
+    public function contacts() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Contact::class);
     }
 }

@@ -59,7 +59,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     public function getNextSheetLabel()
     {
         $lastSheet = $this->sheets()->latest()->first();
-        return $lastSheet ? $lastSheet->label + 1 : 1;
+        return $lastSheet ? sprintf('%06d', $lastSheet->label + 1) : null;
     }
 
     /**

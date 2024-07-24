@@ -29,9 +29,10 @@ class SheetsRelationManager extends RelationManager
             ->heading(
                 fn() => "Number of Sheets: " . $this->getAllTableRecordsCount()
             )
-            ->recordTitleAttribute('numerator_id')
+            ->recordTitleAttribute('label')
             ->columns([
-                Tables\Columns\TextColumn::make('numerator_id'),
+                Tables\Columns\TextColumn::make('label')
+                    ->fontFamily(\Filament\Support\Enums\FontFamily::Mono),
                 Tables\Columns\TextColumn::make('signatureCount')
             ])
             ->filters([

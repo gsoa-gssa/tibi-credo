@@ -2,23 +2,27 @@
 
 namespace App\Filament\Pages;
 
+use App\Models\Contact;
 use Filament\Forms;
+use Filament\Tables;
 use App\Models\Sheet;
+use App\Models\Source;
 use App\Models\Zipcode;
 use Filament\Forms\Form;
 use Filament\Pages\Page;
 use Filament\Actions\Action;
-use App\Settings\SheetsSettings;
 use Illuminate\Support\Facades\File;
 use Filament\Forms\Contracts\HasForms;
+use Filament\Tables\Contracts\HasTable;
 use Illuminate\Support\Facades\Storage;
 use Filament\Notifications\Notification;
 use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Tables\Concerns\InteractsWithTable;
 use Illuminate\Contracts\Support\Htmlable;
 
-class SheetWorkflow extends Page implements HasForms
+class SheetWorkflow extends Page implements HasForms, HasTable
 {
-    use InteractsWithForms;
+    use InteractsWithForms, InteractsWithTable;
     protected static ?string $model = Sheet::class;
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
 
@@ -34,64 +38,39 @@ class SheetWorkflow extends Page implements HasForms
     {
         return __('Sheet Workflow');
     }
-
-    public $numerator_id;
-    public $source;
-    public $signatureCount;
+    public $label = '123456';
+    public $source_id;
+    public $signatureCount = 0;
     public $commune_id;
-    public $user_id;
-    public $scanUrl;
-    public $scanPath;
-    public $scanName;
+    public $sheet;
 
+    public $contacts = [];
+
+    /**
+     * On Mount
+     */
     public function mount()
     {
-        $allScans = File::files(storage_path('app/public/sheet-scans/unassigned'));
-        if (count($allScans) == 0) {
-            Notification::make()
-                ->danger()
-                ->seconds(15)
-                ->title('No Sheets to Process')
-                ->send();
-            $this->redirect(route('filament.app.pages.dashboard'));
-            return;
-        }
-
-        $scan = File::files(storage_path('app/public/sheet-scans/unassigned'))[rand(0, count($allScans) - 1)];
-
-        if (!$scan) {
-            return;
-        }
-        $this->scanPath = explode("app/", $scan->getPathname())[1];
-        $this->scanUrl = Storage::url($this->scanPath);
-        $this->scanName = $scan->getFilename();
+        $this->label = auth()->user()->getNextSheetLabel();
     }
 
     public function form(Form $form): Form
     {
         return $form->schema([
-            Forms\Components\Select::make('numerator_id')
-                ->options(fn() => \App\Models\Numerator::doesntHave('sheet')->get()->pluck('id', 'id')->toArray())
-                ->label(__('Numerator ID'))
-                ->helperText(__('The 6-digit number on the top right of the signature sheet.'))
-                ->searchable()
-                ->autofocus()
+            \HasanAhani\FilamentOtpInput\Components\OtpInput::make('label')
+                ->label('Sheet Number')
+                ->numberInput(6)
+                ->default('test')
                 ->required(),
-            Forms\Components\Select::make("source")
+            Forms\Components\Select::make("source_id")
                 ->required()
+                ->options(Source::all()->pluck("code", 'id'))
                 ->label('Source')
-                ->options(
-                    function() {
-                        return collect(app(SheetsSettings::class)->sources)
-                            ->pluck('value', 'label')
-                            ->toArray();
-                    }
-                )
                 ->helperText(__('The three letters on the top left of the signature sheet.'))
-                ->searchable()
-                ->native(false),
+                ->searchable(),
             Forms\Components\TextInput::make('signatureCount')
                 ->label('Signature Count')
+                ->default(0)
                 ->required()
                 ->helperText(__('The number of people who have signed the initiative on this sheet.'))
                 ->numeric(),
@@ -110,9 +89,49 @@ class SheetWorkflow extends Page implements HasForms
                         }
                         return $results;
                     })
+                ->preload()
                 ->required(),
         ])
         ->columns(2);
+    }
+
+    public function table(Tables\Table $table): Tables\Table
+    {
+        return $table
+            ->query(Contact::query()->whereIn('id', $this->contacts))
+            ->columns([
+                Tables\Columns\TextColumn::make('firstname')
+                    ->label(__("tables.contacts.firstname"))
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('lastname')
+                    ->label(__("tables.contacts.lastname"))
+                    ->searchable()
+                    ->sortable(),
+            ])
+            ->headerActions([
+                Tables\Actions\Action::make('add')
+                    ->label(__('Add Contact'))
+                    ->form([
+                        Forms\Components\TextInput::make('firstname')
+                            ->label(__('First Name'))
+                            ->required(),
+                        Forms\Components\TextInput::make('lastname')
+                            ->label(__('Last Name'))
+                            ->required(),
+                        Forms\Components\TextInput::make('street_no')
+                            ->label(__('Street No'))
+                            ->required(),
+                        Forms\Components\DatePicker::make('birthdate')
+                            ->label(__('Birthdate'))
+                            ->required(),
+                    ])
+                    ->action(function (array $data): void {
+                        $contact = Contact::create($data);
+                        $this->contacts[] = $contact->id;
+                    })
+                    ->icon('heroicon-o-plus-circle')
+            ]);
     }
 
     protected function getFormActions(): array
@@ -128,12 +147,6 @@ class SheetWorkflow extends Page implements HasForms
     public function getHeaderActions(): array
     {
         return [
-            Action::make('skip')
-                ->label(__('Skip'))
-                ->keyBindings(['mod+d'])
-                ->color("warning")
-                ->outlined()
-                ->action(fn() => $this->skip())
         ];
     }
 
@@ -143,37 +156,27 @@ class SheetWorkflow extends Page implements HasForms
         $data = $this->form->getState();
         $data['user_id'] = auth()->id();
 
-        $existingSheet = Sheet::where('numerator_id', $data['numerator_id'])->first();
+        $existingSheet = Sheet::where('label', $data['label'])->first();
         if ($existingSheet) {
             Notification::make()
                 ->danger()
                 ->seconds(15)
                 ->title(__('Sheet Already Exists, Skipping'))
                 ->send();
-            redirect(route('filament.app.pages.sheet-workflow'));
             return;
         }
 
         $sheet = Sheet::create($data);
-
+        if ($this->contacts) {
+            $contacts = Contact::whereIn('id', $this->contacts)->get();
+            $sheet->contacts()->saveMany($contacts);
+        }
         Notification::make()
             ->success()
             ->seconds(15)
             ->title('Sheet Created')
             ->send();
-        Storage::move($this->scanPath, 'public/sheet-scans/assigned/' . $this->numerator_id . '_' . $this->scanName);
         $this->redirect(route('filament.app.pages.sheet-workflow'));
-    }
-
-    public function skip()
-    {
-        Storage::move($this->scanPath, 'public/sheet-scans/skipped/' . $this->scanName);
-        $this->redirect(route('filament.app.pages.sheet-workflow'));
-    }
-
-    public static function getNavigationBadge(): ?string
-    {
-        return count(glob(storage_path('app/public/sheet-scans/unassigned/*.pdf')));
     }
 
     protected static string $view = 'filament.pages.sheet-workflow';

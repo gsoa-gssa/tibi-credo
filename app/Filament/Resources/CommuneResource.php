@@ -90,6 +90,7 @@ class CommuneResource extends Resource
                 //
             ])
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 ActionGroup::make([
                     Tables\Actions\EditAction::make(),
                     Tables\Actions\Action::make('create_batch')
@@ -130,12 +131,20 @@ class CommuneResource extends Resource
         ];
     }
 
+    public static function getWidgets(): array
+    {
+        return [
+            CommuneResource\Widgets\CommuneStats::class,
+        ];
+    }
+
     public static function getPages(): array
     {
         return [
             'index' => Pages\ListCommunes::route('/'),
             'create' => Pages\CreateCommune::route('/create'),
             'edit' => Pages\EditCommune::route('/{record}/edit'),
+            'view' => Pages\ViewCommune::route('/{record}'),
         ];
     }
 }

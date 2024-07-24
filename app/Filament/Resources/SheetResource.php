@@ -32,33 +32,11 @@ class SheetResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('numerator_id')
-                    ->relationship('numerator', 'id')
-                    ->searchable()
+                Forms\Components\TextInput::make("label")
                     ->required(),
-                Forms\Components\Select::make("source")
+                Forms\Components\Select::make("source_id")
                     ->required()
-                    ->options(
-                        function() {
-                            return collect(app(SheetsSettings::class)->sources)
-                                ->pluck('label', 'value')
-                                ->toArray();
-                        }
-                    )
-                    ->getSearchResultsUsing(
-                        function (string $search): array {
-                            $sources = app(SheetsSettings::class)->sources;
-                            $results = [];
-                            foreach ($sources as $source) {
-                                if (str_contains($source['value'], $search) || str_contains($source['label'], $search)) {
-                                    $results[] = [
-                                        $source['value'] => $source['label'],
-                                    ];
-                                }
-                            }
-                            return $results;
-                        }
-                    )
+                    ->relationship('source', 'code')
                     ->searchable()
                     ->native(false),
                 Forms\Components\TextInput::make('signatureCount')
@@ -92,8 +70,9 @@ class SheetResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('numerator_id')
-                    ->numeric()
+                Tables\Columns\TextColumn::make('label')
+                    ->fontFamily(\Filament\Support\Enums\FontFamily::Mono)
+                    ->formatStateUsing(fn (string $state): string => sprintf('%06d', $state))
                     ->sortable(),
                 Tables\Columns\TextColumn::make('signatureCount')
                     ->numeric()
@@ -143,7 +122,7 @@ class SheetResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            SheetResource\RelationManagers\ContactsRelationManager::class,
         ];
     }
 
@@ -154,6 +133,7 @@ class SheetResource extends Resource
             'create' => Pages\CreateSheet::route('/create'),
             'edit' => Pages\EditSheet::route('/{record}/edit'),
             'activities' => Pages\ActivityLogPage::route('/{record}/activities'),
+            'view' => Pages\ViewSheet::route('/{record}'),
         ];
     }
 
