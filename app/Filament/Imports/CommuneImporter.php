@@ -26,7 +26,7 @@ class CommuneImporter extends Importer
                 ->rules(['max:255']),
             ImportColumn::make('email')
                 ->requiredMapping()
-                ->rules(['email']),
+                ->rules(['email', 'nullable']),
             ImportColumn::make('lang')
                 ->requiredMapping()
         ];
