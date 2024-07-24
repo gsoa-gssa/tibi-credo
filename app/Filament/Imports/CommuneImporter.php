@@ -21,6 +21,12 @@ class CommuneImporter extends Importer
                 ->requiredMapping()
                 ->numeric()
                 ->rules(['required', 'integer']),
+            ImportColumn::make('address')
+                ->requiredMapping()
+                ->rules(['max:255']),
+            ImportColumn::make('email')
+                ->requiredMapping()
+                ->rules(['email']),
             ImportColumn::make('lang')
                 ->requiredMapping()
         ];

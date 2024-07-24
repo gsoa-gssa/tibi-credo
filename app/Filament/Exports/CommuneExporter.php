@@ -19,6 +19,8 @@ class CommuneExporter extends Exporter
             ExportColumn::make('name'),
             ExportColumn::make('officialId'),
             ExportColumn::make('address'),
+            ExportColumn::make('email'),
+            ExportColumn::make("lang"),
             ExportColumn::make('created_at')->enabledByDefault(false),
             ExportColumn::make('updated_at')->enabledByDefault(false),
         ];
