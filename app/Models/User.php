@@ -45,6 +45,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'approved' => 'boolean'
         ];
     }
 
@@ -58,7 +59,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
      */
     public function getNextSheetLabel()
     {
-        $lastSheet = $this->sheets()->latest()->first();
+        $lastSheet = $this->sheets()->where("vox", false)->latest()->first();
         return $lastSheet ? sprintf('%06d', $lastSheet->label + 1) : null;
     }
 
@@ -72,10 +73,18 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     }
 
     /**
+     * Determine if user is approved
+     */
+    public function isApproved(): bool
+    {
+        return $this->approved;
+    }
+
+    /**
      * Determine if user can access filament by checking if email domain is in the allowed list
      */
     public function canAccessPanel(\Filament\Panel $panel): bool
     {
-        return in_array(explode('@', $this->email)[1], config('filament.allowed_domains'));
+        return $this->hasRole("super_admin") || $this->isApproved();
     }
 }

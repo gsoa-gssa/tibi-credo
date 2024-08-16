@@ -17,6 +17,7 @@ use Filament\Tables\Contracts\HasTable;
 use Illuminate\Support\Facades\Storage;
 use Filament\Notifications\Notification;
 use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Forms\Get;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Illuminate\Contracts\Support\Htmlable;
 
@@ -25,20 +26,26 @@ class SheetWorkflow extends Page implements HasForms, HasTable
     use InteractsWithForms, InteractsWithTable;
     protected static ?string $model = Sheet::class;
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
-
-    protected static ?string $navigationGroup = 'Workflows';
     protected static ?int $navigationSort = 0;
 
     public function getTitle(): string | Htmlable
     {
-        return __('Sheet Workflow');
+        return __('pages.sheetWorkflow.title');
     }
 
     public static function getNavigationLabel(): string
     {
-        return __('Sheet Workflow');
+        return __('pages.sheetWorkflow.navigationLabel');
     }
-    public $label = '123456';
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('pages.sheetWorkflow.navigationGroup');
+    }
+
+    public $vox;
+    public $label;
+    public $vox_label;
     public $source_id;
     public $signatureCount = 0;
     public $commune_id;
@@ -57,27 +64,44 @@ class SheetWorkflow extends Page implements HasForms, HasTable
     public function form(Form $form): Form
     {
         return $form->schema([
+            Forms\Components\Toggle::make('vox')
+                    ->label(__('input.label.sheetWorkflow.vox'))
+                    ->inline(false)
+                    ->helperText(__('input.helper.sheetWorkflow.vox'))
+                    ->onIcon('heroicon-o-check-circle')
+                    ->offIcon('heroicon-o-x-circle')
+                    ->live()
+                    ->id('vox')
+                    ->default("on"),
             \HasanAhani\FilamentOtpInput\Components\OtpInput::make('label')
-                ->label('Sheet Number')
+                ->label(__('input.label.sheetWorkflow.label'))
+                ->helperText(__('input.helper.sheetWorkflow.label'))
                 ->numberInput(6)
-                ->default('test')
+                ->visible(fn(Get $get) => !$get("vox"))
+                ->required(),
+            Forms\Components\TextInput::make('vox_label')
+                ->label(__('input.label.sheetWorkflow.label'))
+                ->helperText(__('input.helper.sheetWorkflow.label'))
+                ->prefix('VOX – ')
+                ->default('')
+                ->visible(fn(Get $get) => $get("vox"))
                 ->required(),
             Forms\Components\Select::make("source_id")
                 ->required()
                 ->options(Source::all()->pluck("code", 'id'))
-                ->label('Source')
-                ->helperText(__('The three letters on the top left of the signature sheet.'))
+                ->label(__('input.label.sheetWorkflow.source'))
+                ->helperText(__('input.helper.sheetWorkflow.source'))
                 ->searchable(),
             Forms\Components\TextInput::make('signatureCount')
-                ->label('Signature Count')
+                ->label(__('input.label.sheetWorkflow.signatureCount'))
                 ->default(0)
                 ->required()
-                ->helperText(__('The number of people who have signed the initiative on this sheet.'))
+                ->helperText(__('input.helper.sheetWorkflow.signatureCount'))
                 ->numeric(),
             Forms\Components\Select::make('commune_id')
                 ->searchable()
-                ->label('Commune ZIP')
-                ->helperText(__('The ZIP Code on the sheet. Select from possible options. If it\'s not clear, press skip and administrators will take care of the sheet manually.'))
+                ->label(__('input.label.sheetWorkflow.commune'))
+                ->helperText(__('input.helper.sheetWorkflow.commune'))
                 ->getSearchResultsUsing(
                     function (string $search): array {
                         $zipcodes = Zipcode::where('code', 'like', "%$search%")->limit(10)->get();
@@ -101,29 +125,33 @@ class SheetWorkflow extends Page implements HasForms, HasTable
             ->query(Contact::query()->whereIn('id', $this->contacts))
             ->columns([
                 Tables\Columns\TextColumn::make('firstname')
-                    ->label(__("tables.contacts.firstname"))
+                    ->label(__("tables.columns.contacts.firstname"))
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('lastname')
-                    ->label(__("tables.contacts.lastname"))
+                    ->label(__("tables.columns.contacts.lastname"))
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('street_no')
+                    ->label(__("tables.columns.contacts.street_no"))
                     ->searchable()
                     ->sortable(),
             ])
             ->headerActions([
                 Tables\Actions\Action::make('add')
-                    ->label(__('Add Contact'))
+                    ->label(__('tables.actions.contacts.add'))
                     ->form([
                         Forms\Components\TextInput::make('firstname')
-                            ->label(__('First Name'))
+                            ->label(__('input.label.contacts.firstname'))
                             ->required(),
                         Forms\Components\TextInput::make('lastname')
-                            ->label(__('Last Name'))
+                            ->label(__('input.label.contacts.lastname'))
                             ->required(),
                         Forms\Components\TextInput::make('street_no')
-                            ->label(__('Street No'))
+                            ->label(__('input.label.contacts.street_no'))
                             ->required(),
                         Forms\Components\DatePicker::make('birthdate')
-                            ->label(__('Birthdate'))
+                            ->label(__('input.label.contacts.birthdate'))
                             ->required(),
                     ])
                     ->action(function (array $data): void {
@@ -138,7 +166,7 @@ class SheetWorkflow extends Page implements HasForms, HasTable
     {
         return [
             Action::make('store')
-                ->label(__('Save'))
+                ->label(__('forms.actions.contacts.store'))
                 ->keyBindings(['mod+s'])
                 ->submit('store')
         ];
@@ -155,13 +183,21 @@ class SheetWorkflow extends Page implements HasForms, HasTable
         $this->validate();
         $data = $this->form->getState();
         $data['user_id'] = auth()->id();
+        if (isset($data['vox'])) {
+            $data['label'] = "VOX–" . $data['vox_label'];
+            unset($data['vox_label']);
+        } else {
+            $data['label'] = $data['label'];
+            $data['vox'] = false;
+        }
 
         $existingSheet = Sheet::where('label', $data['label'])->first();
         if ($existingSheet) {
             Notification::make()
                 ->danger()
                 ->seconds(15)
-                ->title(__('Sheet Already Exists, Skipping'))
+                ->title(__('notifications.sheetWorkflow.labelExists'))
+                ->body(__('notifications.sheetWorkflow.labelExistsBody'))
                 ->send();
             return;
         }
@@ -174,7 +210,7 @@ class SheetWorkflow extends Page implements HasForms, HasTable
         Notification::make()
             ->success()
             ->seconds(15)
-            ->title('Sheet Created')
+            ->title(__('notifications.sheetWorkflow.success'))
             ->send();
         $this->redirect(route('filament.app.pages.sheet-workflow'));
     }

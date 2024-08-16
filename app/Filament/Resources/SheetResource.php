@@ -32,6 +32,8 @@ class SheetResource extends Resource
     {
         return $form
             ->schema([
+                Forms\Components\Toggle::make('vox')
+                    ->default(true),
                 Forms\Components\TextInput::make("label")
                     ->required(),
                 Forms\Components\Select::make("source_id")
@@ -72,7 +74,7 @@ class SheetResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('label')
                     ->fontFamily(\Filament\Support\Enums\FontFamily::Mono)
-                    ->formatStateUsing(fn (string $state): string => sprintf('%06d', $state))
+                    ->formatStateUsing(fn (string $state): string => str_starts_with($state, 'VOX') ? $state : sprintf('%06d', $state))
                     ->sortable(),
                 Tables\Columns\TextColumn::make('signatureCount')
                     ->numeric()

@@ -22,6 +22,7 @@ class Sheet extends Model
         'commune_id' => 'integer',
         'batch_id' => 'integer',
         "numerator_id" => "integer",
+        "vox" => "boolean",
     ];
 
     public function commune(): BelongsTo
@@ -81,7 +82,7 @@ class Sheet extends Model
      */
     public function getLabel()
     {
-        return sprintf('%06d', $this->label);
+        return str_starts_with($this->label, 'VOX') ? $this->label : sprintf('%06d', $this->label);
     }
 
     /**

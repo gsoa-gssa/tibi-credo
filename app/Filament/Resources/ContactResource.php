@@ -66,6 +66,13 @@ class ContactResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('sheet.label')
                     ->fontFamily(\Filament\Support\Enums\FontFamily::Mono)
+                    ->url(function (Contact $contact) {
+                        if ($contact->sheet) {
+                            return SheetResource::getUrl("view", ["record" => $contact->sheet]);
+                        } else {
+                            return null;
+                        }
+                    })
                     ->sortable(),
             ])
             ->filters([
