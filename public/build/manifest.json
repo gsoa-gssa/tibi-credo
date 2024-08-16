@@ -1,0 +1,19 @@
+{
+  "resources/css/app.scss": {
+    "file": "assets/app-BZhjljfZ.css",
+    "src": "resources/css/app.scss",
+    "isEntry": true
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-B9rQCvZY.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true
+  },
+  "resources/js/stats/signatureCount.js": {
+    "file": "assets/signatureCount-B9IYlGVR.js",
+    "name": "signatureCount",
+    "src": "resources/js/stats/signatureCount.js",
+    "isEntry": true
+  }
+}
