@@ -105,11 +105,11 @@ class SheetWorkflow extends Page implements HasForms, HasTable
                 ->helperText(__('input.helper.sheetWorkflow.commune'))
                 ->getSearchResultsUsing(
                     function (string $search): array {
-                        $zipcodes = Zipcode::where('code', 'like', "%$search%")->limit(10)->get();
+                        $zipcodes = Zipcode::where('code', 'like', "%$search%")->orWhere('name', 'like', "%$search%")->get();
                         $results = [];
                         foreach ($zipcodes as $zipcode) {
                             $results[] = [
-                                $zipcode->commune->id => $zipcode->commune->name . ' (' . $zipcode->name . ')',
+                                $zipcode->commune->id => $zipcode->code . " " . $zipcode->commune->name . ' (' . $zipcode->name . ')',
                             ];
                         }
                         return $results;
