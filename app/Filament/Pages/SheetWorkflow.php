@@ -95,6 +95,7 @@ class SheetWorkflow extends Page implements HasForms, HasTable
             Forms\Components\TextInput::make('signatureCount')
                 ->label(__('input.label.sheetWorkflow.signatureCount'))
                 ->default(0)
+                ->minValue(1)
                 ->required()
                 ->helperText(__('input.helper.sheetWorkflow.signatureCount'))
                 ->numeric(),
