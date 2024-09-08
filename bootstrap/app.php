@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Foundation\Application;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
@@ -14,6 +15,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'api/*',
         ]);
+    })
+    ->withSchedule(function (Schedule $schedule) {
+        $schedule->command('backup:run --only-db')->everyMinute();
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
