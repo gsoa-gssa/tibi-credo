@@ -31,6 +31,11 @@
     "widgets.sourceStats.sheets": "Anzahl Bögen",
     "widgets.communeStats.signatures": "Anzahl Unterschriften",
     "widgets.communeStats.sheets": "Anzahl Bögen",
+    "widgets.signature_count_stats.total": "widgets.signature_count_stats.total",
+    "widgets.signature_count_stats.today": "widgets.signature_count_stats.today",
+    "widgets.signature_count_stats.month": "widgets.signature_count_stats.month",
+    "filament-users::user.resource.approve": "filament-users::user.resource.approve",
+    "filament-users::user.resource.disapprove": "filament-users::user.resource.disapprove",
     "pages.sheetWorkflow.moreInformation.title": "«Mehr Informationen» Kontakte",
     "pages.sheetWorkflow.moreInformation.description": "Falls du Kontakte auf deinem Bogen hast, welche das Feld «Mehr Informationen» angekreuzt haben, kannst du hier die Informationen eintragen. Klick auf «Kontakt hinzufügen» um einen neuen Kontakt hinzuzufügen."
 }
