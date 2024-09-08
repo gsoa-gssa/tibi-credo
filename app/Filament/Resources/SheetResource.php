@@ -75,6 +75,7 @@ class SheetResource extends Resource
                 Tables\Columns\TextColumn::make('label')
                     ->fontFamily(\Filament\Support\Enums\FontFamily::Mono)
                     ->formatStateUsing(fn (string $state): string => str_starts_with($state, 'VOX') ? $state : sprintf('%06d', $state))
+                    ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('signatureCount')
                     ->numeric()
@@ -101,6 +102,10 @@ class SheetResource extends Resource
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
+                Tables\Filters\Filter::make("demovox")
+                    ->label("Demo Vox")
+                    ->toggle()
+                    ->query(fn (Builder $query): Builder => $query->where('vox', true)),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
