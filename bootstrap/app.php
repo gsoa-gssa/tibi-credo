@@ -17,7 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withSchedule(function (Schedule $schedule) {
-        $schedule->command('backup:run --only-db')->everyMinute();
+        $schedule->command('backup:run --only-db')->dailyAt('02:00');
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
