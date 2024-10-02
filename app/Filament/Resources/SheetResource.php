@@ -123,6 +123,9 @@ class SheetResource extends Resource
                     Tables\Actions\RestoreBulkAction::make(),
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
+            ])
+            ->headerActions([
+                Tables\Actions\ExportAction::make()->exporter(\App\Filament\Exports\SheetExporter::class),
             ]);
     }
 
