@@ -55,7 +55,6 @@ class AppPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
-            ->emailVerification()
             ->passwordReset()
             ->registration()
             ->plugins([
