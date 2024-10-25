@@ -34,6 +34,7 @@ class CountingResource extends Resource
                         "other" => __("resources.countings.form.source.labels.other"),
                         "unknown" => __("resources.countings.form.source.labels.unknown"),
                     ])
+                    ->default('postal')
                     ->required(),
                 Forms\Components\Select::make('region')
                     ->options([
@@ -45,8 +46,7 @@ class CountingResource extends Resource
                         "ticino" => __("resources.countings.form.region.labels.ticino"),
                         "diverse" => __("resources.countings.form.region.labels.diverse"),
                     ])
-                    ->native(false)
-                    ->required(),
+                    ->native(false),
                 Forms\Components\DateTimePicker::make('date')
                     ->default(now())
                     ->required(),
