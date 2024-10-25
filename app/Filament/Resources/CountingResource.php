@@ -2,16 +2,16 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\CountingResource\Pages;
-use App\Filament\Resources\CountingResource\RelationManagers;
-use App\Models\Counting;
 use Filament\Forms;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
 use Filament\Tables;
+use App\Models\Counting;
+use Filament\Forms\Form;
 use Filament\Tables\Table;
+use Filament\Resources\Resource;
 use Illuminate\Database\Eloquent\Builder;
+use App\Filament\Resources\CountingResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Filament\Resources\CountingResource\RelationManagers;
 
 class CountingResource extends Resource
 {
@@ -27,6 +27,26 @@ class CountingResource extends Resource
     {
         return $form
             ->schema([
+                Forms\Components\Radio::make('source')
+                    ->options([
+                        'postal' => __("resources.countings.form.source.labels.postal"),
+                        'street' => __("resources.countings.form.source.labels.street"),
+                        "other" => __("resources.countings.form.source.labels.other"),
+                        "unknown" => __("resources.countings.form.source.labels.unknown"),
+                    ])
+                    ->required(),
+                Forms\Components\Select::make('region')
+                    ->options([
+                        'bern' => __("resources.countings.form.region.labels.bern"),
+                        'zurich' => __("resources.countings.form.region.labels.zurich"),
+                        'central' => __("resources.countings.form.region.labels.central"),
+                        'basel' => __("resources.countings.form.region.labels.basel"),
+                        'romandie' => __("resources.countings.form.region.labels.romandie"),
+                        "ticino" => __("resources.countings.form.region.labels.ticino"),
+                        "diverse" => __("resources.countings.form.region.labels.diverse"),
+                    ])
+                    ->native(false)
+                    ->required(),
                 Forms\Components\DateTimePicker::make('date')
                     ->default(now())
                     ->required(),
@@ -84,6 +104,10 @@ class CountingResource extends Resource
                 Tables\Actions\DeleteAction::make(),
                 Tables\Actions\RestoreAction::make()
                     ->visible(fn (Counting $counting) => $counting->trashed())
+            ])
+            ->headerActions([
+                Tables\Actions\ExportAction::make()
+                    ->exporter(\App\Filament\Exports\CountingExporter::class),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
