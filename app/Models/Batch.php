@@ -37,14 +37,14 @@ class Batch extends Model
     {
         parent::boot();
 
-        static::created(function ($batch) {
-            $sheets = \App\Models\Sheet::where("commune_id", $batch->commune_id)->where("status", "recorded")->get();
-            $sheets->each(function ($sheet) use ($batch) {
-                $sheet->batch_id = $batch->id;
-                $sheet->status = 'added2batch';
-                $sheet->save();
-            });
-        });
+        // static::created(function ($batch) {
+        //     $sheets = \App\Models\Sheet::where("commune_id", $batch->commune_id)->where("status", "recorded")->get();
+        //     $sheets->each(function ($sheet) use ($batch) {
+        //         $sheet->batch_id = $batch->id;
+        //         $sheet->status = 'added2batch';
+        //         $sheet->save();
+        //     });
+        // });
 
         static::deleting(function ($batch) {
             $sheets = \App\Models\Sheet::where("batch_id", $batch->id)->get();

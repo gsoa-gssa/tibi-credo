@@ -91,27 +91,6 @@ class CommuneResource extends Resource
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
-                ActionGroup::make([
-                    Tables\Actions\EditAction::make(),
-                    Tables\Actions\Action::make('create_batch')
-                        ->action(function (Model $record) {
-                            if ($record->sheets->where("status", "recorded")->count() === 0) {
-                                Notification::make()
-                                    ->title('No Sheets')
-                                    ->danger()
-                                    ->title(
-                                        "The commune does not have any sheets."
-                                    )
-                                    ->send();
-                                return;
-                            }
-                            $newBatch = \App\Models\Batch::create([
-                                'commune_id' => $record->id,
-                            ]);
-                            return redirect()->route('filament.app.resources.batches.view', $newBatch);
-                        })
-                        ->icon('heroicon-o-document-plus')
-                ]),
             ])
             ->headerActions([
                 ImportAction::make()->importer(CommuneImporter::class),
