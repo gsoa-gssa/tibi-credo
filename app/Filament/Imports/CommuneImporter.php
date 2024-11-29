@@ -14,6 +14,10 @@ class CommuneImporter extends Importer
     public static function getColumns(): array
     {
         return [
+            ImportColumn::make('ID')
+                ->requiredMapping()
+                ->numeric()
+                ->rules(['required', 'integer']),
             ImportColumn::make('name')
                 ->requiredMapping()
                 ->rules(['required', 'max:255']),
@@ -25,8 +29,8 @@ class CommuneImporter extends Importer
                 ->requiredMapping()
                 ->rules(['max:255']),
             ImportColumn::make('email')
-                ->requiredMapping()
-                ->rules(['email', 'nullable']),
+                ->rules(['email'])
+                ->requiredMapping(),
             ImportColumn::make('phone')
                 ->requiredMapping()
                 ->rules(['max:255']),
@@ -37,12 +41,11 @@ class CommuneImporter extends Importer
 
     public function resolveRecord(): ?Commune
     {
-        // return Commune::firstOrNew([
-        //     // Update existing records, matching them by `$this->data['column_name']`
-        //     'email' => $this->data['email'],
-        // ]);
+        return Commune::firstOrNew([
+            'id' => $this->data['ID'],
+        ]);
 
-        return new Commune();
+        // return new Commune();
     }
 
     public static function getCompletedNotificationBody(Import $import): string
