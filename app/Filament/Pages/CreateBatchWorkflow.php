@@ -109,7 +109,8 @@ class CreateBatchWorkflow extends Page implements HasForms
     {
         $data = $this->initiateData;
         $commune = \App\Models\Commune::find($data['commune_id']);
-        $unassignedSheets = $commune->sheets()->whereNull('batch_id')->get();
+        // Find all unassigned sheets that are older than 24 hours
+        $unassignedSheets = $commune->sheets()->whereNull('batch_id')->whereDate('created_at', '<', now()->subDay())->get();
         if ($unassignedSheets->count() == $data['numberOfSheets']) {
             $batch = Batch::create([
                 'commune_id' => $data['commune_id'],
