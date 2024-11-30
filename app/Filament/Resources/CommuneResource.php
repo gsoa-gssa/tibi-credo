@@ -45,6 +45,9 @@ class CommuneResource extends Resource
                 Forms\Components\TextInput::make('email')
                     ->email()
                     ->nullable(),
+                Forms\Components\TextInput::make('website')
+                    ->url()
+                    ->nullable(),
                 Forms\Components\TextInput::make('phone')
                     ->nullable(),
                 Forms\Components\ToggleButtons::make('lang')

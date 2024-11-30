@@ -30,6 +30,9 @@ class CommuneImporter extends Importer
                 ->rules(['max:255']),
             ImportColumn::make('email')
                 ->requiredMapping(),
+            ImportColumn::make('website')
+                ->requiredMapping()
+                ->rules(['max:255']),
             ImportColumn::make('phone')
                 ->requiredMapping()
                 ->rules(['max:255']),
