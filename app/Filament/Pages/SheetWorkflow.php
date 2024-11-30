@@ -72,6 +72,7 @@ class SheetWorkflow extends Page implements HasForms, HasTable
                     ->offIcon('heroicon-o-x-circle')
                     ->live()
                     ->id('vox')
+                    ->autofocus(true)
                     ->default("on"),
             \HasanAhani\FilamentOtpInput\Components\OtpInput::make('label')
                 ->label(__('input.label.sheetWorkflow.label'))

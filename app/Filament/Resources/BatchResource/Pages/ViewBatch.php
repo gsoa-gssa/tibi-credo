@@ -36,7 +36,7 @@ class ViewBatch extends ViewRecord
                     $pdf = Pdf::loadView('batch.letter-' . $batch->commune->lang, ['batch' => $batch]);
                     return response()->streamDownload(function () use ($pdf) {
                         echo $pdf->output();
-                    }, $batch->id . '.pdf');
+                    }, 'batch-letter-ID_' . $batch->id . '.pdf');
                 }),
             ActionGroup::make([
                 Action::make('edit')
