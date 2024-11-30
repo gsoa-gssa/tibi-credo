@@ -134,7 +134,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($batch->sheets as $sheet)
+                    @foreach ($batch->sheets->sortBy("label") as $sheet)
                         <tr>
                             <td class="monospace">{{$sheet->label}}</td>
                             <td style="text-align: end">{{$sheet->signatureCount}}</td>
