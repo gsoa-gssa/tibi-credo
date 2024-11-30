@@ -59,6 +59,14 @@ class SheetWorkflow extends Page implements HasForms, HasTable
     public function mount()
     {
         $this->label = auth()->user()->getNextSheetLabel();
+        $lastsheet = Sheet::where('user_id', auth()->id())->orderBy('id', 'desc')->first();
+        // Check if last sheet exists and it isnt older than 1 hour
+        if ($lastsheet && $lastsheet->created_at->diffInHours(now()) < 1) {
+            if ($lastsheet->vox) {
+                $this->vox = true;
+                $this->source_id = 1;
+            }
+        }
     }
 
     public function form(Form $form): Form
@@ -92,6 +100,8 @@ class SheetWorkflow extends Page implements HasForms, HasTable
                 ->options(Source::all()->pluck("code", 'id'))
                 ->label(__('input.label.sheetWorkflow.source'))
                 ->helperText(__('input.helper.sheetWorkflow.source'))
+                // Disable if vox
+                ->disabled(fn(Get $get) => $get("vox"))
                 ->searchable(),
             Forms\Components\TextInput::make('signatureCount')
                 ->label(__('input.label.sheetWorkflow.signatureCount'))
