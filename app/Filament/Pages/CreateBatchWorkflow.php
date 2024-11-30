@@ -151,7 +151,6 @@ class CreateBatchWorkflow extends Page implements HasForms
                 ->danger()
                 ->seconds(15)
                 ->send();
-            return;
         }
         $sheets = \App\Models\Sheet::whereIn('label', $manualSheets)->get();
         if ($sheets->count() != count($manualSheets))
