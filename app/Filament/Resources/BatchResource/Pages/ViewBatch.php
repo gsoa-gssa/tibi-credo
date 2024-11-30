@@ -33,19 +33,7 @@ class ViewBatch extends ViewRecord
                             ->send();
                         return;
                     }
-                    if ($batch->commune->email === null) {
-                        Notification::make()
-                            ->danger()
-                            ->seconds(15)
-                            ->title(
-                                "The commune does not have an e-mail Address. <a href=\"" .
-                                route('filament.app.resources.communes.edit', $batch->commune) .
-                                "\" class=\"underline\" target=\"_blank\">Add it here.</a>"
-                            )
-                            ->send();
-                        return;
-                    }
-                    $pdf = Pdf::loadView('batch.letter', ['batch' => $batch]);
+                    $pdf = Pdf::loadView('batch.letter-' . $batch->commune->lang, ['batch' => $batch]);
                     return response()->streamDownload(function () use ($pdf) {
                         echo $pdf->output();
                     }, $batch->id . '.pdf');
