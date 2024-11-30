@@ -138,7 +138,7 @@ class CreateBatchWorkflow extends Page implements HasForms
             if (!ctype_digit($cleanedSheet)) {
                 $manualSheets[$key] = "VOX–" . substr($cleanedSheet, strcspn($cleanedSheet, '0123456789'));
             } else {
-                $manualSheets[$key] = (int) $cleanedSheet;
+                $manualSheets[$key] = $cleanedSheet;
             }
         }
         // Create SheetStatus Array containing the manual sheets as string extended with " - OK"
