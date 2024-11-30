@@ -18,7 +18,7 @@ Route::prefix("api")->group(function () {
 if (env('APP_ENV') === 'local') {
     Route::get('/batch-letter', function () {
         $batch = App\Models\Batch::with("sheets")->get()->first();
-        $pdf = Pdf::loadView('batch.letter-it', ['batch' => $batch]);
+        $pdf = Pdf::loadView('batch.letter-de', ['batch' => $batch]);
         return $pdf->stream();
     });
 }

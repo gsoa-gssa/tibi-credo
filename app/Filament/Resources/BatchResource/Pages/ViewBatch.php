@@ -9,6 +9,8 @@ use Filament\Resources\Pages\ViewRecord;
 use App\Filament\Resources\BatchResource;
 use Filament\Actions\ActionGroup;
 use Filament\Notifications\Notification;
+use Filament\Support\Enums\ActionSize;
+
 
 class ViewBatch extends ViewRecord
 {
@@ -38,6 +40,31 @@ class ViewBatch extends ViewRecord
                         echo $pdf->output();
                     }, 'batch-letter-ID_' . $batch->id . '.pdf');
                 }),
+            ActionGroup::make([
+                Action::make('exportLetterRightA4')
+                    ->label('Export Letter (Right A4)')
+                    ->icon('heroicon-o-document')
+                    ->action(function (Model $batch){
+                        if ($batch->commune->address === null) {
+                            Notification::make()
+                                ->danger()
+                                ->seconds(15)
+                                ->title(
+                                    "The commune does not have an address. <a href=\"" .
+                                    route('filament.app.resources.communes.edit', $batch->commune) .
+                                    "\" class=\"underline\" target=\"_blank\">Add it here.</a>"
+                                )
+                                ->send();
+                            return;
+                        }
+                        $pdf = Pdf::loadView('batch.letter-right-a4-' . $batch->commune->lang, ['batch' => $batch]);
+                        return response()->streamDownload(function () use ($pdf) {
+                            echo $pdf->output();
+                        }, 'batch-letter-right-a4-ID_' . $batch->id . '.pdf');
+                    }),
+            ])
+            ->button()
+            ->label('Export Different Formats'),
             ActionGroup::make([
                 Action::make('edit')
                     ->label('Edit Batch')

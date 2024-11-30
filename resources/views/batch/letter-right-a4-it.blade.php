@@ -20,7 +20,8 @@
             width: 8cm;
             height: 2.5cm;
             position: absolute;
-            top: 3.2cm;
+            top: 4.3cm;
+            right: 1cm;
             display: flex;
             justify-content: center;
             padding-left: 1cm;
@@ -78,8 +79,8 @@
         <div>
             <p style="border-bottom: 1px solid black; margin-bottom: 0">
                 <small>
-                    Allianz für ein Atomwaffenverbot,<br>
-                    PF 1069, 8031 Zürich</br>
+                    Alleanza per la proibizione delle armi nucleari,<br>
+                    CP 1069, 8031 Zurigo</br>
                 </small>
             </p>
             <p style="margin-top: 0">
@@ -91,36 +92,36 @@
 
         <div id="date-and-subject">
             <p>
-                <em style="font-size: 8pt">Zürich, {{$batch->created_at->format("d.m.Y")}}</em>
+                <em style="font-size: 8pt">Zurigo, {{$batch->created_at->format("d.m.Y")}}</em>
             </p>
             <p>
-                <b>Betreff:</b> Stimmrechtsbescheinigung der Unterschriftenbögen für die Atomwaffenverbots-Initiative
+                <b>Soggetto :</b> Attestazione del diritto di voto «Iniziativa per la proibizione delle armi nucleari»
             </p>
         </div>
         <div id="main-letter">
             <p>
-                <b>Sehr geehrte Damen und Herren,</b>
+                <b>Gentili Signore e Signori,</b>
             </p>
             <p>
-                Geschützt auf die Artikel 62, 63 und 70 Bundesgesetz über die politische Rechte vom 17. Dezember 1976 stellen wir Ihnen in der Beilage {{count($batch->sheets)}} Unterschriftenliste für die eidgenössische Volksinitiative für den Beitritt der Schweiz zum UNO-Atomwaffenverbotsvertrag «Atomwaffenverbots-Initiative» mit insgesamt {{$batch->sheets->sum("signatureCount")}} Unterschriften zu. Die Referenznummern der Bögen können Sie der Tabelle der folgenden Seite(n) entnehmen.
+                Visti gli articoli 62, 63 e 70 della legge federale del 17 dicembre 1976 sui diritti politici vi inviamo in allegato {{count($batch->sheets)}} liste delle firme a sostegno della nostra Iniziativa popolare federale «Per l’adesione della Svizzera al Trattato delle Nazioni Unite sulla proibizione delle armi nucleari (Iniziativa per la proibizione delle armi nucleari)» sulle quali figurano complessivamente {{$batch->sheets->sum("signatureCount")}} firme. I numeri di riferimento delle schede sono riportati nella tabella della/e pagina/e seguente/i.
             </p>
             <p>
-                Wir ersuchen Sie höflich, das Stimmrecht der Unterzeichnerinnen und Unterzeichner zu bescheinigen. Bitte achten Sie darauf, dass die Felder für Ort, Datum, eigenhändige Unterschrift, amtliche Eigenschaft und Amtsstempel auf allen Unterschriftenlisten vollständig ausgefüllt sind. Dürfen wir Sie bitten, die Unterschriftenlisten innerhalb einer Woche bescheinigt zurückzusenden an:
+                Vi preghiamo cortesemente di attestare il diritto di voto dei firmatari e di rinviarci le liste con le relative attestazioni entro due settimane al seguente indirizzo:
             </p>
             <p>
-                <b>Allianz für ein Atomwaffenverbot</b></br>
-                Postfach 1069, 8031 Zürich</br>
+                <b>Alleanza per la proibizione delle armi nucleari</b></br>
+                CP 1069, 8031 Zürich</br>
             </p>
             <p>
-                Sollten Sie Fragen haben, zögern Sie bitte nicht, uns unter der Nummer +41 79 441 80 05 oder per E-Mail unter <a href="mailto:lukas@atomwaffenverbot.ch">lukas@atomwaffenverbot.ch</a> zu kontaktieren.
+                Per qualsiasi domanda, non esitate a contattarci al numero +41 79 426 94 48 o via e-mail all'indirizzo <a href=“mailto:noemi@divieto-armi-nucleari.ch”>noemi@divieto-armi-nucleari.ch</a>.
             </p>
         </div>
         <div id="thank-you">
             <p>
-                Wir danken Ihnen für Ihre Unterstützung und verbleiben mit freundlichen Grüssen</br>
-                <b>Allianz für ein Atomwaffenverbot</b><br><br>
-                <small><em>Dieses Dokument ist gültig ohne Unterschrift.</em></small><br>
-                <small><b>Anhang:</b> Tabelle mit Referenznummern der Unterschriftenbögen</small>
+                Vi ringraziamo per il vostro sostegno e vi inviamo i nostri migliori saluti.</br>
+                <b>Alleanza per la proibizione delle armi nucleari</b><br><br>
+                <small><em>Il presente documento è valido senza firma.</em></small><br>
+                <small><b>Appendice:</b> Tabella dei numeri di riferimento dei fogli firma</small>
             </p>
         </div>
 
@@ -128,8 +129,8 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Nummer</th>
-                        <th>Anzahl Unterschriften</th>
+                        <th>Numeri di riferimento</th>
+                        <th>Numero di firme</th>
                     </tr>
                 </thead>
                 <tbody>

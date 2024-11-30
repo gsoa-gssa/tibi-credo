@@ -20,7 +20,8 @@
             width: 8cm;
             height: 2.5cm;
             position: absolute;
-            top: 3.2cm;
+            top: 4.3cm;
+            right: 1cm;
             display: flex;
             justify-content: center;
             padding-left: 1cm;

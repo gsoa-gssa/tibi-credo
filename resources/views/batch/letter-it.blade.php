@@ -5,9 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <style>
-        @page {
-            margin: 0;
-        }
 
         body {
             font-family: Arial, sans-serif;
@@ -16,8 +13,6 @@
             position: relative;
         }
         #main-body {
-            margin-left: 1.25cm;
-            margin-right: 1.25cm;
             margin-top: 10cm;
         }
 
@@ -25,8 +20,7 @@
             width: 8cm;
             height: 2.5cm;
             position: absolute;
-            top: 4.5cm;
-            left: 1.25cm;
+            top: 3.2cm;
             display: flex;
             justify-content: center;
             padding-left: 1cm;
@@ -53,7 +47,6 @@
         #sheets-table {
             page-break-before: always;
             width: 100%;
-            margin-top: 1.2cm;
         }
 
         table {
