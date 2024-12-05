@@ -108,6 +108,7 @@ class SheetWorkflow extends Page implements HasForms, HasTable
                 ->label(__('input.label.sheetWorkflow.signatureCount'))
                 ->default(0)
                 ->minValue(1)
+                ->maxValue(10)
                 ->required()
                 ->helperText(__('input.helper.sheetWorkflow.signatureCount'))
                 ->numeric(),
