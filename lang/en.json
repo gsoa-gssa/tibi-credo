@@ -12,6 +12,7 @@
     "input.helper.sheetWorkflow.signatureCount": "Count all signatures on the sheet.",
     "input.label.sheetWorkflow.commune": "Commune",
     "input.helper.sheetWorkflow.commune": "Type the postal code to find the commune. If the commune is not found, set the sheet aside.",
+    "input.helper.sheetWorkflow.place": "Locality",
     "tables.columns.contacts.firstname": "First Name",
     "tables.columns.contacts.lastname": "Last Name",
     "tables.columns.contacts.street_no": "Street and Number",

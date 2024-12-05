@@ -121,7 +121,7 @@ class SheetWorkflow extends Page implements HasForms, HasTable
                         $results = [];
                         foreach ($zipcodes as $zipcode) {
                             $results[] = [
-                                $zipcode->commune->id => $zipcode->code . " " . $zipcode->commune->name . ' (' . $zipcode->name . ')',
+                                $zipcode->commune->id => $zipcode->code . " " . $zipcode->commune->name . ' (' . __("input.helper.sheetWorkflow.place") . ": " . $zipcode->name . ')',
                             ];
                         }
                         return $results;
