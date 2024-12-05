@@ -120,8 +120,9 @@ class SheetWorkflow extends Page implements HasForms, HasTable
                         $zipcodes = Zipcode::where('code', 'like', "%$search%")->orWhere('name', 'like', "%$search%")->get();
                         $results = [];
                         foreach ($zipcodes as $zipcode) {
+                            $label = $zipcode->commune->name != $zipcode->name ? $zipcode->code . " " . $zipcode->commune->name . ' (' . __("input.helper.sheetWorkflow.place") . ": " . $zipcode->name . ')' : $zipcode->code . " " . $zipcode->commune->name;
                             $results[] = [
-                                $zipcode->commune->id => $zipcode->code . " " . $zipcode->commune->name . ' (' . __("input.helper.sheetWorkflow.place") . ": " . $zipcode->name . ')',
+                                $zipcode->commune->id => $label,
                             ];
                         }
                         return $results;
