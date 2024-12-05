@@ -80,7 +80,7 @@ class SheetWorkflow extends Page implements HasForms, HasTable
                     ->offIcon('heroicon-o-x-circle')
                     ->live()
                     ->id('vox')
-                    ->autofocus(true)
+                    ->autofocus(false)
                     ->default("on"),
             \HasanAhani\FilamentOtpInput\Components\OtpInput::make('label')
                 ->label(__('input.label.sheetWorkflow.label'))
@@ -102,6 +102,7 @@ class SheetWorkflow extends Page implements HasForms, HasTable
                 ->helperText(__('input.helper.sheetWorkflow.source'))
                 // Disable if vox
                 ->disabled(fn(Get $get) => $get("vox"))
+                ->autofocus(true)
                 ->searchable(),
             Forms\Components\TextInput::make('signatureCount')
                 ->label(__('input.label.sheetWorkflow.signatureCount'))
@@ -125,6 +126,7 @@ class SheetWorkflow extends Page implements HasForms, HasTable
                         }
                         return $results;
                     })
+                ->searchDebounce(200)
                 ->preload()
                 ->required(),
         ])
