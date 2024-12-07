@@ -118,6 +118,9 @@ class SheetWorkflow extends Page implements HasForms, HasTable
                 ->helperText(__('input.helper.sheetWorkflow.commune'))
                 ->getSearchResultsUsing(
                     function (string $search): array {
+                        if (strlen($search) < 4) {
+                            return [];
+                        }
                         $zipcodes = Zipcode::where('code', 'like', "%$search%")->orWhere('name', 'like', "%$search%")->get();
                         $results = [];
                         foreach ($zipcodes as $zipcode) {
