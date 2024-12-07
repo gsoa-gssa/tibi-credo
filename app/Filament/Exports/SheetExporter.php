@@ -20,6 +20,8 @@ class SheetExporter extends Exporter
             ExportColumn::make('signatureCount'),
             ExportColumn::make('commune.name'),
             ExportColumn::make('vox'),
+            ExportColumn::make('created_at'),
+            ExportColumn::make('user.name')
         ];
     }
 
