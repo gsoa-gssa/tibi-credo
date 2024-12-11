@@ -93,6 +93,7 @@ class SheetWorkflow extends Page implements HasForms, HasTable
                 ->helperText(__('input.helper.sheetWorkflow.label'))
                 ->prefix('VOX – ')
                 ->default('')
+                ->autofocus(fn(Get $get) => $get("vox"))
                 ->visible(fn(Get $get) => $get("vox"))
                 ->required(),
             Forms\Components\Select::make("source_id")
@@ -102,7 +103,7 @@ class SheetWorkflow extends Page implements HasForms, HasTable
                 ->helperText(__('input.helper.sheetWorkflow.source'))
                 // Disable if vox
                 ->disabled(fn(Get $get) => $get("vox"))
-                ->autofocus(true)
+                ->autofocus(fn(Get $get) => !$get("vox"))
                 ->searchable(),
             Forms\Components\TextInput::make('signatureCount')
                 ->label(__('input.label.sheetWorkflow.signatureCount'))
