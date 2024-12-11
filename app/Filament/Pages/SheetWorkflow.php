@@ -122,7 +122,7 @@ class SheetWorkflow extends Page implements HasForms, HasTable
                         if (strlen($search) < 4) {
                             return [];
                         }
-                        $zipcodes = Zipcode::where('code', 'like', "%$search%")->orWhere('name', 'like', "%$search%")->get();
+                        $zipcodes = Zipcode::where('code', 'like', "%$search%")->orWhere('name', 'like', "%$search%")->orderBy("number_of_dwellings", "desc")->get();
                         $results = [];
                         foreach ($zipcodes as $zipcode) {
                             $label = $zipcode->commune->name != $zipcode->name ? $zipcode->code . " " . $zipcode->commune->name . ' (' . __("input.helper.sheetWorkflow.place") . ": " . $zipcode->name . ')' : $zipcode->code . " " . $zipcode->commune->name;

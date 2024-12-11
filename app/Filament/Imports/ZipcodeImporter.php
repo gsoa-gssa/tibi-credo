@@ -14,6 +14,10 @@ class ZipcodeImporter extends Importer
     public static function getColumns(): array
     {
         return [
+            ImportColumn::make('ID')
+                ->requiredMapping()
+                ->numeric()
+                ->rules(['required', 'integer']),
             ImportColumn::make('name')
                 ->requiredMapping()
                 ->rules(['required', 'max:255']),
@@ -24,17 +28,17 @@ class ZipcodeImporter extends Importer
                 ->requiredMapping()
                 ->relationship(resolveUsing: "officialId")
                 ->rules(['required']),
+            ImportColumn::make('number_of_dwellings')
+                ->requiredMapping()
+                ->numeric(),
         ];
     }
 
     public function resolveRecord(): ?Zipcode
     {
-        // return Zipcode::firstOrNew([
-        //     // Update existing records, matching them by `$this->data['column_name']`
-        //     'email' => $this->data['email'],
-        // ]);
-
-        return new Zipcode();
+        return Zipcode::firstOrNew([
+            'id' => $this->data['ID'],
+        ]);
     }
 
     public static function getCompletedNotificationBody(Import $import): string

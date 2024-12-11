@@ -42,6 +42,10 @@ class ZipcodeResource extends Resource
                     ->searchable()
                     ->native(false)
                     ->required(),
+                Forms\Components\TextInput::make("number_of_dwellings")
+                    ->required()
+                    ->numeric()
+                    ->minValue(0),
             ]);
     }
 
