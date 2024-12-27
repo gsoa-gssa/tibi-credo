@@ -203,7 +203,7 @@ class SheetWorkflow extends Page implements HasForms, HasTable
         $this->validate();
         $data = $this->form->getState();
         $data['user_id'] = auth()->id();
-        if (isset($data['vox'])) {
+        if (isset($data['vox']) && $data['vox']) {
             $data['label'] = "VOX–" . $data['vox_label'];
             unset($data['vox_label']);
         } else {
