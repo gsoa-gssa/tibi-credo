@@ -51,6 +51,8 @@ class SourceResource extends Resource
                 Forms\Components\TextInput::make('code')
                     ->required()
                     ->maxLength(255),
+                Forms\Components\TextInput::make('shortcut')
+                    ->maxLength(2),
             ]);
     }
 
