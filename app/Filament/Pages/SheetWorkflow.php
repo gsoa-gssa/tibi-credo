@@ -98,23 +98,18 @@ class SheetWorkflow extends Page implements HasForms, HasTable
                 ->required(),
             Forms\Components\Select::make("source_id")
                 ->required()
-                ->getSearchResultsUsing(
-                    function (string $search): array {
-                        $sources = Source::where('code', 'like', "$search%")->orWhere('shortcut', 'like', "%$search%")->orderBy("code")->get();
-                        $results = [];
-                        foreach ($sources as $source) {
-                            if ($source->shortcut) {
-                                $results[] = [
-                                    $source->id => $source->code . ' (' . __("input.helper.source.shortcut") . ": " . $source->shortcut . ')',
-                                ];
-                            } else {
-                                $results[] = [
-                                    $source->id => $source->code,
-                                ];
-                            }
+                ->options(function () {
+                    $sources = Source::all();
+                    $options = [];
+                    foreach ($sources as $source) {
+                        if ($source->shortcut) {
+                            $options[$source->id] = $source->shortcut . " " . $source->code;
+                        } else {
+                            $options[$source->id] = $source->code;
                         }
-                        return $results;
-                    })
+                    }
+                    return $options;
+                })
                 ->preload()
                 ->searchDebounce(200)
                 ->label(__('input.label.sheetWorkflow.source'))
