@@ -21,6 +21,11 @@ class CreateBatchWorkflow extends Page implements HasForms
     public ?array $initiateData = [];
 
     public ?array $sheetsData = [];
+
+    public bool $sheetsChecked = false;
+    public bool $countChecked = false;
+    public bool $batchReady = false;
+
     public bool $addSheetsManually = false;
 
     public function getTitle(): string | Htmlable
@@ -99,9 +104,14 @@ class CreateBatchWorkflow extends Page implements HasForms
     public function addSheetsManuallyActions(): array
     {
         return [
+            \Filament\Actions\Action::make('addSheetsManuallyCheck')
+                ->label(__("pages.createBatchWorkflow.addSheetsManually.check"))
+                ->action("addSheetsManuallyCheck")
+                ->visible(fn () => !$this->batchReady),
             \Filament\Actions\Action::make('addSheetsManuallySubmit')
                 ->label(__("pages.createBatchWorkflow.addSheetsManually.submit"))
                 ->submit("addSheetsManuallySubmit")
+                ->visible(fn () => $this->batchReady)
         ];
     }
 
@@ -125,8 +135,99 @@ class CreateBatchWorkflow extends Page implements HasForms
         }
     }
 
+    public function addSheetsManuallyCheck()
+    {
+        $data = $this->sheetsData;
+        $manualSheets = explode("\n", $data['sheet_ids']);
+        $manualSheets = array_map('trim', $manualSheets);
+        $manualSheets = array_filter($manualSheets);
+        if (count($manualSheets) == 0) {
+            Notification::make()
+                ->title(__('pages.createBatchWorkflow.addSheetsManually.empty.title'))
+                ->body(__('pages.createBatchWorkflow.addSheetsManually.empty.body'))
+                ->danger()
+                ->seconds(15)
+                ->send();
+            return;
+        }
+        $this->sheetsData["sheet_ids"] = implode("\n", $manualSheets);
+        $this->sheetsData["problemSheets"] = "";
+        foreach($manualSheets as $key => $manualSheet) {
+            $cleanedSheet = trim($manualSheet);
+            // Check if $manualSheet only contains numbers
+            if (!ctype_digit($cleanedSheet)) {
+                $manualSheets[$key] = "VOX–" . substr($cleanedSheet, strcspn($cleanedSheet, '0123456789'));
+            } else {
+                $manualSheets[$key] = $cleanedSheet;
+            }
+        }
+        // Create SheetStatus Array containing the manual sheets as string extended with " - OK"
+        $sheetsInformation = array_fill_keys($manualSheets, NULL);
+        $sheets = \App\Models\Sheet::whereIn('label', $manualSheets)->get();
+        if ($sheets->count() != count($manualSheets))
+        {
+            $problemSheets = array_diff($manualSheets, $sheets->pluck('label')->toArray());
+            foreach ($problemSheets as $problemSheet) {
+                $sheetsInformation[$problemSheet] = $problemSheet . __("pages.createBatchWorkflow.addSheetsManually.sheetStatus.notFound");
+            }
+        }
+
+        if ($sheets->where("batch_id", null)->count() != count($manualSheets))
+        {
+            $problemSheets = $sheets->where("batch_id", "!=", null)->pluck('label')->toArray();
+            foreach ($problemSheets as $problemSheet) {
+                $sheetsInformation[$problemSheet] = $problemSheet . __("pages.createBatchWorkflow.addSheetsManually.sheetStatus.notUnassigned");
+            }
+        }
+
+        if ($sheets->where("commune_id", $this->initiateData['commune_id'])->count() != count($manualSheets))
+        {
+            $problemSheets = $sheets->where("commune_id", "!=", $this->initiateData['commune_id'])->pluck('label')->toArray();
+            foreach ($problemSheets as $problemSheet) {
+                $sheetsInformation[$problemSheet] = $problemSheet . __("pages.createBatchWorkflow.addSheetsManually.sheetStatus.notInCommune");
+            }
+        }
+        if (empty(array_filter($sheetsInformation))) {
+            $this->sheetsChecked = true;
+        }
+
+        // Add " - OK" to the sheets that are OK
+        array_walk($sheetsInformation, function (&$value, $key) {
+            if (is_null($value)) {
+                $value = $key . __("pages.createBatchWorkflow.addSheetsManually.sheetStatus.ok");
+            }
+        });
+
+        $this->sheetsData['problemSheets'] = implode("\n", $sheetsInformation);
+
+        if (count($manualSheets) != $this->initiateData['numberOfSheets']) {
+            Notification::make()
+                ->title(__('pages.createBatchWorkflow.addSheetsManually.numberMismatch.title'))
+                ->body(__('pages.createBatchWorkflow.addSheetsManually.numberMismatch.body'))
+                ->danger()
+                ->seconds(15)
+                ->send();
+            return;
+        } else {
+            $this->countChecked = true;
+        }
+
+        if ($this->sheetsChecked && $this->countChecked) {
+            $this->batchReady = true;
+        }
+    }
+
     public function addSheetsManuallySubmit()
     {
+        if (!$this->sheetsChecked) {
+            Notification::make()
+                ->title(__('pages.createBatchWorkflow.addSheetsManually.checkFirst.title'))
+                ->body(__('pages.createBatchWorkflow.addSheetsManually.checkFirst.body'))
+                ->danger()
+                ->seconds(15)
+                ->send();
+            return;
+        }
         $data = $this->sheetsData;
         $manualSheets = explode("\n", $data['sheet_ids']);
         $manualSheets = array_map('trim', $manualSheets);
