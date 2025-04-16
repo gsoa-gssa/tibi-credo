@@ -22,7 +22,7 @@ class CreateSheetRequest extends FormRequest
     public function rules(): array
     {
         return [
-			'label' => 'required|string',
+			'label' => 'required|string|unique:sheets,label',
 			'signatureCount' => 'required|integer',
 			'commune_id' => 'required|integer',
 			'source_id' => 'required|integer',
