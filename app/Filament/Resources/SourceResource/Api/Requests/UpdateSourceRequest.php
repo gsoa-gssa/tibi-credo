@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Filament\Resources\SheetResource\Api\Requests;
+namespace App\Filament\Resources\SourceResource\Api\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class CreateSheetRequest extends FormRequest
+class UpdateSourceRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,11 +22,9 @@ class CreateSheetRequest extends FormRequest
     public function rules(): array
     {
         return [
-			'label' => 'required|string',
-			'signatureCount' => 'required|integer',
-			'commune_id' => 'required|integer',
-			'source_id' => 'required|integer',
-			'vox' => 'boolean'
+			'label' => 'required',
+			'code' => 'required',
+			'shortcut' => 'required'
 		];
     }
 }

@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\SourceResource\Pages;
 use App\Filament\Resources\SourceResource\RelationManagers;
 use App\Models\Source;
+use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -13,7 +14,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class SourceResource extends Resource
+class SourceResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = Source::class;
 
@@ -108,6 +109,19 @@ class SourceResource extends Resource
             'create' => Pages\CreateSource::route('/create'),
             'edit' => Pages\EditSource::route('/{record}/edit'),
             'view' => Pages\ViewSource::route('/{record}'),
+        ];
+    }
+
+    public static function getPermissionPrefixes(): array
+    {
+        return [
+            'view',
+            'view_any',
+            'create',
+            'update',
+            'delete',
+            'delete_any',
+            'find'
         ];
     }
 }
