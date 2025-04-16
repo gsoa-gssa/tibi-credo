@@ -4,8 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Rupadana\ApiService\Contracts\HasAllowedFilters;
 
-class Source extends Model
+class Source extends Model implements HasAllowedFilters
 {
     use HasFactory;
 
@@ -19,5 +20,17 @@ class Source extends Model
     public function sheets()
     {
         return $this->hasMany(Sheet::class);
+    }
+
+    /**
+     * Define which fields can be filtered for this model.
+     */
+    public static function getAllowedFilters(): array
+    {
+        $filters = [
+            "code"
+        ];
+
+        return $filters;
     }
 }

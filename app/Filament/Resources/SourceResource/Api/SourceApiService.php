@@ -13,7 +13,7 @@ class SourceApiService extends ApiService
     public static function handlers() : array
     {
         return [
-            Handlers\FindHandler::class
+            Handlers\PaginationHandler::class,
         ];
     }
 }

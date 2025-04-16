@@ -105,12 +105,4 @@ class SourcePolicy
     {
         return $user->can('reorder_source');
     }
-
-    /**
-     * Determine whether the user can find a source.
-     */
-    public function find(User $user): bool
-    {
-        return $user->can('find_source');
-    }
 }
