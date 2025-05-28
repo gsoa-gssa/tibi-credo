@@ -15,8 +15,10 @@
     @endif
 
     <style>
-        textarea {
-            font-family: monospace !important;
+        div[wire\:key*="sheetsData.sheet_checkbox_"]:focus-within {
+            border:2px solid rgb(71, 71, 71) !important;
+            border-radius: 3px;
+            transition: background 0.2s;
         }
     </style>
 </x-filament-panels::page>

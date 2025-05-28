@@ -59,6 +59,7 @@ class CreateBatchWorkflowB extends Page implements HasForms
                     ->required() # BUG this required is not working
                     ->relationship('commune', 'name')
                     ->preload()
+                    ->disabled(fn () => $this->pageTwo)
                     ->searchable(),
             ])
             ->columns(1)
