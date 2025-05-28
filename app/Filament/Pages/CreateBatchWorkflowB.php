@@ -20,7 +20,7 @@ class CreateBatchWorkflowB extends Page implements HasForms
 
     public ?array $initiateData = [];
 
-    public ?array $sheetsData = [];
+    public ?array $sheetsData = null;
 
     public bool $pageTwo = false;
 
@@ -79,11 +79,32 @@ class CreateBatchWorkflowB extends Page implements HasForms
         # to do this map the unassigned sheets to checkboxes
         $checkboxes = $unassignedSheets->map(function ($sheet) {
             return Forms\Components\Checkbox::make("sheet_checkbox_{$sheet->id}")
-                ->label($sheet->label)
-                ->default(true);
+                ->label($sheet->label);
+                // ->default(true);
         });
+
+        // TODO ugly workaround to avoid empty checkbox
+        // for each unassigned sheet write default true to sheetsData
+        if($this->sheetsData === null) {
+            
+            $this->sheetsData = $unassignedSheets->mapWithKeys(function ($sheet) {
+                return ["sheet_checkbox_{$sheet->id}" => true];
+            })->toArray();
+        }
+
         return $form
             ->schema($checkboxes->toArray())
+            // ->schema([
+            //     Forms\Components\Checkbox::make("sheet_checkbox_1")
+            //     ->label("000000")
+            //     ->default(true),
+            //     Forms\Components\Checkbox::make("sheet_checkbox_2")
+            //     ->label("000001")
+            //     ->default(true),
+            //     Forms\Components\Checkbox::make("sheet_checkbox_3")
+            //     ->label("000002")
+            //     ->default(true)
+            // ])
             ->columns(1)
             ->statePath('sheetsData');
     }
@@ -114,14 +135,19 @@ class CreateBatchWorkflowB extends Page implements HasForms
     public function addSheetsManuallySubmit()
     {
         $data = $this->sheetsData;
-        if (empty($data)) {
+        
+        // check if data is empty or if no sheets are selected
+        if (empty($data) || !collect($data)->contains(function ($value, $key) {
+            return strpos($key, 'sheet_checkbox_') === 0 && $value === true;
+        })) {
+            // Show a notification if no sheets are selected
             Notification::make()
                 ->title(__('pages.createBatchWorkflowB.addSheetsManually.noSheetsSelected'))
                 ->danger()
                 ->send();
             return;
         }
-       dump($data);
+                
         // get all sheets that are checked
         $sheets = collect($data)
             ->filter(function ($value, $key) {
