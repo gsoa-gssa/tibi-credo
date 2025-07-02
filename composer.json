@@ -16,6 +16,7 @@
         "laravel/framework": "^11.0",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
+        "maatwebsite/excel": "^3.1",
         "pxlrbt/filament-activity-log": "^1.1",
         "pxlrbt/filament-spotlight": "^1.2",
         "rupadana/filament-api-service": "^3.4",

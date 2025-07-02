@@ -50,6 +50,20 @@ class CommuneResource extends Resource
                     ->nullable(),
                 Forms\Components\TextInput::make('phone')
                     ->nullable(),
+                Forms\Components\Select::make('addressgroup')
+                    ->options([
+                        'none' => 'None',
+                        'svegeneve' => 'Service des votations et éléctions de Genève',
+                    ])
+                    ->default('none')
+                    ->label('Address Group')
+                    ->required(),
+                Forms\Components\Select::make('canton_id')
+                    ->relationship('canton', 'label')
+                    ->required()
+                    ->searchable()
+                    ->preload()
+                    ->label('Canton'),
                 Forms\Components\ToggleButtons::make('lang')
                     ->options([
                         'de' => 'German',

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Commune extends Model
 {
@@ -22,5 +23,10 @@ class Commune extends Model
     public function zipcodes(): HasMany
     {
         return $this->hasMany(Zipcode::class);
+    }
+
+    public function canton(): BelongsTo
+    {
+        return $this->belongsTo(Canton::class);
     }
 }
