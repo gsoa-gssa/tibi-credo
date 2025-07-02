@@ -171,21 +171,33 @@ class SheetWorkflow extends Page implements HasForms, HasTable
                     ->sortable(),
             ])
             ->headerActions([
-                Tables\Actions\Action::make('add')
-                    ->label(__('tables.actions.contacts.add'))
-                    ->form([
-                        Forms\Components\TextInput::make('firstname')
-                            ->label(__('input.label.contacts.firstname'))
-                            ->required(),
-                        Forms\Components\TextInput::make('lastname')
-                            ->label(__('input.label.contacts.lastname'))
-                            ->required(),
-                        Forms\Components\TextInput::make('street_no')
-                            ->label(__('input.label.contacts.street_no'))
-                            ->required(),
-                        Forms\Components\DatePicker::make('birthdate')
-                            ->label(__('input.label.contacts.birthdate'))
-                            ->required(),
+                    Tables\Actions\Action::make('add')
+                        ->label(__('tables.actions.contacts.add'))
+                        ->form([
+                            Forms\Components\TextInput::make('firstname')
+                        ->label(__('input.label.contacts.firstname'))
+                        ->required(),
+                    Forms\Components\TextInput::make('lastname')
+                        ->label(__('input.label.contacts.lastname'))
+                        ->required(),
+                    Forms\Components\TextInput::make('street_no')
+                        ->label(__('input.label.contacts.street_no'))
+                        ->required(),
+                    Forms\Components\DatePicker::make('birthdate')
+                        ->label(__('input.label.contacts.birthdate'))
+                        ->required(),
+                    Forms\Components\Select::make('zipcode_id')
+                        ->label(__('input.label.contacts.zipcode'))
+                        ->relationship('zipcode', 'code')
+                        ->searchable()
+                        ->searchDebounce(100)
+                        ->required()
+                        ->afterStateUpdated(fn (Forms\Set $set, $state) => $set('city', Zipcode::find($state)?->name))
+                        ->live(),
+                    Forms\Components\TextInput::make('city')
+                        ->label(__('input.label.contacts.city'))
+                        ->required()
+                        ->maxLength(255),
                     ])
                     ->action(function (array $data): void {
                         $contact = Contact::create($data);
