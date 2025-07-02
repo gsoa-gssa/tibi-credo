@@ -10,6 +10,8 @@ use App\Filament\Resources\BatchResource;
 use Filament\Actions\ActionGroup;
 use Filament\Notifications\Notification;
 use Filament\Support\Enums\ActionSize;
+use Parallax\FilamentComments\Actions\CommentsAction;
+
 
 
 class ViewBatch extends ViewRecord
@@ -65,6 +67,7 @@ class ViewBatch extends ViewRecord
             ])
             ->button()
             ->label('Export Different Formats'),
+            CommentsAction::make(),
             ActionGroup::make([
                 Action::make('edit')
                     ->label('Edit Batch')
