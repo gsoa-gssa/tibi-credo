@@ -41,6 +41,11 @@ class Sheet extends Model
         return $this->belongsTo(Batch::class);
     }
 
+    public function maeppli(): BelongsTo
+    {
+        return $this->belongsTo(Maeppli::class);
+    }
+
     public function source(): BelongsTo
     {
         return $this->belongsTo(Source::class);
@@ -54,7 +59,10 @@ class Sheet extends Model
         parent::boot();
 
         static::updating(function ($sheet) {
-            if ($sheet->batch_id) {
+            if ($sheet->maeppli_id) {
+                $sheet->status = 'processed';
+            }
+            else if ($sheet->batch_id) {
                 $sheet->status = 'added2batch';
             } else {
                 $sheet->status = 'recorded';

@@ -29,4 +29,9 @@ class Commune extends Model
     {
         return $this->belongsTo(Canton::class);
     }
+
+    public function batches(): HasMany
+    {
+        return $this->hasMany(Batch::class);
+    }
 }
