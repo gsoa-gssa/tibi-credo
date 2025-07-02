@@ -89,7 +89,7 @@ class CreateBatchWorkflow extends Page implements HasForms
                 ->get();
             $unassignedSheets = $communes->flatMap(function ($commune) {
                 return $commune->sheets()->whereNull('batch_id')->orderBy('label')->get();
-            })->unique('id'); // Get unique sheets across communes in the same address group
+            })->unique('id')->sortBy('label');
         } else {
             $unassignedSheets = $commune->sheets()->whereNull('batch_id')->orderBy('label')->get();
         }
