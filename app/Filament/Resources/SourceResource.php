@@ -24,6 +24,18 @@ class SourceResource extends Resource implements HasShieldPermissions
 
     protected static ?int $navigationSort = 4;
 
+    // Add model label
+    public static function getModelLabel(): string
+    {
+        return __('source.name');
+    }
+
+    // Add plural model label
+    public static function getPluralModelLabel(): string
+    {
+        return __('source.namePlural');
+    }
+
     public static function form(Form $form): Form
     {
         return $form

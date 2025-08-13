@@ -19,8 +19,23 @@ class CountingResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-calculator';
 
-    protected static ?string $navigationGroup = 'Sheet Management';
+    public static function getNavigationGroup(): ?string
+    {
+        return __('navigation.group.sheetManagement');
+    }
 
+    // Add model label
+    public static function getModelLabel(): string
+    {
+        return __('counting.name');
+    }
+
+    // Add plural model label
+    public static function getPluralModelLabel(): string
+    {
+        return __('counting.namePlural');
+    }
+    
     protected static ?int $navigationSort = 4;
 
     public static function form(Form $form): Form

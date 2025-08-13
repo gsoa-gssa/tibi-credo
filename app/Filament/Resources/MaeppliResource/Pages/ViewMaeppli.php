@@ -14,6 +14,7 @@ class ViewMaeppli extends ViewRecord
     {
         return [
             Actions\DeleteAction::make(),
+            Actions\EditAction::make(),
         ];
     }
 }

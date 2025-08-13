@@ -16,4 +16,12 @@ class ViewCommune extends ViewRecord
             CommuneResource\Widgets\CommuneStats::make()
         ];
     }
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Actions\DeleteAction::make(),
+            Actions\EditAction::make(),
+        ];
+    }
 }

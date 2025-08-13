@@ -24,7 +24,22 @@ class SheetResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
 
-    protected static ?string $navigationGroup = 'Sheet Management';
+    public static function getNavigationGroup(): ?string
+    {
+        return __('navigation.group.sheetManagement');
+    }
+
+    // Add model label
+    public static function getModelLabel(): string
+    {
+        return __('sheet.name');
+    }
+
+    // Add plural model label
+    public static function getPluralModelLabel(): string
+    {
+        return __('sheet.namePlural');
+    }
 
     protected static ?int $navigationSort = 1;
 

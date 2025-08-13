@@ -26,7 +26,21 @@ class BatchResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-inbox-stack';
 
-    protected static ?string $navigationGroup = 'Sheet Management';
+    public static function getNavigationGroup(): ?string
+    {
+        return __('navigation.group.sheetManagement');
+    }
+
+    // Add model label
+    public static function getModelLabel(): string
+    {
+        return __('batch.name');
+    }
+    // Add plural model label
+    public static function getPluralModelLabel(): string
+    {
+        return __('batch.namePlural');
+    }
 
     protected static ?int $navigationSort = 2;
 

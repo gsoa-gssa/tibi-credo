@@ -56,7 +56,7 @@ class CaptureBatchWorkflow extends Page implements HasForms
         return $form
             ->schema([
                 Forms\Components\Wizard::make([
-                    Forms\Components\Wizard\Step::make('basicInfo')
+                    Forms\Components\Wizard\Step::make(__('pages.captureBatchWorkflow.step.basicInfo'))
                         ->schema([
                             Forms\Components\Select::make('commune')
                                 ->label(__('pages.captureBatchWorkflow.selectCommuneForm.commune'))
@@ -75,7 +75,7 @@ class CaptureBatchWorkflow extends Page implements HasForms
                                 ->columns(2)
                                 ->required(),
                         ]),
-                    Forms\Components\Wizard\Step::make('requirements')
+                    Forms\Components\Wizard\Step::make(__('pages.captureBatchWorkflow.step.requirements'))
                         ->schema([
                             Forms\Components\ViewField::make('requirements-individual')
                                 ->view('filament.forms.components.capture-batch-wizard.requirements-individual')
@@ -136,7 +136,7 @@ class CaptureBatchWorkflow extends Page implements HasForms
 
                         ])
                         ->columns(2),
-                    Forms\Components\Wizard\Step::make('sheetsInformation')
+                    Forms\Components\Wizard\Step::make(__('pages.captureBatchWorkflow.step.sheetsInformation'))
                         ->schema([
                             Forms\Components\TextInput::make('number_of_sheets')
                                 ->label(__('pages.captureBatchWorkflow.sheetsInformation.number_of_sheets'))
@@ -158,7 +158,7 @@ class CaptureBatchWorkflow extends Page implements HasForms
                                 ->maxValue(1000),
                         ])
                         ->columns(3),
-                    Forms\Components\Wizard\Step::make('sheets')
+                    Forms\Components\Wizard\Step::make(__('pages.captureBatchWorkflow.step.sheetsSelection'))
                         ->schema($this->addSheetCheckboxes())
                         ->columns(3)
                 ])->submitAction(new HtmlString(Blade::render(<<<BLADE
