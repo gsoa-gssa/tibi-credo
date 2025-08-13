@@ -30,9 +30,13 @@ class SheetsRelationManager extends RelationManager
             ->recordTitleAttribute('label')
             ->columns([
                 Tables\Columns\TextColumn::make('label')
+                    ->fontFamily(\Filament\Support\Enums\FontFamily::Mono)
                     ->sortable()
-                    ->searchable(),
+                    ->searchable()
+                    ->url(fn ($record) => \App\Filament\Resources\SheetResource::getUrl('view', ['record' => $record])),
+                Tables\Columns\TextColumn::make('signatureCount'),
             ])
+            ->defaultSort('label', 'asc')
             ->filters([
                 //
             ])

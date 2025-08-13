@@ -1,5 +1,9 @@
+import defaultTheme from 'tailwindcss/defaultTheme';
+import forms from '@tailwindcss/forms';
+import typography from '@tailwindcss/typography';
+
 /** @type {import('tailwindcss').Config} */
-module.exports = {
+export default {
     content: [
         "./resources/**/*.blade.php",
         "./resources/**/*.js",
@@ -16,3 +20,4 @@ module.exports = {
     },
     plugins: [],
 }
+

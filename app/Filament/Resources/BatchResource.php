@@ -78,9 +78,14 @@ class BatchResource extends Resource
                     ->default('pending')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('number_of_sheets')
+                    ->label(__('batch.sheets_count'))
                     ->numeric()
                     ->getStateUsing(fn (Batch $batch) => $batch->sheets->count())
                     ->sortable(),
+                Tables\Columns\TextColumn::make('returned_sheets_count')
+                    ->label(__('batch.sheets_returned_count'))
+                    ->numeric()
+                    ->getStateUsing(fn (Batch $batch) => $batch->sheets->whereNotNull('maeppli_id')->count()),
                 Tables\Columns\IconColumn::make("deleted_at")
                     ->icon(fn ($record) => $record->trashed() ? 'heroicon-o-trash' : null)
                     ->tooltip(fn ($record) => $record->trashed() ? 'Deleted' : null)
@@ -91,13 +96,13 @@ class BatchResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->defaultSort('created_at', 'desc')
             ->filters([
                 SelectFilter::make('commune')
                     ->relationship('commune', 'name')
@@ -113,6 +118,18 @@ class BatchResource extends Resource
                     ->default('pending')
                     ->label('Status')
                     ->multiple(),
+                Filter::make('problem')
+                    ->label('Problem')
+                    ->toggle()
+                    ->query(function (Builder $query) {
+                        $query 
+                            ->whereHas('sheets', function (Builder $query) {
+                                $query->whereNotNull('maeppli_id');
+                            })
+                            ->whereHas('sheets', function (Builder $query) {
+                                $query->whereNull('maeppli_id');
+                            });
+                    }),
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([

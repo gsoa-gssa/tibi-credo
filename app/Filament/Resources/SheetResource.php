@@ -47,18 +47,17 @@ class SheetResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Toggle::make('vox')
-                    ->default(true),
-                Forms\Components\TextInput::make("label")
-                    ->required(),
-                Forms\Components\Select::make("source_id")
-                    ->required()
-                    ->relationship('source', 'code')
-                    ->searchable()
-                    ->native(false),
-                Forms\Components\TextInput::make('signatureCount')
-                    ->required()
-                    ->numeric(),
+                Forms\Components\Group::make([
+                    Forms\Components\Toggle::make('vox')
+                        ->default(true),
+                    Forms\Components\TextInput::make("label")
+                        ->required(),
+                    Forms\Components\Select::make("source_id")
+                        ->required()
+                        ->relationship('source', 'code')
+                        ->searchable()
+                        ->native(false),
+                ])->columns(3),
                 Forms\Components\Select::make('commune_id')
                     ->relationship('commune', 'name')
                     ->searchable()
@@ -77,10 +76,33 @@ class SheetResource extends Resource
                         fn () => auth()->user()->getCommuneId(),
                     )
                     ->required(),
+                Forms\Components\TextInput::make('signatureCount')
+                    ->required()
+                    ->numeric(),
+                Forms\Components\Group::make([
+                    Forms\Components\Select::make('maeppli_id')
+                        ->label(__('sheet.maeppli'))
+                        ->relationship('maeppli', 'label')
+                        ->searchable()
+                        ->preload()
+                        ->placeholder(__('input.placeholder.select_maeppli')),
+                    Forms\Components\Select::make('batch_id')
+                        ->label(__('sheet.batch'))
+                        ->relationship('batch', 'id', modifyQueryUsing: function ($query, $get) {
+                            $communeId = $get('commune_id');
+                            if ($communeId) {
+                                $query->where('commune_id', $communeId);
+                            }
+                        })
+                        ->getOptionLabelFromRecordUsing(fn ($record) => $record->id . ': ' . $record->created_at->format('Y-m-d'))
+                        ->searchable()
+                        ->preload()
+                        ->placeholder(__('input.placeholder.select_batch')),
+                ])->columns(2),
                 Forms\Components\Hidden::make('user_id')
                     ->required()
                     ->default(auth()->id()),
-            ]);
+            ])->columns(1);
     }
 
     public static function table(Table $table): Table
@@ -95,6 +117,28 @@ class SheetResource extends Resource
                 Tables\Columns\TextColumn::make('signatureCount')
                     ->numeric()
                     ->sortable(),
+                Tables\Columns\IconColumn::make('maeppli_id')
+                    ->label(__('sheet.maeppli'))
+                    ->icon(fn ($state) => $state ? 'heroicon-o-check-circle' : 'heroicon-o-x-circle')
+                    ->sortable()
+                    ->color(fn ($state) => $state ? 'success' : 'danger')
+                    ->url(fn ($record) => $record->maeppli ?
+                        \App\Filament\Resources\MaeppliResource::getUrl('view', ['record' => $record->maeppli]) :
+                        null)
+                    ->extraAttributes(fn ($record) => $record->maeppli ? [
+                        'title' => $record->maeppli->label,
+                    ] : []),
+                Tables\Columns\IconColumn::make('batch_id')
+                    ->label(__('sheet.batch'))
+                    ->icon(fn ($state) => $state ? 'heroicon-o-check-circle' : 'heroicon-o-x-circle')
+                    ->sortable()
+                    ->color(fn ($state) => $state ? 'success' : 'danger')
+                    ->url(fn ($record) => $record->batch ?
+                        \App\Filament\Resources\BatchResource::getUrl('view', ['record' => $record->batch]) :
+                        null)
+                    ->extraAttributes(fn ($record) => $record->batch ? [
+                        'title' => __('sheet.batch') . ': ' . $record->batch->id,
+                    ] : []),
                 Tables\Columns\IconColumn::make("deleted_at")
                     ->icon(fn ($record) => $record->trashed() ? 'heroicon-o-trash' : null)
                     ->sortable()
@@ -108,14 +152,35 @@ class SheetResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->defaultSort('created_at', 'desc')
             ->filters([
+                Tables\Filters\SelectFilter::make('commune')
+                    ->label(__('sheet.commune'))
+                    ->relationship('commune', 'name')
+                    ->searchable()
+                    ->preload(),
+                Tables\Filters\Filter::make('has_maeppli')
+                    ->label(__('sheet.filters.has_maeppli'))
+                    ->toggle()
+                    ->query(fn (Builder $query): Builder => $query->whereNotNull('maeppli_id')),
+                Tables\Filters\Filter::make('no_maeppli')
+                    ->label(__('sheet.filters.no_maeppli'))
+                    ->toggle()
+                    ->query(fn (Builder $query): Builder => $query->whereNull('maeppli_id')),
+                Tables\Filters\Filter::make('has_batch')
+                    ->label(__('sheet.filters.has_batch'))
+                    ->toggle()
+                    ->query(fn (Builder $query): Builder => $query->whereNotNull('batch_id')),
+                Tables\Filters\Filter::make('no_batch')
+                    ->label(__('sheet.filters.no_batch'))
+                    ->toggle()
+                    ->query(fn (Builder $query): Builder => $query->whereNull('batch_id')),
                 Tables\Filters\TrashedFilter::make(),
                 Tables\Filters\Filter::make("demovox")
                     ->label("Demo Vox")

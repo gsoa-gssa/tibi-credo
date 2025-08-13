@@ -32,11 +32,33 @@ class SheetsRelationManager extends RelationManager
             ->recordTitleAttribute('label')
             ->columns([
                 Tables\Columns\TextColumn::make('label')
-                    ->fontFamily(\Filament\Support\Enums\FontFamily::Mono),
-                Tables\Columns\TextColumn::make('signatureCount')
+                    ->fontFamily(\Filament\Support\Enums\FontFamily::Mono)
+                    ->sortable()
+                    ->searchable()
+                    ->url(fn ($record) => \App\Filament\Resources\SheetResource::getUrl('view', ['record' => $record])),
+                Tables\Columns\TextColumn::make('signatureCount'),
+                Tables\Columns\IconColumn::make('maeppli_id')
+                    ->label(__('maeppli.name'))
+                    ->getStateUsing(fn ($record) => $record->maeppli_id ?? false)
+                    ->icon(function ($state) {
+                        return $state ? 'heroicon-o-check-circle' : 'heroicon-o-x-circle';
+                    })
+                    ->sortable()
+                    ->color(fn ($state) => $state ? 'success' : 'danger')
+                    ->url(fn ($record) => $record->maeppli ?
+                        \App\Filament\Resources\MaeppliResource::getUrl('view', ['record' => $record->maeppli]) :
+                        null)
+                    ->extraAttributes(fn ($record) => $record->maeppli ? [
+                        'title' => $record->maeppli->label,
+                    ] : []),
             ])
+            ->defaultSort('label', 'asc')
             ->filters([
-                //
+                // maepple null or not
+                Tables\Filters\Filter::make('maeppli_id')
+                    ->label(__('maeppli.name'))
+                    ->toggle()
+                    ->query(fn ($query) => $query->whereNotNull('maeppli_id')),
             ])
             ->headerActions([
                 Tables\Actions\AssociateAction::make()
