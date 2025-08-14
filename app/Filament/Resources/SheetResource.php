@@ -17,6 +17,8 @@ use Filament\Tables\Table;
 use Filament\View\LegacyComponents\Widget;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Rmsramos\Activitylog\RelationManagers\ActivitylogRelationManager;
+
 
 class SheetResource extends Resource
 {
@@ -90,11 +92,13 @@ class SheetResource extends Resource
                         ->label(__('sheet.batch'))
                         ->relationship('batch', 'id', modifyQueryUsing: function ($query, $get) {
                             $communeId = $get('commune_id');
-                            if ($communeId) {
+                            $batchId = $get('batch_id');
+                            $query->where(function (Builder $query) use ($communeId, $batchId) {
                                 $query->where('commune_id', $communeId);
-                            }
+                                $query->orWhere('id', $batchId);
+                            });
                         })
-                        ->getOptionLabelFromRecordUsing(fn ($record) => $record->id . ': ' . $record->created_at->format('Y-m-d'))
+                        ->getOptionLabelFromRecordUsing(fn ($record) => $record->id . ': ' . $record->commune->name . ', ' . $record->created_at->format('Y-m-d'))
                         ->searchable()
                         ->preload()
                         ->placeholder(__('input.placeholder.select_batch')),
@@ -213,6 +217,7 @@ class SheetResource extends Resource
     {
         return [
             SheetResource\RelationManagers\ContactsRelationManager::class,
+            SheetResource\RelationManagers\SheetsActivitylogRelationManager::class,
         ];
     }
 

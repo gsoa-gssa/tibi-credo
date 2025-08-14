@@ -19,6 +19,8 @@ use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\Action;
 use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\UserResource\Pages;
+use Rmsramos\Activitylog\Actions\ActivityLogTimelineTableAction;
+
 
 class UserResource extends Resource
 {
@@ -45,7 +47,7 @@ class UserResource extends Resource
 
     public static function getNavigationGroup(): ?string
     {
-        return config('filament-users.group');
+        return __('navigation.group.control');
     }
 
     public function getTitle(): string

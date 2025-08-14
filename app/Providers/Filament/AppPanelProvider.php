@@ -19,6 +19,7 @@ use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+use Rmsramos\Activitylog\ActivitylogPlugin;
 
 
 class AppPanelProvider extends PanelProvider
@@ -61,7 +62,13 @@ class AppPanelProvider extends PanelProvider
                 SpotlightPlugin::make(),
                 \TomatoPHP\FilamentUsers\FilamentUsersPlugin::make(),
                 \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make(),
-                \Rupadana\ApiService\ApiServicePlugin::make()
+                \Rupadana\ApiService\ApiServicePlugin::make(),
+                ActivitylogPlugin::make()->navigationGroup(__('navigation.group.control')),
+            ])
+            ->navigationGroups([
+                __('pages.sheetWorkflow.navigationGroup'),
+                __('navigation.group.sheetManagement'),
+                __('navigation.group.control'),
             ])
             ->authMiddleware([
                 Authenticate::class,

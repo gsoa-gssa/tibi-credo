@@ -35,6 +35,7 @@
     "maeppli.sheets_valid_count": "Anzahl gültige Unterschriften",
     "maeppli.sheets_invalid_count": "Anzahl ungültige Unterschriften",
     "navigation.group.sheetManagement": "Bogenverwaltung",
+    "navigation.group.control" : "Kontrolle",
     "input.label.sheetWorkflow.vox": "Demovox Bogen?",
     "input.helper.sheetWorkflow.vox": "Beginnt die Bogennummer mit «VOX»?",
     "input.label.sheetWorkflow.label": "Bogennummer",

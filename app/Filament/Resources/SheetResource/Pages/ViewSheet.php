@@ -59,14 +59,6 @@ class ViewSheet extends ViewRecord
                                 null)
                             ->color('primary'),
                     ])->columns(2),
-                
-                Infolists\Components\Section::make('Timestamps')
-                    ->schema([
-                        Infolists\Components\TextEntry::make('created_at')
-                            ->dateTime(),
-                        Infolists\Components\TextEntry::make('updated_at')
-                            ->dateTime(),
-                    ])->columns(1),
             ]);
     }
 

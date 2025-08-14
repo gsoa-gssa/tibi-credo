@@ -199,6 +199,8 @@ class CaptureBatchWorkflow extends Page implements HasForms
                 ->columns(2)
                 ->collapsible();
         }
+
+        // TODO: maybe show sheets from that commune that are not in a batch or a wrong batch
         return $sections;
     }
 
