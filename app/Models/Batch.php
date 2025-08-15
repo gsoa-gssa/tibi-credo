@@ -32,6 +32,11 @@ class Batch extends Model
         return $this->belongsTo(Commune::class);
     }
 
+    public function countSignatures(): int
+    {
+        return $this->sheets()->sum('signatureCount');
+    }
+
     /**
      * Hook into the model's boot method.
      */
