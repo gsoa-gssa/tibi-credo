@@ -180,14 +180,21 @@ class CaptureBatchWorkflow extends Page implements HasForms
                             Forms\Components\ViewField::make('selected_sheets_list')
                                 ->view('filament.forms.components.capture-batch-wizard.selected-sheets-list')
                                 ->columnSpanFull(),
-                            Forms\Components\ViewField::make('number_of_signatures_warning')
-                                ->view('filament.forms.components.capture-batch-wizard.number-of-signatures-warning'),
+                            Forms\Components\Checkbox::make('override_number_of_sheets')
+                                ->label(__('pages.captureBatchWorkflow.step.review.override_number_of_sheets'))
+                                ->visible(fn () => !$this->checkSheetCount()),
+                            Forms\Components\Checkbox::make('override_number_of_signatures')
+                                ->label(__('pages.captureBatchWorkflow.step.review.override_number_of_signatures'))
+                                ->visible(fn () => !$this->checkSignatureCount()),
                             Forms\Components\Checkbox::make('confirm')
                                 ->label(__('pages.captureBatchWorkflow.step.review.confirm'))
                                 ->required()
                                 ->rules([
                                     function () {
                                         return function (string $attribute, $value, \Closure $fail) {
+                                            if ($this->data['override_number_of_sheets']){
+                                                return;
+                                            }
                                             $selectedSheets = collect($this->data['sheets'] ?? [])->filter()->count();
                                             $claimedSheets = (int) ($this->data['number_of_sheets'] ?? 0);
                                             if ($selectedSheets !== $claimedSheets) {
@@ -200,8 +207,18 @@ class CaptureBatchWorkflow extends Page implements HasForms
                                     },
                                     function () {
                                         return function (string $attribute, $value, \Closure $fail) {
+                                            if ($this->data['override_number_of_signatures']){
+                                                return;
+                                            }
+                                            if (!$this->checkSignatureCount()) {
+                                                $fail(__('pages.captureBatchWorkflow.validation.signatures_count_mismatch'));
+                                            }
+                                        };
+                                    },
+                                    function () {
+                                        return function (string $attribute, $value, \Closure $fail) {
                                             if (!$value) {
-                                                $fail('You must confirm before proceeding.');
+                                                $fail(__('pages.captureBatchWorkflow.validation.confirm_required'));
                                             }
                                         };
                                     },
@@ -346,5 +363,12 @@ class CaptureBatchWorkflow extends Page implements HasForms
         });
         $total = $sheets->sum();
         return $total === $returned;
+    }
+
+    public function checkSheetCount()
+    {
+        $selectedSheets = collect($this->data['sheets'] ?? [])->filter()->count();
+        $claimedSheets = (int) ($this->data['number_of_sheets'] ?? 0);
+        return $selectedSheets === $claimedSheets;
     }
 }
