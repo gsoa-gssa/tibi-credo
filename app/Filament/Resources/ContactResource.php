@@ -12,6 +12,8 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Filament\Exports\ContactExporter;
+use Filament\Tables\Actions\ExportAction;
 
 class ContactResource extends Resource
 {
@@ -95,6 +97,9 @@ class ContactResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+            ])
+            ->headerActions([
+                ExportAction::make()->exporter(ContactExporter::class),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
