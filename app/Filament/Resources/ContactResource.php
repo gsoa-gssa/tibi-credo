@@ -7,6 +7,8 @@ use App\Filament\Resources\ContactResource\RelationManagers;
 use App\Models\Contact;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Infolists;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -53,11 +55,53 @@ class ContactResource extends Resource
                 Forms\Components\TextInput::make('street_no')
                     ->required()
                     ->maxLength(255),
+                Forms\Components\Select::make('zipcode_id')
+                    ->label(__('zipcode.name'))
+                    ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->code} {$record->name}")
+                    ->relationship('zipcode', 'name')
+                    ->required()
+                    ->searchable(['code', 'name'])
+                    ->preload(),
                 Forms\Components\DatePicker::make('birthdate')
                     ->required(),
                 Forms\Components\Select::make('sheet_id')
-                    ->relationship('sheet', 'label'),
+                    ->relationship('sheet', 'label')
+                    ->searchable()
+                    ->preload(),
             ]);
+    }
+
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->schema([
+                Infolists\Components\TextEntry::make('firstname')
+                    ->label(__('contact.fields.firstname')),
+                Infolists\Components\TextEntry::make('lastname')
+                    ->label(__('contact.fields.lastname')),
+                Infolists\Components\TextEntry::make('birthdate')
+                    ->label(__('contact.fields.birthdate'))
+                    ->date(),
+                Infolists\Components\TextEntry::make('street_no')
+                    ->label(__('contact.fields.street_no')),
+                Infolists\Components\TextEntry::make('zipcode.code')
+                    ->label(__('zipcode.fields.code')),
+                Infolists\Components\TextEntry::make('zipcode.name')
+                    ->label(__('zipcode.fields.name')),
+                Infolists\Components\TextEntry::make('zipcode.commune.lang')
+                    ->label(__('commune.fields.lang')),
+                Infolists\Components\TextEntry::make('sheet.label')
+                    ->label(__('sheet.name'))
+                    ->fontFamily(\Filament\Support\Enums\FontFamily::Mono)
+                    ->url(function (Contact $contact) {
+                        if ($contact->sheet) {
+                            return SheetResource::getUrl("view", ["record" => $contact->sheet]);
+                        }
+                        return null;
+                    })
+                    ->color('primary'),
+            ])
+            ->columns(3);
     }
 
     public static function table(Table $table): Table
@@ -73,15 +117,31 @@ class ContactResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('firstname')
+                    ->label(__('contact.fields.firstname'))
                     ->searchable(),
                 Tables\Columns\TextColumn::make('lastname')
+                    ->label(__('contact.fields.lastname'))
                     ->searchable(),
                 Tables\Columns\TextColumn::make('street_no')
+                    ->label(__('contact.fields.street_no'))
                     ->searchable(),
+                Tables\Columns\TextColumn::make('zipcode.code')
+                    ->label(__('zipcode.fields.code'))
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('zipcode.name')
+                    ->label(__('zipcode.fields.name'))
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('zipcode.commune.lang')
+                    ->label(__('commune.fields.lang'))
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('birthdate')
+                    ->label(__('contact.fields.birthdate'))
                     ->date()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('sheet.label')
+                    ->label(__('sheet.name'))
                     ->fontFamily(\Filament\Support\Enums\FontFamily::Mono)
                     ->url(function (Contact $contact) {
                         if ($contact->sheet) {
@@ -90,12 +150,14 @@ class ContactResource extends Resource
                             return null;
                         }
                     })
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 //
             ])
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
             ])
             ->headerActions([
@@ -120,6 +182,7 @@ class ContactResource extends Resource
         return [
             'index' => Pages\ListContacts::route('/'),
             'create' => Pages\CreateContact::route('/create'),
+            'view' => Pages\ViewContact::route('/{record}'),
             'edit' => Pages\EditContact::route('/{record}/edit'),
         ];
     }

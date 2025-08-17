@@ -79,26 +79,6 @@ class CaptureBatchWorkflow extends Page implements HasForms
                         ]),
                     Forms\Components\Wizard\Step::make(__('pages.captureBatchWorkflow.step.requirements'))
                         ->schema([
-                            Forms\Components\ViewField::make('requirements-individual')
-                                ->view('filament.forms.components.capture-batch-wizard.requirements-individual')
-                                ->visible(fn (Get $get) => $get('certificationType') === 'individual')
-                                ->columnSpan(2),
-                            Forms\Components\Checkbox::make("control_field")
-                                ->label(__('pages.captureBatchWorkflow.requirements.control_field'))
-                                ->visible(fn (Get $get) => $get('certificationType') === 'individual')
-                                ->required(),
-                            Forms\Components\Checkbox::make("number_of_valid_signatures_individual")
-                                ->label(__('pages.captureBatchWorkflow.requirements.number_of_valid_signatures'))
-                                ->visible(fn (Get $get) => $get('certificationType') === 'individual')
-                                ->required(),
-                            Forms\Components\Checkbox::make("certification_authority_information")
-                                ->label(__('pages.captureBatchWorkflow.requirements.certification_authority_information'))
-                                ->visible(fn (Get $get) => $get('certificationType') === 'individual')
-                                ->required(),
-                            Forms\Components\Checkbox::make("seal_individual")
-                                ->label(__('pages.captureBatchWorkflow.requirements.seal_individual'))
-                                ->visible(fn (Get $get) => $get('certificationType') === 'individual')
-                                ->required(true),
                             Forms\Components\ViewField::make('requirements-collective')
                                 ->view('filament.forms.components.capture-batch-wizard.requirements-collective')
                                 ->columnSpan(2)
@@ -135,6 +115,29 @@ class CaptureBatchWorkflow extends Page implements HasForms
                                 ->label(__('pages.captureBatchWorkflow.requirements.date_of_publication'))
                                 ->visible(fn (Get $get) => $get('certificationType') === 'collective')
                                 ->required(),
+                            Forms\Components\ViewField::make('requirements-collective-per-sheet')
+                                ->view('filament.forms.components.capture-batch-wizard.requirements-collective-per-sheet')
+                                ->visible(fn (Get $get) => $get('certificationType') === 'collective')
+                                ->columnSpan(2),
+                            Forms\Components\ViewField::make('requirements-individual')
+                                ->view('filament.forms.components.capture-batch-wizard.requirements-individual')
+                                ->visible(fn (Get $get) => $get('certificationType') === 'individual')
+                                ->columnSpan(2),
+                            Forms\Components\Checkbox::make("control_field")
+                                ->label(__('pages.captureBatchWorkflow.requirements.control_field'))
+                                ->required(),
+                            Forms\Components\Checkbox::make("number_of_valid_signatures_individual")
+                                ->label(__('pages.captureBatchWorkflow.requirements.number_of_valid_signatures'))
+                                ->visible(fn (Get $get) => $get('certificationType') === 'individual')
+                                ->required(),
+                            Forms\Components\Checkbox::make("certification_authority_information")
+                                ->label(__('pages.captureBatchWorkflow.requirements.certification_authority_information'))
+                                ->visible(fn (Get $get) => $get('certificationType') === 'individual')
+                                ->required(),
+                            Forms\Components\Checkbox::make("seal_individual")
+                                ->label(__('pages.captureBatchWorkflow.requirements.seal_individual'))
+                                ->visible(fn (Get $get) => $get('certificationType') === 'individual')
+                                ->required(true),
                             Forms\Components\ViewField::make('requirements-individual-warning')
                                 ->view('filament.forms.components.capture-batch-wizard.requirements-individual-warning')
                                 ->visible(fn (Get $get) => $get('certificationType') === 'individual')
@@ -161,6 +164,14 @@ class CaptureBatchWorkflow extends Page implements HasForms
                                 ->required()
                                 ->minValue(0)
                                 ->maxValue(10000),
+                            Forms\Components\ViewField::make('sheets_information_explanation_individual')
+                                ->view('filament.forms.components.capture-batch-wizard.sheets-information-explanation-individual')
+                                ->visible(fn (Get $get) => $get('certificationType') === 'individual')
+                                ->columnSpan(3),
+                            Forms\Components\ViewField::make('sheets_information_explanation_collective')
+                                ->view('filament.forms.components.capture-batch-wizard.sheets-information-explanation-collective')
+                                ->visible(fn (Get $get) => $get('certificationType') === 'collective')
+                                ->columnSpan(3),
                         ])
                         ->columns(3),
                     Forms\Components\Wizard\Step::make(__('pages.captureBatchWorkflow.step.sheetsSelection'))
