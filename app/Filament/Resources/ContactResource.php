@@ -16,6 +16,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Exports\ContactExporter;
 use Filament\Tables\Actions\ExportAction;
+use Filament\Tables\Actions\ExportBulkAction;
+use App\Filament\Actions\BulkActions\ExportContactsPdfBulkAction;
 
 class ContactResource extends Resource
 {
@@ -68,6 +70,14 @@ class ContactResource extends Resource
                     ->relationship('sheet', 'label')
                     ->searchable()
                     ->preload(),
+                Forms\Components\Select::make('contact_type_id')
+                    ->relationship('contactType', 'name')
+                    ->required()
+                    ->searchable()
+                    ->preload(),
+                Forms\Components\DateTimePicker::make('letter_sent')
+                    ->label(__('contact.fields.letter_sent'))
+                    ->required(),
             ]);
     }
 
@@ -75,33 +85,56 @@ class ContactResource extends Resource
     {
         return $infolist
             ->schema([
-                Infolists\Components\TextEntry::make('firstname')
-                    ->label(__('contact.fields.firstname')),
-                Infolists\Components\TextEntry::make('lastname')
-                    ->label(__('contact.fields.lastname')),
-                Infolists\Components\TextEntry::make('birthdate')
-                    ->label(__('contact.fields.birthdate'))
-                    ->date(),
-                Infolists\Components\TextEntry::make('street_no')
-                    ->label(__('contact.fields.street_no')),
-                Infolists\Components\TextEntry::make('zipcode.code')
-                    ->label(__('zipcode.fields.code')),
-                Infolists\Components\TextEntry::make('zipcode.name')
-                    ->label(__('zipcode.fields.name')),
-                Infolists\Components\TextEntry::make('zipcode.commune.lang')
-                    ->label(__('commune.fields.lang')),
-                Infolists\Components\TextEntry::make('sheet.label')
-                    ->label(__('sheet.name'))
-                    ->fontFamily(\Filament\Support\Enums\FontFamily::Mono)
-                    ->url(function (Contact $contact) {
-                        if ($contact->sheet) {
-                            return SheetResource::getUrl("view", ["record" => $contact->sheet]);
-                        }
-                        return null;
-                    })
-                    ->color('primary'),
-            ])
-            ->columns(3);
+                Infolists\Components\Section::make(__('contact.sections.personal_info'))
+                    ->schema([
+                        Infolists\Components\TextEntry::make('firstname')
+                            ->label(__('contact.fields.firstname')),
+                        Infolists\Components\TextEntry::make('lastname')
+                            ->label(__('contact.fields.lastname')),
+                        Infolists\Components\TextEntry::make('birthdate')
+                            ->label(__('contact.fields.birthdate'))
+                            ->date(),
+                        Infolists\Components\TextEntry::make('zipcode.commune.lang')
+                            ->label(__('commune.fields.lang')),
+                    ])
+                    ->columns(4),
+                InfoLists\Components\Section::make(__('contact.sections.address'))
+                    ->schema([
+                        Infolists\Components\TextEntry::make('street_no')
+                            ->label(__('contact.fields.street_no')),
+                        Infolists\Components\TextEntry::make('zipcode.code')
+                            ->label(__('zipcode.fields.code')),
+                        Infolists\Components\TextEntry::make('zipcode.name')
+                            ->label(__('zipcode.fields.name')),
+                    ])
+                    ->columns(3),
+                InfoLists\Components\Section::make(__('contact.sections.details'))
+                    ->schema([
+                        Infolists\Components\TextEntry::make('sheet.label')
+                            ->label(__('sheet.name'))
+                            ->fontFamily(\Filament\Support\Enums\FontFamily::Mono)
+                            ->url(function (Contact $contact) {
+                                if ($contact->sheet) {
+                                    return SheetResource::getUrl("view", ["record" => $contact->sheet]);
+                                }
+                                return null;
+                            })
+                            ->color('primary'),
+                        Infolists\Components\TextEntry::make('contactType.name')
+                            ->label(__('contact.fields.contact_type'))
+                            ->fontFamily(\Filament\Support\Enums\FontFamily::Mono)
+                            ->url(function (Contact $contact) {
+                                if ($contact->contactType) {
+                                    return ContactTypeResource::getUrl("view", ["record" => $contact->contactType]);
+                                }
+                                return null;
+                            })
+                            ->color('primary'),
+                        Infolists\Components\TextEntry::make('letter_sent')
+                            ->label(__('contact.fields.letter_sent'))
+                            ->dateTime()
+                    ])->columns(3),
+            ]);
     }
 
     public static function table(Table $table): Table
@@ -124,13 +157,16 @@ class ContactResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('street_no')
                     ->label(__('contact.fields.street_no'))
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('zipcode.code')
                     ->label(__('zipcode.fields.code'))
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('zipcode.name')
                     ->label(__('zipcode.fields.name'))
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('zipcode.commune.lang')
                     ->label(__('commune.fields.lang'))
                     ->searchable()
@@ -152,9 +188,50 @@ class ContactResource extends Resource
                     })
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('contactType.name')
+                    ->label(__('contact.fields.contact_type'))
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('letter_sent')
+                    ->label(__('contact.fields.letter_sent'))
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(),
             ])
             ->filters([
-                //
+                Tables\Filters\Filter::make('letter_sent_from')
+                    ->form([
+                        Forms\Components\DatePicker::make('from')
+                            ->label(__('contact.filter.letter_sent_from')),
+                    ])
+                    ->query(function (Builder $query, array $data) {
+                        return $query
+                            ->when($data['from'], fn ($q, $date) => $q->whereDate('letter_sent', '>=', $date));
+                    }),
+
+                Tables\Filters\Filter::make('letter_sent_until')
+                    ->form([
+                        Forms\Components\DatePicker::make('until')
+                            ->label(__('contact.filter.letter_sent_until')),
+                    ])
+                    ->query(function (Builder $query, array $data) {
+                        return $query
+                            ->when($data['until'], fn ($q, $date) => $q->whereDate('letter_sent', '<=', $date));
+                    }),
+                Tables\Filters\TernaryFilter::make('letter_sent_null')
+                    ->label(__('contact.filter.letter_sent_or_not'))
+                    ->placeholder(__('All'))
+                    ->trueLabel(__('contact.filter.letter_sent_is_null_true'))
+                    ->falseLabel(__('contact.filter.letter_sent_is_null_false'))
+                    ->queries(
+                        true: fn (Builder $query) => $query->whereNull('letter_sent'),
+                        false: fn (Builder $query) => $query->whereNotNull('letter_sent'),
+                    ),
+                Tables\Filters\SelectFilter::make('contact_type_id')
+                    ->label(__('contact.fields.contact_type'))
+                    ->relationship('contactType', 'name')
+                    ->searchable()
+                    ->preload(),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
@@ -166,7 +243,9 @@ class ContactResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    ExportBulkAction::make()->exporter(ContactExporter::class),
                 ]),
+                ExportContactsPdfBulkAction::make(),
             ]);
     }
 

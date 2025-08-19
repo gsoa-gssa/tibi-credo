@@ -15,6 +15,11 @@ class ContactsRelationManager extends RelationManager
 {
     protected static string $relationship = 'contacts';
 
+    public function isReadOnly(): bool
+    {
+        return false;
+    }
+
     public function form(Form $form): Form
     {
         return $form
