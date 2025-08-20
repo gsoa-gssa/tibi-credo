@@ -228,6 +228,7 @@ class ContactResource extends Resource
                     ->sortable()
                     ->toggleable(),
             ])
+            ->defaultSort('created_at', 'desc')
             ->filters([
                 Tables\Filters\Filter::make('letter_sent_from')
                     ->form([

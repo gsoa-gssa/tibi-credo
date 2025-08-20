@@ -64,11 +64,42 @@ class RegisterInvalid extends Page implements HasForms
           ->helperText(__('pages.registerInvalid.birthdate_helper')),
         Forms\Components\Select::make('sheet_id')
           ->label(__('sheet.name'))
-          ->relationship('sheet', 'label')
+          ->helperText(__('pages.registerInvalid.sheet_id_helper'))
+          ->hint(__('pages.registerInvalid.sheet_id_question'))
+          ->options(function (Forms\Get $get) {
+            $currentSheetId = $get('sheet_id');
+            
+            $query = \App\Models\Sheet::query();
+            
+            if ($currentSheetId) {
+              $currentSheet = \App\Models\Sheet::find($currentSheetId);
+              if ($currentSheet) {
+                $query->orderByRaw('CASE WHEN batch_id = ? THEN 0 ELSE 1 END', [$currentSheet->batch_id])
+                      ->orderBy('batch_id', 'desc')
+                      ->orderBy('label');
+              }
+            }
+            
+            return $query->get()->pluck('label', 'id');
+          })
           ->searchable()
-          ->preload(),
+          ->preload()
+          ->live()
+          ->afterStateUpdated(function ($state, Forms\Set $set) {
+              if ($state) {
+                $sheet = \App\Models\Sheet::find($state);
+                if($sheet) {
+                  $zipcode = $sheet->commune->zipcodes()->first();
+                  if ($zipcode) {
+                      $set('zipcode_id', $zipcode->id);
+                      $set('lang', $zipcode->commune->lang);
+                  }
+                }
+              }
+          }),
         Forms\Components\Select::make('zipcode_id')
           ->label(__('zipcode.name'))
+          ->helperText(__('pages.registerInvalid.zipcode_id_helper'))
           ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->code} {$record->name}")
           ->relationship('zipcode', 'name')
           ->searchable(['code', 'name'])
@@ -129,11 +160,15 @@ class RegisterInvalid extends Page implements HasForms
         ->success()
         ->send();
       
-      // Reset the form but keep the sheet_id
+      // Reset the form but keep the sheet_id and zipcode_id
       $currentSheetId = $data['sheet_id'] ?? null;
+      $currentZipcodeId = $data['zipcode_id'] ?? null;
       $this->form->fill();
       if ($currentSheetId) {
           $this->form->fill(['sheet_id' => $currentSheetId]);
+      }
+      if ($currentZipcodeId) {
+          $this->form->fill(['zipcode_id' => $currentZipcodeId]);
       }
         
     } catch (\Exception $e) {

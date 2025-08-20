@@ -65,13 +65,24 @@ class SheetResource extends Resource
                     ->searchable()
                     ->getSearchResultsUsing(
                         function (string $search): array {
-                            $zipcodes = Zipcode::where('code', 'like', "%$search%")->limit(10)->get();
-                            $results = [];
-                            foreach ($zipcodes as $zipcode) {
-                                $results[] = [
-                                    $zipcode->commune->id => $zipcode->commune->name . ' (' . $zipcode->name . ')',
-                                ];
+                            // if $search can be cast to int...
+                            if (is_numeric($search)) {
+                                $zipcodes = Zipcode::where('code', 'like', "%$search%")->limit(10)->get();
+                                $results = [];
+                                foreach ($zipcodes as $zipcode) {
+                                    $results[] = [
+                                        $zipcode->commune->id => $zipcode->commune->name . ' (' . $zipcode->name . ')',
+                                    ];
+                                }
+                            } else {
+                                $communes = Commune::where('name', 'like', "%$search%")->limit(10)->get();
+                                foreach ($communes as $commune) {
+                                    $results[] = [
+                                        $commune->id => $commune->name,
+                                    ];
+                                }
                             }
+                            
                             return $results;
                         })
                     ->default(
