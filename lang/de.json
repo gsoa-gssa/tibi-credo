@@ -41,7 +41,7 @@
     "filament-users::user.resource.disapprove": "filament-users::user.resource.disapprove",
     "forms.actions.contacts.store": "Speichern",
     "input.helper.sheetWorkflow.commune": "Tippe die Postleitzahl ein, um die Gemeinde zu finden. Falls die Gemeinde nicht gefunden wird, leg den Bogen beiseite.",
-    "input.helper.sheetWorkflow.label": "Gib die Nummer ein, welche du mit einem Numero-Stempel auf den Bogen gestempelt hast.",
+    "input.helper.sheetWorkflow.label": "Gib die Nummer ein, die oben rechts auf dem Bogen steht. Normalerweise entweder eine sechsstellige Zahl oder VOX- gefolgt von einer Zahl.",
     "input.helper.sheetWorkflow.place": "Ortschaft",
     "input.helper.sheetWorkflow.signatureCount": "Zähle dafür alle Unterschriften, die auf dem Bogen sind.",
     "input.helper.sheetWorkflow.source": "Gib dazu die Buchstaben ein, welche oben rechts auf dem Bogen stehen.",
