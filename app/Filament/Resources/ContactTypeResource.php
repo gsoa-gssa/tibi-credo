@@ -18,6 +18,8 @@ class ContactTypeResource extends Resource
     protected static ?string $model = ContactType::class;
     protected static ?string $navigationGroup = 'System Settings';
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static int $max_subject_length = 80;
+    protected static int $max_body_length = 2000;
 
     public static function form(Form $form): Form
     {
@@ -31,27 +33,93 @@ class ContactTypeResource extends Resource
                     ->maxLength(255),
                 Forms\Components\Section::make('Subject')
                     ->schema([
-                        Forms\Components\TextInput::make('subject_de')
+                        Forms\Components\RichEditor::make('subject_de')
                             ->required()
-                            ->maxLength(80),
-                        Forms\Components\TextInput::make('subject_fr')
+                            ->rules([
+                                function () {
+                                    return function (string $attribute, $value, \Closure $fail) {
+                                        $plainText = strip_tags($value ?? '');
+                                        if (strlen($plainText) > self::$max_subject_length) {
+                                            $fail(__('contact_type.fields.validation.too_long', [
+                                                'by' => strlen($plainText) - self::$max_subject_length,
+                                            ]));
+                                        }
+                                    };
+                                },
+                            ]),
+                        Forms\Components\RichEditor::make('subject_fr')
                             ->required()
-                            ->maxLength(80),
-                        Forms\Components\TextInput::make('subject_it')
+                            ->rules([
+                                function () {
+                                    return function (string $attribute, $value, \Closure $fail) {
+                                        $plainText = strip_tags($value ?? '');
+                                        if (strlen($plainText) > self::$max_subject_length) {
+                                            $fail(__('contact_type.fields.validation.too_long', [
+                                                'by' => strlen($plainText) - self::$max_subject_length,
+                                            ]));
+                                        }
+                                    };
+                                },
+                            ]),
+                        Forms\Components\RichEditor::make('subject_it')
                             ->required()
-                            ->maxLength(80),
+                            ->rules([
+                                function () {
+                                    return function (string $attribute, $value, \Closure $fail) {
+                                        $plainText = strip_tags($value ?? '');
+                                        if (strlen($plainText) > self::$max_subject_length) {
+                                            $fail(__('contact_type.fields.validation.too_long', [
+                                                'by' => strlen($plainText) - self::$max_subject_length,
+                                            ]));
+                                        }
+                                    };
+                                },
+                            ]),
                     ]),
                 Forms\Components\Section::make('Body')
                     ->schema([
-                        Forms\Components\TextInput::make('body_de')
+                        Forms\Components\RichEditor::make('body_de')
                             ->required()
-                            ->maxLength(800),
-                        Forms\Components\TextInput::make('body_fr')
+                            ->rules([
+                                function () {
+                                    return function (string $attribute, $value, \Closure $fail) {
+                                        $plainText = strip_tags($value ?? '');
+                                        if (strlen($plainText) > self::$max_body_length) {
+                                            $fail(__('contact_type.fields.validation.too_long', [
+                                                'by' => strlen($plainText) - self::$max_body_length,
+                                            ]));
+                                        }
+                                    };
+                                },
+                            ]),
+                        Forms\Components\RichEditor::make('body_fr')
                             ->required()
-                            ->maxLength(800),
-                        Forms\Components\TextInput::make('body_it')
+                            ->rules([
+                                function () {
+                                    return function (string $attribute, $value, \Closure $fail) {
+                                        $plainText = strip_tags($value ?? '');
+                                        if (strlen($plainText) > self::$max_body_length) {
+                                            $fail(__('contact_type.fields.validation.too_long', [
+                                                'by' => strlen($plainText) - self::$max_body_length,
+                                            ]));
+                                        }
+                                    };
+                                },
+                            ]),
+                        Forms\Components\RichEditor::make('body_it')
                             ->required()
-                            ->maxLength(800),
+                            ->rules([
+                                function () {
+                                    return function (string $attribute, $value, \Closure $fail) {
+                                        $plainText = strip_tags($value ?? '');
+                                        if (strlen($plainText) > self::$max_body_length) {
+                                            $fail(__('contact_type.fields.validation.too_long', [
+                                                'by' => strlen($plainText) - self::$max_body_length,
+                                            ]));
+                                        }
+                                    };
+                                },
+                            ]),
                     ]),
             ]);
     }

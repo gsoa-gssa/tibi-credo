@@ -15,7 +15,9 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Exports\ContactExporter;
+use App\Filament\Imports\ContactImporter;
 use Filament\Tables\Actions\ExportAction;
+use Filament\Tables\Actions\ImportAction;
 use Filament\Tables\Actions\ExportBulkAction;
 use App\Filament\Actions\BulkActions\ExportContactsPdfBulkAction;
 
@@ -63,9 +65,35 @@ class ContactResource extends Resource
                     ->relationship('zipcode', 'name')
                     ->required()
                     ->searchable(['code', 'name'])
-                    ->preload(),
+                    ->preload()
+                    ->live()
+                    ->afterStateUpdated(function ($state, Forms\Set $set) {
+                        if ($state) {
+                            $zipcode = \App\Models\Zipcode::find($state);
+                            if ($zipcode && $zipcode->commune) {
+                                $set('lang', $zipcode->commune->lang);
+                            }
+                        }
+                    }),
                 Forms\Components\DatePicker::make('birthdate')
                     ->required(),
+                Forms\Components\ToggleButtons::make('lang')
+                    ->options([
+                        'de' => 'German',
+                        'fr' => 'French',
+                        'it' => 'Italian',
+                    ])
+                    ->required()
+                    ->inline()
+                    ->afterStateHydrated(function (Forms\Components\ToggleButtons $component, $state, $record) {
+                        if ($record && $record->lang) {
+                            return;
+                        }
+        
+                        if ($record && $record->zipcode && $record->zipcode->commune) {
+                            $component->state($record->zipcode->commune->lang);
+                        }
+                    }),
                 Forms\Components\Select::make('sheet_id')
                     ->relationship('sheet', 'label')
                     ->searchable()
@@ -76,8 +104,7 @@ class ContactResource extends Resource
                     ->searchable()
                     ->preload(),
                 Forms\Components\DateTimePicker::make('letter_sent')
-                    ->label(__('contact.fields.letter_sent'))
-                    ->required(),
+                    ->label(__('contact.fields.letter_sent')),
             ]);
     }
 
@@ -94,7 +121,7 @@ class ContactResource extends Resource
                         Infolists\Components\TextEntry::make('birthdate')
                             ->label(__('contact.fields.birthdate'))
                             ->date(),
-                        Infolists\Components\TextEntry::make('zipcode.commune.lang')
+                        Infolists\Components\TextEntry::make('lang')
                             ->label(__('commune.fields.lang')),
                     ])
                     ->columns(4),
@@ -167,10 +194,13 @@ class ContactResource extends Resource
                     ->label(__('zipcode.fields.name'))
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('zipcode.commune.lang')
+                Tables\Columns\TextColumn::make('lang')
                     ->label(__('commune.fields.lang'))
                     ->searchable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->formatStateUsing(function ($state, $record) {
+                        return $record->lang ?? ($record->zipcode->commune->lang ?? 'Commune has no lang');
+                    }),
                 Tables\Columns\TextColumn::make('birthdate')
                     ->label(__('contact.fields.birthdate'))
                     ->date()
@@ -239,6 +269,7 @@ class ContactResource extends Resource
             ])
             ->headerActions([
                 ExportAction::make()->exporter(ContactExporter::class),
+                ImportAction::make()->importer(ContactImporter::class),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

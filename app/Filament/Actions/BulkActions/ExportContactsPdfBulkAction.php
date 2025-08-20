@@ -21,13 +21,12 @@ class ExportContactsPdfBulkAction extends BulkAction
     {
         parent::setUp();
 
-        $this->label('Export to PDF')
+        $this->label(__('contact.letter.action.label'))
             ->icon('heroicon-o-document-arrow-down')
-            ->color('success')
             ->requiresConfirmation()
-            ->modalHeading('Export Selected Contacts to PDF')
-            ->modalDescription('This will generate a PDF containing all selected contacts.')
-            ->modalSubmitActionLabel('Export PDF')
+            ->modalHeading(__('contact.letter.action.heading'))
+            ->modalDescription(__('contact.letter.action.description'))
+            ->modalSubmitActionLabel(__('contact.letter.action.confirm'))
             ->action(function (Collection $records) {
                 return $this->exportToPdf($records);
             });
@@ -37,7 +36,7 @@ class ExportContactsPdfBulkAction extends BulkAction
     {
         try {
             // Load relationships to avoid N+1 queries
-            $contacts->load(['zipcode.commune', 'sheet', 'contactType']);
+            $contacts->load(['zipcode', 'zipcode.commune', 'sheet', 'contactType']);
 
             // Generate combined HTML from individual templates
             $combinedHtml = $this->generateCombinedHtml($contacts);
@@ -92,16 +91,36 @@ class ExportContactsPdfBulkAction extends BulkAction
 
         // Generate HTML for each contact
         foreach ($contacts as $contact) {
-            $individualPages[] = view('contact.contact-page', [
-                'contact' => $contact,
-            ])->render();
+            $replacementDict = [
+                '|firstname|' => $contact->firstname,
+                '|lastname|' => $contact->lastname,
+                '|street_no|' => $contact->street_no,
+                '|zipcode|' => $contact->zipcode->code,
+                '|place|' => $contact->zipcode->name,
+                '|contactType|' => $contact->contactType,
+            ];
+            try {
+                // change locale to render in correct language
+                $currentLocale = app()->getLocale();
+                app()->setLocale($contact->zipcode->commune->lang);
+                $individualPages[] = view('contact.contact-page', [
+                    'contact' => $contact,
+                    'language' => $contact->zipcode->commune->lang,
+                    'replacementDict' => $replacementDict,
+                ])->render();
+                app()->setLocale($currentLocale); // Reset locale after rendering
+            } catch (\Exception $e) {
+                \Filament\Notifications\Notification::make()
+                    ->title('Contact Export Skipped')
+                    ->body('Contact ' . $contact->id . ' could not be rendered and was skipped: ' . $e->getMessage())
+                    ->warning()
+                    ->send();
+            }
         }
 
         // Combine all pages with CSS page breaks
         return view('contact.contacts-combined', [
             'pages' => $individualPages,
-            'totalContacts' => $contacts->count(),
-            'exportDate' => now(),
         ])->render();
     }
 }

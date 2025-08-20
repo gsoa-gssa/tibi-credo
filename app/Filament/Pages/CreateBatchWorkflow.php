@@ -16,7 +16,7 @@ use Illuminate\Support\HtmlString;
 class CreateBatchWorkflow extends Page implements HasForms
 {
     protected static ?string $model = Batch::class;
-    protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
+    protected static ?string $navigationIcon = 'heroicon-o-document-arrow-up';
     protected static ?int $navigationSort = 1;
 
     public ?array $initiateData = [];

@@ -25,7 +25,7 @@ class SheetWorkflow extends Page implements HasForms, HasTable
 {
     use InteractsWithForms, InteractsWithTable;
     protected static ?string $model = Sheet::class;
-    protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
+    protected static ?string $navigationIcon = 'heroicon-o-document-plus';
     protected static ?int $navigationSort = 0;
 
     public function getTitle(): string | Htmlable

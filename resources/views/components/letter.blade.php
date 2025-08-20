@@ -7,7 +7,9 @@
 @endif
 
 <x-slot name="css">
-  {{ $css }}
+  @if(isset($css))
+    {{ $css }}
+  @endif
 </x-slot>
 <div class="letter-content">
   <div class="address-block {{ $addressPosition === 'right' ? 'address-block-right' : 'address-block-left' }}">

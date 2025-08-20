@@ -18,7 +18,7 @@ use Filament\Forms\Concerns\InteractsWithForms;
 class CaptureBatchWorkflow extends Page implements HasForms
 {
     use InteractsWithForms;
-    protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
+    protected static ?string $navigationIcon = 'heroicon-o-document-arrow-down';
 
     protected static ?int $navigationSort = 3;
 

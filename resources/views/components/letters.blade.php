@@ -58,7 +58,9 @@
           width: 100%;
         }
 
-        {{ $css }}
+        @if(isset($css))
+          {{ $css }}
+        @endif
     </style>
 </head>
 <body>
