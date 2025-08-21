@@ -3,10 +3,12 @@
 namespace App\Filament\Pages;
 
 use App\Models\Contact;
+use App\Filament\Resources\ContactResource;
 use Filament\Forms;
 use Filament\Tables;
 use App\Models\Sheet;
 use App\Models\Source;
+use App\Models\Commune;
 use App\Models\Zipcode;
 use Filament\Forms\Form;
 use Filament\Pages\Page;
@@ -44,15 +46,22 @@ class SheetWorkflow extends Page implements HasForms, HasTable
     return __('pages.sheetWorkflow.navigationGroup');
   }
   
-  public $vox;
   public $label;
-  public $vox_label;
+
+  public $srcAndCount = '';
   public $source_id;
   public $signatureCount = 0;
+
+  public $zipcode = null;
+  public $place = '';
   public $commune_id;
+
   public $sheet;
   
   public $contacts = [];
+
+  public $placeHelperText = '';
+  public $communeHelperText = '';
   
   /**
   * On Mount
@@ -61,105 +70,183 @@ class SheetWorkflow extends Page implements HasForms, HasTable
   {
     $this->label = auth()->user()->getNextSheetLabel();
     $lastsheet = Sheet::where('user_id', auth()->id())->orderBy('id', 'desc')->first();
-    // Check if last sheet exists and it isnt older than 1 hour
-    // if yes, remember vox-status in form
-    if ($lastsheet && $lastsheet->created_at->diffInHours(now()) < 1) {
-      if ($lastsheet->vox) {
-        $this->vox = true;
-        $this->source_id = 1;
-      }
-    }
   }
   
   public function form(Form $form): Form
   {
     return $form->schema([
-      Forms\Components\Toggle::make('vox')
-        ->label(__('input.label.sheetWorkflow.vox'))
-        ->inline(false)
-        ->helperText(__('input.helper.sheetWorkflow.vox'))
-        ->onIcon('heroicon-o-check-circle')
-        ->offIcon('heroicon-o-x-circle')
+      Forms\Components\TextInput::make('label')
+        ->label(__('sheet.fields.label'))
         ->live()
-        ->id('vox')
-        ->autofocus(false)
-        ->default("on")
-        ->afterStateUpdated(function ($state, Forms\Set $set) {
-          if ($state === true) {
-            $all = \App\Models\Source::where('code', 'ALL')->first();
-            $set('source_id', $all->id);
-          } else {
-            $set('source_id', null);
+        ->afterStateUpdated(function (Forms\Contracts\HasForms $livewire, Forms\Components\TextInput $component) { 
+          $state = $component->getState();
+          $state = preg_replace('/\s+/', '', $state);
+          if (preg_match('/^vox/i', $state)) {
+            if (preg_match('/^vox(\d)/i', $state, $matches)) {
+              $state = 'VOX-' . substr($state, 3);
+            }
+            $state = 'VOX' . substr($state, 3);
+          }
+          $component->state($state);
+          $livewire->resetErrorBag($component->getStatePath());
+
+          if (!self::isLabelValid($state)) {
+              $livewire->addError($component->getStatePath(), __('pages.sheetWorkflow.validation.label.regex', ['label' => $state]));
+          }
+
+          if (!self::isLabelAvailable($state)) {
+              $livewire->addError($component->getStatePath(), __('pages.sheetWorkflow.validation.label.unavailable', ['label' => $state]));
           }
         }),
-      \HasanAhani\FilamentOtpInput\Components\OtpInput::make('label')
-        ->label(__('input.label.sheetWorkflow.label'))
-        ->helperText(__('input.helper.sheetWorkflow.label'))
-        ->numberInput(6)
-        ->visible(fn(Get $get) => !$get("vox"))
-        ->required(),
-      Forms\Components\TextInput::make('vox_label')
-        ->label(__('input.label.sheetWorkflow.label'))
-        ->helperText(__('input.helper.sheetWorkflow.label'))
-        ->prefix('VOX - ')
-        ->default('')
-        ->autofocus(fn(Get $get) => $get("vox"))
-        ->visible(fn(Get $get) => $get("vox"))
-        ->required(),
-      Forms\Components\Select::make("source_id")
-        ->required()
-        ->options(function () {
-          $sources = Source::all();
-          $options = [];
-          foreach ($sources as $source) {
-            if ($source->shortcut) {
-              $options[$source->id] = $source->shortcut . " " . $source->code;
+      Forms\Components\Group::make([
+        Forms\Components\TextInput::make('srcAndCount')
+          ->label(__('pages.sheetWorkflow.srcAndCount'))
+          ->dehydrated(false)
+          ->live()
+          ->afterStateUpdated(function (Forms\Contracts\HasForms $livewire, Forms\Components\TextInput $component) { 
+            $state = $component->getState();
+            $state = preg_replace('/\s+/', '', $state);
+            $state = strtoupper($state);
+            $component->state($state);
+
+            $livewire->resetErrorBag($component->getStatePath());
+
+            if (preg_match('/^([A-Za-z]*)(\d+)$/', $state, $matches)) {
+              $letters = $matches[1];
+              $digits = $matches[2];
+
+              if (empty($this->source_id) && empty($letters)) {
+                $livewire->addError($component->getStatePath(), __('pages.sheetWorkflow.validation.source_id.empty', ['srcAndCount' => $state]));
+              }
+
+              if (!empty($letters)) {
+                $source = Source::where('code', 'LIKE', $letters . '%')->first();
+                if ($source) {
+                  $livewire->source_id = $source->id;
+                } else {
+                  $livewire->addError($component->getStatePath(), __('pages.sheetWorkflow.validation.source_id.not_found', ['srcAndCount' => $state]));
+                }
+              }
+
+              $signatureCount = (int) $digits;
+              $livewire->signatureCount = $signatureCount;
+              if ($signatureCount > 15 || $signatureCount < 1) {
+                $livewire->addError($component->getStatePath(), __('pages.sheetWorkflow.validation.signatureCount.range', ['signatureCount' => $signatureCount]));
+              }              
             } else {
-              $options[$source->id] = $source->code;
+              $livewire->addError($component->getStatePath(), __('pages.sheetWorkflow.validation.srcAndCount.structure', ['srcAndCount' => $state]));
             }
-          }
-          return $options;
-        })
-        ->preload()
-        ->searchDebounce(200)
-        ->label(__('input.label.sheetWorkflow.source'))
-        ->helperText(__('input.helper.sheetWorkflow.source'))
-        // Disable if vox
-        ->disabled(fn(Get $get) => $get("vox"))
-        ->autofocus(fn(Get $get) => !$get("vox"))
-        ->searchable(),
-      Forms\Components\TextInput::make('signatureCount')
-        ->label(__('input.label.sheetWorkflow.signatureCount'))
-        ->default(0)
-        ->minValue(1)
-        ->maxValue(10)
-        ->required()
-        ->helperText(__('input.helper.sheetWorkflow.signatureCount'))
-        ->numeric(),
-      Forms\Components\Select::make('commune_id')
-        ->searchable()
-        ->label(__('input.label.sheetWorkflow.commune'))
-        ->helperText(__('input.helper.sheetWorkflow.commune'))
-        ->getSearchResultsUsing(
-          function (string $search): array {
-            if (strlen($search) < 4) {
-              return [];
-            }
-            $zipcodes = Zipcode::where('code', 'like', "%$search%")->orWhere('name', 'like', "%$search%")->orderBy("number_of_dwellings", "desc")->get();
-            $results = [];
-            foreach ($zipcodes as $zipcode) {
-              $label = $zipcode->commune->name != $zipcode->name ? $zipcode->code . " " . $zipcode->commune->name . ' (' . __("input.helper.sheetWorkflow.place") . ": " . $zipcode->name . ')' : $zipcode->code . " " . $zipcode->commune->name;
-              $results[] = [
-                $zipcode->commune->id => $label,
-              ];
-            }
-            return $results;
           })
-          ->searchDebounce(200)
-          ->preload()
-          ->required(),
+          ->columnSpan(3),
+        Forms\Components\Select::make('source_id')
+          ->label(__('source.name'))
+          ->options(Source::all()->pluck('code', 'id'))
+          ->disabled(true),
+        Forms\Components\TextInput::make('signatureCount')
+          ->label(__('sheet.fields.signatureCountShort'))
+          ->disabled(true),
+      ])
+      ->columns(2),
+      Forms\Components\Group::make([
+        Forms\Components\TextInput::make('zipcode')
+          ->label(__('zipcode.fields.code'))
+          ->dehydrated(false)
+          ->live()
+          ->afterStateUpdated(function (Forms\Contracts\HasForms $livewire, Forms\Components\TextInput $component) { 
+            $state = $component->getState();
+
+            $livewire->resetErrorBag($component->getStatePath());
+            $livewire->resetErrorBag('place');
+            $livewire->resetErrorBag('commune_id');
+
+            if (!preg_match('/^\d{4}$/', $state)) {
+              $livewire->addError($component->getStatePath(), __('pages.sheetWorkflow.validation.zipcode.format', ['zipcode' => $state]));
+              return;
+            }
+
+            $zipcodes = Zipcode::where('code', $state)->get();
+            $zipcode = $zipcodes->first();
+            if (!$zipcode) {
+              $livewire->addError($component->getStatePath(), __('pages.sheetWorkflow.validation.zipcode.not_found', ['zipcode' => $state]));
+              return;
+            }
+
+            $livewire->commune_id = $zipcode->commune->id;
+
+            $communeIds = $zipcodes->pluck('commune_id')->unique();
+            $communeNames = $zipcodes->pluck('commune.name')->unique();
+            $places = $zipcodes->pluck('name')->unique();
+            $places = $places->merge($communeNames)->unique();
+            
+            if ($communeNames->count() > 1) {
+              // $component->getContainer()->getComponent('place')->helperText(__('pages.sheetWorkflow.validation.place.multiple', ['zipcode' => $state, 'places' => $places->implode(', ')]));
+              $livewire->placeHelperText = __('pages.sheetWorkflow.validation.place.multiple', ['zipcode' => $state, 'places' => $places->implode(', ')]);
+              $livewire->communeHelperText = __('pages.sheetWorkflow.validation.commune.multiple_per_zipcode', ['zipcode' => $state, 'communes' => $communeNames->implode(', ')]);
+              
+              $livewire->place = '';
+
+            } else {
+              $livewire->place = $communeNames->first();
+              $livewire->placeHelperText = __('pages.sheetWorkflow.validation.place.determined', ['zipcode' => $state, 'place' => $livewire->place]);
+              $livewire->communeHelperText = __('pages.sheetWorkflow.validation.commune.determined', ['zipcode' => $state, 'commune' => $communeNames->first()]);
+            }
+
+          })
+          ->numeric()
+          ->minValue(1000)
+          ->maxValue(9999),
+        Forms\Components\TextInput::make('place')
+          ->label(__('pages.sheetWorkflow.placeOrCommune'))
+          ->dehydrated(false)
+          ->helperText(fn () => $this->placeHelperText)
+          ->live()
+          ->afterStateUpdated(function (Forms\Contracts\HasForms $livewire, Forms\Components\TextInput $component) { 
+            $state = $component->getState();
+
+            $zipcodes = Zipcode::where('code', $livewire->zipcode)->get();
+            $communeNames = $zipcodes->pluck('commune.name')->unique();
+            $places = $zipcodes->pluck('name')->unique();
+            $places = $places->merge($communeNames)->unique();
+
+            $filteredPlaces = $places->filter(function ($placeName) use ($state) {
+              // Lowercase both arguments for case-insensitive comparison
+              return stripos(mb_strtolower($placeName), mb_strtolower($state)) === 0;
+            });
+
+            if ($filteredPlaces->count() === 1) {
+              $component->state($filteredPlaces->first());
+
+              $communes = Zipcode::where('code', $livewire->zipcode)
+                ->where('name', $filteredPlaces->first())
+                ->orWhereHas('commune', function ($query) use ($filteredPlaces) {
+                  $query->where('name', $filteredPlaces->first());
+                })
+                ->get()
+                ->pluck('commune_id')
+                ->unique();
+
+              if ($communes->count() === 1) {
+                $livewire->commune_id = $communes->first();
+                $livewire->resetErrorBag('commune_id');
+                $livewire->placeHelperText = '';
+                $commune_name = Commune::find($livewire->commune_id)->name;
+                $livewire->communeHelperText = __('pages.sheetWorkflow.validation.commune.determined_zip_place', ['zipcode' => $livewire->zipcode, 'place' => $livewire->place, 'commune' => $commune_name]);
+              } else {
+                $livewire->addError('commune_id', __('pages.sheetWorkflow.validation.commune_id.multiple', ['zipcode' => $livewire->zipcode, 'place' => $communes->first(), 'communes' => $communes->implode(', ')]));
+              }
+            }
+          })
+          ->columnSpan(2),
+        Forms\Components\Select::make('commune_id')
+          ->label(__('commune.name'))
+          ->helperText(fn () => $this->communeHelperText)
+          ->options(Commune::all()->pluck('name', 'id'))
+          ->disabled(true)
+          ->columnSpan(3),
+      ])
+      ->columns(3),
     ])
-    ->columns(2);
+    ->columns(3);
   }
       
   public function table(Tables\Table $table): Tables\Table
@@ -184,30 +271,8 @@ class SheetWorkflow extends Page implements HasForms, HasTable
         Tables\Actions\Action::make('add')
           ->label(__('tables.actions.contacts.add'))
           ->form([
-            Forms\Components\TextInput::make('firstname')
-            ->label(__('input.label.contacts.firstname'))
-            ->required(),
-            Forms\Components\TextInput::make('lastname')
-            ->label(__('input.label.contacts.lastname'))
-            ->required(),
-            Forms\Components\TextInput::make('street_no')
-            ->label(__('input.label.contacts.street_no'))
-            ->required(),
-            Forms\Components\DatePicker::make('birthdate')
-            ->label(__('input.label.contacts.birthdate'))
-            ->required(),
-            Forms\Components\Select::make('zipcode_id')
-            ->label(__('input.label.contacts.zipcode'))
-            ->relationship('zipcode', 'code')
-            ->searchable()
-            ->searchDebounce(100)
-            ->required()
-            ->afterStateUpdated(fn (Forms\Set $set, $state) => $set('city', Zipcode::find($state)?->name))
-            ->live(),
-            Forms\Components\TextInput::make('city')
-            ->label(__('input.label.contacts.city'))
-            ->required()
-            ->maxLength(255),
+            Forms\Components\Group::make(ContactResource::getFormSchema(true))
+            ->columns(3),
           ])
           ->action(function (array $data): void {
             $contact = Contact::create($data);
@@ -235,24 +300,20 @@ class SheetWorkflow extends Page implements HasForms, HasTable
           
   public function store()
   {
-    $this->validate();
     $data = $this->form->getState();
+    $data['signatureCount'] = $this->signatureCount;
+    $data['commune_id'] = $this->commune_id;
+    $data['source_id'] = $this->source_id;
     $data['user_id'] = auth()->id();
-    if (isset($data['vox']) && $data['vox']) {
-      $data['label'] = "VOX–" . $data['vox_label'];
-      unset($data['vox_label']);
-    } else {
-      $data['label'] = $data['label'];
-      $data['vox'] = false;
-    }
-    
-    $existingSheet = Sheet::where('label', $data['label'])->first();
-    if ($existingSheet) {
+
+    $valid = self::isLabelValid($data['label']);
+    $valid = $valid && self::isLabelAvailable($data['label']);
+
+    if (!$valid) {
       Notification::make()
       ->danger()
-      ->seconds(15)
-      ->title(__('notifications.sheetWorkflow.labelExists'))
-      ->body(__('notifications.sheetWorkflow.labelExistsBody'))
+      ->title(__('pages.sheetWorkflow.notification.invalid'))
+      ->body(__('pages.sheetWorkflow.notification.invalidBody'))
       ->send();
       return;
     }
@@ -268,9 +329,24 @@ class SheetWorkflow extends Page implements HasForms, HasTable
     ->title(__('notifications.sheetWorkflow.success'))
     ->send();
     
+    $lastSource = $this->source_id;
+    $lastCommune = $this->commune_id;
     $this->form->fill();
+    $this->label = auth()->user()->getNextSheetLabel();
+    $this->commune_id = $lastCommune;
+    $this->source_id = $lastSource;
     $this->contacts = [];
+    $this->dispatch('focus', field: 'srcAndCount');
     $this->resetTable();
-  }          
+  }      
+  
+  public static function isLabelValid(?string $label): bool
+  {
+    return !$label || preg_match('/^(VOX-)?[0-9]+[a-zA-Z]?$/', $label) === 1;
+  }
+
+  public static function isLabelAvailable(?string $label): bool
+  {
+    return !Sheet::where('label', $label)->exists();
+  }
 }
-        

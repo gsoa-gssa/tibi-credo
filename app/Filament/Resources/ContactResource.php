@@ -46,20 +46,23 @@ class ContactResource extends Resource
         return __('contact.namePlural');
     }
 
-    public static function form(Form $form): Form
+    public static function getFormSchema($attachedToSheet = false): array
     {
-        return $form
-            ->schema([
+        $schema = [
                 Forms\Components\TextInput::make('firstname')
+                    ->label(__('contact.fields.firstname'))
                     ->required()
                     ->maxLength(255),
                 Forms\Components\TextInput::make('lastname')
+                    ->label(__('contact.fields.lastname'))
                     ->required()
                     ->maxLength(255),
                 Forms\Components\TextInput::make('street_no')
+                    ->label(__('contact.fields.street_no'))
                     ->required()
                     ->maxLength(255),
-                Forms\Components\Select::make('zipcode_id')
+        ];
+        $schema[] = Forms\Components\Select::make('zipcode_id')
                     ->label(__('zipcode.name'))
                     ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->code} {$record->name}")
                     ->relationship('zipcode', 'name')
@@ -74,10 +77,12 @@ class ContactResource extends Resource
                                 $set('lang', $zipcode->commune->lang);
                             }
                         }
-                    }),
-                Forms\Components\DatePicker::make('birthdate')
-                    ->required(),
-                Forms\Components\ToggleButtons::make('lang')
+                    });
+        $schema[] = Forms\Components\DatePicker::make('birthdate')
+                    ->label(__('contact.fields.birthdate'))
+                    ->required();
+        $schema[] = Forms\Components\ToggleButtons::make('lang')
+                    ->label(__('commune.fields.lang'))
                     ->options([
                         'de' => 'German',
                         'fr' => 'French',
@@ -93,19 +98,42 @@ class ContactResource extends Resource
                         if ($record && $record->zipcode && $record->zipcode->commune) {
                             $component->state($record->zipcode->commune->lang);
                         }
-                    }),
-                Forms\Components\Select::make('sheet_id')
+                    });
+        if ( !$attachedToSheet ) {
+            $schema[] = Forms\Components\Select::make('sheet_id')
+                    ->label(__('sheet.name'))
                     ->relationship('sheet', 'label')
                     ->searchable()
-                    ->preload(),
-                Forms\Components\Select::make('contact_type_id')
+                    ->preload();
+        }
+        if ( $attachedToSheet ){
+            $schema[] = Forms\Components\Select::make('contact_type_id')
+                    ->label(__('contact.fields.contact_type'))
                     ->relationship('contactType', 'name')
                     ->required()
+                    ->default(1)
                     ->searchable()
-                    ->preload(),
-                Forms\Components\DateTimePicker::make('letter_sent')
-                    ->label(__('contact.fields.letter_sent')),
-            ]);
+                    ->preload();
+        } else {
+            $schema[] = Forms\Components\Select::make('contact_type_id')
+                ->label(__('contact.fields.contact_type'))
+                ->relationship('contactType', 'name')
+                ->required()
+                ->searchable()
+                ->preload();
+        }
+        
+        if ( !$attachedToSheet ){
+            $schema[] = Forms\Components\DateTimePicker::make('letter_sent')
+                    ->label(__('contact.fields.letter_sent'));
+        }
+        return $schema;
+    }
+
+    public static function form(Form $form): Form
+    {
+        return $form
+            ->schema(self::getFormSchema());
     }
 
     public static function infolist(Infolist $infolist): Infolist
