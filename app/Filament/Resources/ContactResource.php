@@ -304,9 +304,7 @@ class ContactResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                     ExportBulkAction::make()->exporter(ContactExporter::class),
-                ]),
-                ExportContactsPdfBulkAction::make(),
-                Tables\Actions\BulkAction::make('assign_contact_type')
+                    Tables\Actions\BulkAction::make('assign_contact_type')
                     ->label(__('contact.bulk_action.assign_contact_type'))
                     ->form([
                         Forms\Components\Select::make('contact_type')
@@ -323,6 +321,8 @@ class ContactResource extends Resource
                         }
                     })
                     ->deselectRecordsAfterCompletion(),
+                ]),
+                ExportContactsPdfBulkAction::make(),
             ]);
     }
 
