@@ -306,6 +306,23 @@ class ContactResource extends Resource
                     ExportBulkAction::make()->exporter(ContactExporter::class),
                 ]),
                 ExportContactsPdfBulkAction::make(),
+                Tables\Actions\BulkAction::make('assign_contact_type')
+                    ->label(__('contact.bulk_action.assign_contact_type'))
+                    ->form([
+                        Forms\Components\Select::make('contact_type')
+                            ->label(__('Contact Type'))
+                            ->options(\App\Models\ContactType::pluck('name', 'id'))
+                            ->required()
+                            ->searchable()
+                            ->preload(),
+                    ])
+                    ->action(function (array $data, $records) {
+                        foreach ($records as $contact) {
+                            $contact->contact_type_id = $data['contact_type'];
+                            $contact->save();
+                        }
+                    })
+                    ->deselectRecordsAfterCompletion(),
             ]);
     }
 
