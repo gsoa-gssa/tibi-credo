@@ -64,6 +64,7 @@ class CountingResource extends Resource
                     ->native(false),
                 Forms\Components\ViewField::make('sources_warning')
                     ->view('filament.forms.components.countings.sources-warning')
+                    ->dehydrated(false)
                     ->columnSpan(2),
                 Forms\Components\DateTimePicker::make('date')
                     ->default(now())
