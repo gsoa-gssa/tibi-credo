@@ -58,6 +58,7 @@ class CreateBatchWorkflow extends Page implements HasForms
             ->schema([
                 Forms\Components\Select::make("commune_id")
                     ->required() # BUG this required is not working
+                    ->autofocus()
                     ->relationship('commune', 'name')
                     ->preload()
                     ->disabled(fn () => $this->pageTwo)

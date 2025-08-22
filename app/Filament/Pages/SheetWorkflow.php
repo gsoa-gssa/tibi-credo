@@ -78,6 +78,7 @@ class SheetWorkflow extends Page implements HasForms, HasTable
       Forms\Components\TextInput::make('label')
         ->label(__('sheet.fields.label'))
         ->live()
+        ->required()
         ->afterStateUpdated(function (Forms\Contracts\HasForms $livewire, Forms\Components\TextInput $component) { 
           $state = $component->getState();
           $state = preg_replace('/\s+/', '', $state);
@@ -140,10 +141,18 @@ class SheetWorkflow extends Page implements HasForms, HasTable
           ->columnSpan(3),
         Forms\Components\Select::make('source_id')
           ->label(__('source.name'))
+          ->required()
+          ->validationMessages([
+            'required' => __('pages.sheetWorkflow.validation.source_id.empty', ['srcAndCount' => $this->srcAndCount]),
+          ])
           ->options(Source::all()->pluck('code', 'id'))
           ->disabled(true),
         Forms\Components\TextInput::make('signatureCount')
           ->label(__('sheet.fields.signatureCountShort'))
+          ->required()
+          ->validationMessages([
+            'required' => __('pages.sheetWorkflow.validation.signatureCount.required'),
+          ])
           ->disabled(true),
       ])
       ->columns(2),
@@ -239,6 +248,10 @@ class SheetWorkflow extends Page implements HasForms, HasTable
           ->columnSpan(2),
         Forms\Components\Select::make('commune_id')
           ->label(__('commune.name'))
+          ->required()
+          ->validationMessages([
+            'required' => __('pages.sheetWorkflow.validation.commune_id.required'),
+          ])
           ->helperText(fn () => $this->communeHelperText)
           ->options(Commune::all()->pluck('name', 'id'))
           ->disabled(true)
