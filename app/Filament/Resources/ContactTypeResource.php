@@ -27,7 +27,7 @@ class ContactTypeResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('name')
                     ->required()
-                    ->maxLength(8),
+                    ->maxLength(20),
                 Forms\Components\TextInput::make('description')
                     ->required()
                     ->maxLength(255),
