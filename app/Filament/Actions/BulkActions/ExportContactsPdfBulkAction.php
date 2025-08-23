@@ -56,6 +56,11 @@ class ExportContactsPdfBulkAction extends BulkAction
             // Generate filename
             $filename = 'contacts_export_' . now()->format('Y-m-d_H-i-s') . '.pdf';
 
+            // for all contacts, set letter_sent to current timestamp
+            foreach ($contacts as $contact) {
+                $contact->update(['letter_sent' => now()]);
+            }
+
             // Stream PDF directly to user
             return response()->streamDownload(
                 function () use ($pdf) {
