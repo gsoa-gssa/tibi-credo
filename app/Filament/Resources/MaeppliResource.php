@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\MaeppliResource\Pages;
 use App\Filament\Resources\MaeppliResource\RelationManagers;
 use App\Models\Maeppli;
+use App\Models\Sheet;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -86,7 +87,7 @@ class MaeppliResource extends Resource
                 Tables\Columns\TextColumn::make('label')
                     ->label(__('maeppli.label'))
                     ->sortable()
-                    ->searchable(),
+                    ->searchable('maepplis.label'),
                 Tables\Columns\TextColumn::make('commune.name')
                     ->label(__('maeppli.commune'))
                     ->sortable()
@@ -94,7 +95,7 @@ class MaeppliResource extends Resource
                 Tables\Columns\TextColumn::make('sheets_count')
                     ->label(__('maeppli.sheets_count'))
                     ->numeric()
-                    ->toggleable()
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->sortable(),
                 Tables\Columns\TextColumn::make('sheets_valid_count')
                     ->label(__('maeppli.sheets_valid_count'))
@@ -104,8 +105,51 @@ class MaeppliResource extends Resource
                 Tables\Columns\TextColumn::make('sheets_invalid_count')
                     ->label(__('maeppli.sheets_invalid_count'))
                     ->numeric()
-                    ->toggleable()
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->sortable(),
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label(__('maeppli.created_at'))
+                    ->dateTime('d.m.Y')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('batch_created_at')
+                    ->label(__('batch.created_at'))
+                    ->getStateUsing(function ($record) {
+                        // Get an arbitrary Sheet for this Maeppli
+                        $sheet = $record->sheets()->with('batch')->first();
+                        return $sheet && $sheet->batch
+                            ? $sheet->batch->created_at?->format('d.m.Y')
+                            : __('maeppli.no_batch');
+                    })
+                    ->sortable(query: function (Builder $query, string $direction) {
+                        // Join sheets and batches to sort by batch.created_at of the first related sheet
+                        return $query->leftJoin('sheets', 'maepplis.id', '=', 'sheets.maeppli_id')
+                            ->leftJoin('batches', 'sheets.batch_id', '=', 'batches.id')
+                            ->orderBy('batches.created_at', $direction)
+                            ->select('maepplis.*')
+                            ->groupBy([
+                            'maepplis.id',
+                            'maepplis.label',
+                            'maepplis.commune_id',
+                            'maepplis.sheets_count',
+                            'maepplis.sheets_valid_count',
+                            'maepplis.sheets_invalid_count',
+                            'maepplis.created_at',
+                            'maepplis.updated_at',
+                            'maepplis.deleted_at',
+                        ]);
+                    })                        
+                    ->toggleable(isToggledHiddenByDefault: true),
+                    Tables\Columns\TextColumn::make('sheets_valid_ratio')
+                        ->label(__('maeppli.sheets_valid_ratio'))
+                        ->getStateUsing(function ($record) {
+                            $valid = (int) $record->sheets_valid_count;
+                            $invalid = (int) $record->sheets_invalid_count;
+                            $total = $valid + $invalid;
+                            return $total > 0 ? (string)(int)($valid / $total * 100 ) . '%' : $valid . ' / ' . $total;
+                        })
+                        ->sortable(false)
+                        ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 //
