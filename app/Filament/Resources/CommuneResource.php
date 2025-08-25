@@ -86,15 +86,35 @@ class CommuneResource extends Resource
                     ->numeric()
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->sortable(),
-                Tables\Columns\TextColumn::make('sheets_count')
+                Tables\Columns\TextColumn::make('sheets_no_batch')
                     ->sortable(query: function (Builder $query, $direction) {
                         $query->withCount(['sheets as sheets_count' => function($query) {
                             $query->where("status", "recorded");
                         }])->orderBy("sheets_count", $direction);
                     })
-                    ->label("Sheets without Batch")
+                    ->label(__('commune.computed.sheets_no_batch'))
                     ->getStateUsing(function (Model $record) {
                         return $record->sheets()->where("status", "recorded")->count();
+                    }),
+                Tables\Columns\TextColumn::make('validity_quota_current')
+                    ->label(__('commune.computed.validity_quota_current'))
+                    ->getStateUsing(function (Model $record) {
+                        $maeppli = \App\Models\Maeppli::where('commune_id', $record->id)
+                            ->orderByDesc('created_at')
+                            ->first();
+                        if (!$maeppli) {
+                            return __('commune.computed.validity_quota_current.no_data');
+                        }
+                        $valid = $maeppli->sheets_valid_count ?? 0;
+                        $invalid = $maeppli->sheets_invalid_count ?? 0;
+                        $total = $valid + $invalid;
+                        if ($total === 0) {
+                            return "Leerer Versand?";
+                        }
+                        return __('commune.computed.validity_quota_current_data', [
+                            'percent' => round(($valid / $total) * 100) . '%',
+                            'total' => $total
+                        ]);
                     }),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()

@@ -54,6 +54,16 @@ class ContactImporter extends Importer
         ];
     }
 
+    public function messages(): array
+    {
+        return [
+            'validation.in' => 'Unknown error.',
+            'lang.in' => 'Language must be one of: de, fr, it.',
+            'zipcode.exists' => 'Zipcode does not exist or does not match any place in the database.',
+
+        ];
+    }
+
     public function resolveRecord(): ?Contact
     {
         // Try to find existing contact by ID first

@@ -14,8 +14,22 @@ class CommuneStats extends BaseWidget
     protected function getStats(): array
     {
         return [
-            Stat::make(__("widgets.communeStats.signatures"), $this->record->sheets()->sum('signatureCount')),
-            Stat::make(__("widgets.communeStats.sheets"), $this->record->sheets()->count()),
+            Stat::make(
+                __("widgets.communeStats.signatures"), 
+                $this->record->sheets()->sum('signatureCount')
+            ),
+            Stat::make(
+                __("widgets.communeStats.valid"),
+                \App\Models\Maeppli::where('commune_id', $this->record->id)->sum('sheets_valid_count')
+            ),
+            Stat::make(
+                __("widgets.communeStats.invalid"),
+                \App\Models\Maeppli::where('commune_id', $this->record->id)->sum('sheets_invalid_count')
+            ),
+            Stat::make(
+                __("widgets.communeStats.sheets"),
+                $this->record->sheets()->count()
+            ),
         ];
     }
 }
