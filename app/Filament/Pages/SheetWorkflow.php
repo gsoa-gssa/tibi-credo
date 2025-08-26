@@ -79,16 +79,28 @@ class SheetWorkflow extends Page implements HasForms, HasTable
         ->label(__('sheet.fields.label'))
         ->live()
         ->required()
+        ->extraAttributes([
+          'x-data' => '{}',
+          'x-on:input' => '
+              let text = $event.target.value.replace(/\s+/g, "");
+              console.log("Old: " + text);
+              if (/^[a-zA-Z]+$/.test(text)) {
+                text = text.toUpperCase();
+              }
+              if (/^VOX(\d)/.test(text)) {
+                text = "VOX-" + text.substring(3);
+              } else if (/^VO(\d)/.test(text)) {
+                text = "VOX-" + text.substring(2);
+              } else if (/^V(\d)/.test(text)) {
+                text = "VOX-" + text.substring(1);
+              }
+              $event.target.value = text;
+              $wire.set("label", text);
+              console.log("New: " + text);
+          '
+        ])
         ->afterStateUpdated(function (Forms\Contracts\HasForms $livewire, Forms\Components\TextInput $component) { 
           $state = $component->getState();
-          $state = preg_replace('/\s+/', '', $state);
-          if (preg_match('/^vox/i', $state)) {
-            if (preg_match('/^vox(\d)/i', $state, $matches)) {
-              $state = 'VOX-' . substr($state, 3);
-            }
-            $state = 'VOX' . substr($state, 3);
-          }
-          $component->state($state);
           $livewire->resetErrorBag($component->getStatePath());
 
           if (!self::isLabelValid($state)) {
@@ -104,10 +116,21 @@ class SheetWorkflow extends Page implements HasForms, HasTable
           ->label(__('pages.sheetWorkflow.srcAndCount'))
           ->dehydrated(false)
           ->live()
+          ->extraAttributes([
+            'x-data' => '{}',
+            'x-on:input' => '
+                let text = $event.target.value;
+                console.log("Original: " + text);
+                text = text.replace(/\s+/g, "");
+                text = text.toUpperCase();
+                
+                $event.target.value = text;
+                $wire.set("srcAndCount", text);
+                console.log("New: " + text);
+            '
+          ])
           ->afterStateUpdated(function (Forms\Contracts\HasForms $livewire, Forms\Components\TextInput $component) { 
             $state = $component->getState();
-            $state = preg_replace('/\s+/', '', $state);
-            $state = strtoupper($state);
             $component->state($state);
 
             $livewire->resetErrorBag($component->getStatePath());
@@ -213,35 +236,57 @@ class SheetWorkflow extends Page implements HasForms, HasTable
             $state = $component->getState();
 
             $zipcodes = Zipcode::where('code', $livewire->zipcode)->get();
-            $communeNames = $zipcodes->pluck('commune.name')->unique();
-            $places = $zipcodes->pluck('name')->unique();
-            $places = $places->merge($communeNames)->unique();
+            $communeNamesForZipCode = $zipcodes->pluck('commune.name')->unique();
+            $placeNamesForZipCode = $zipcodes->pluck('name')->unique();
+            $placeAndCommuneNamesForZipCode = $placeNamesForZipCode->merge($communeNamesForZipCode)->unique();
 
-            $filteredPlaces = $places->filter(function ($placeName) use ($state) {
+            $filteredPlaces = $placeAndCommuneNamesForZipCode->filter(function ($placeName) use ($state) {
               // Lowercase both arguments for case-insensitive comparison
               return stripos(mb_strtolower($placeName), mb_strtolower($state)) === 0;
             });
 
-            if ($filteredPlaces->count() === 1) {
-              $component->state($filteredPlaces->first());
+            if ($filteredPlaces->count() === 0) {
+              $livewire->addError($component->getStatePath(), __('pages.sheetWorkflow.validation.place.not_found', ['zipcode' => $livewire->zipcode, 'place' => $state]));
+              $livewire->commune_id = null;
+              $livewire->communeHelperText = '';
+              return;
+            } else if ($filteredPlaces->count() === 1) {
+              $place_name = $filteredPlaces->first();
+              $component->state($place_name);
 
-              $communes = Zipcode::where('code', $livewire->zipcode)
-                ->where('name', $filteredPlaces->first())
-                ->orWhereHas('commune', function ($query) use ($filteredPlaces) {
-                  $query->where('name', $filteredPlaces->first());
+              $commune_ids = Zipcode::where('code', $livewire->zipcode)
+                ->where('name', $place_name)
+                ->orWhereHas('commune', function ($query) use ($place_name) {
+                  $query->where('name', $place_name);
                 })
                 ->get()
                 ->pluck('commune_id')
                 ->unique();
 
+              $communes = Commune::whereIn('id', $commune_ids)->get();
+
               if ($communes->count() === 1) {
-                $livewire->commune_id = $communes->first();
+                $livewire->commune_id = $commune_ids->first();
                 $livewire->resetErrorBag('commune_id');
                 $livewire->placeHelperText = '';
-                $commune_name = Commune::find($livewire->commune_id)->name;
-                $livewire->communeHelperText = __('pages.sheetWorkflow.validation.commune.determined_zip_place', ['zipcode' => $livewire->zipcode, 'place' => $livewire->place, 'commune' => $commune_name]);
+                $commune_name = $communes->first()->name;
+                $livewire->communeHelperText = __('pages.sheetWorkflow.validation.commune.determined_zip_place', [
+                  'zipcode' => $livewire->zipcode,
+                  'place' => $livewire->place,
+                  'commune' => $commune_name
+                ]);
               } else {
-                $livewire->addError('commune_id', __('pages.sheetWorkflow.validation.commune_id.multiple', ['zipcode' => $livewire->zipcode, 'place' => $communes->first(), 'communes' => $communes->implode(', ')]));
+                $commune_names = $communes->pluck('name')->unique();
+                if ($commune_names->contains($place_name)) {
+                  $commune = $communes->firstWhere('name', $place_name);
+                  $livewire->commune_id = $commune->id;
+                }
+                $livewire->addError('commune_id', __('pages.sheetWorkflow.validation.commune_id.multiple', [
+                  'zipcode' => $livewire->zipcode,
+                  'place' => $place_name,
+                  'communes' => $commune_names->implode(', ')
+                ]));
+                $livewire->communeHelperText = '';
               }
             }
           })
