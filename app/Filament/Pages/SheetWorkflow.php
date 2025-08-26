@@ -235,14 +235,42 @@ class SheetWorkflow extends Page implements HasForms, HasTable
           ->afterStateUpdated(function (Forms\Contracts\HasForms $livewire, Forms\Components\TextInput $component) { 
             $state = $component->getState();
 
+            $livewire->resetErrorBag($component->getStatePath());
+            $livewire->resetErrorBag('place');
+            $livewire->resetErrorBag('commune_id');
+
             $zipcodes = Zipcode::where('code', $livewire->zipcode)->get();
             $communeNamesForZipCode = $zipcodes->pluck('commune.name')->unique();
             $placeNamesForZipCode = $zipcodes->pluck('name')->unique();
             $placeAndCommuneNamesForZipCode = $placeNamesForZipCode->merge($communeNamesForZipCode)->unique();
 
-            $filteredPlaces = $placeAndCommuneNamesForZipCode->filter(function ($placeName) use ($state) {
+            $filteredPlaces = $placeAndCommuneNamesForZipCode->filter(function ($candidateName) use ($state) {
               // Lowercase both arguments for case-insensitive comparison
-              return stripos(mb_strtolower($placeName), mb_strtolower($state)) === 0;
+              return stripos(mb_strtolower($candidateName), mb_strtolower($state)) === 0;
+            });
+
+            // copilot, didn't check
+            if ($filteredPlaces->count() > 1) {
+              $placesArray = $filteredPlaces->values()->all();
+              $first = array_shift($placesArray);
+              $prefix = $first;
+              foreach ($placesArray as $place) {
+                $i = 0;
+                $max = min(mb_strlen($prefix), mb_strlen($place));
+                while ($i < $max && mb_substr($prefix, $i, 1) === mb_substr($place, $i, 1)) {
+                  $i++;
+                }
+                $prefix = mb_substr($prefix, 0, $i);
+                if ($prefix === '') {
+                  break;
+                }
+              }
+              $livewire->place = $prefix;
+            }
+            $place_name = $livewire->place;
+
+            $exactMatch = $placeAndCommuneNamesForZipCode->filter(function ($candidateName) use ($place_name) {
+              return mb_strtolower($candidateName) === mb_strtolower($place_name);
             });
 
             if ($filteredPlaces->count() === 0) {
@@ -250,8 +278,13 @@ class SheetWorkflow extends Page implements HasForms, HasTable
               $livewire->commune_id = null;
               $livewire->communeHelperText = '';
               return;
-            } else if ($filteredPlaces->count() === 1) {
-              $place_name = $filteredPlaces->first();
+            } else if ($filteredPlaces->count() === 1 || $exactMatch->count() === 1) {
+              if ($exactMatch->count() === 1) {
+                $place_name = $exactMatch->first();
+              } else {
+                $place_name = $filteredPlaces->first();
+              }
+
               $component->state($place_name);
 
               $commune_ids = Zipcode::where('code', $livewire->zipcode)
