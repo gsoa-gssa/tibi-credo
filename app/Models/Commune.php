@@ -34,4 +34,17 @@ class Commune extends Model
     {
         return $this->hasMany(Batch::class);
     }
+
+    public function fixCantonSuffix(): void
+    {
+        if (!$this->canton || !$this->canton->label) {
+            throw new \Exception('Canton or canton label is missing for commune ' . $this->name . ' with id ' . $this->id . '.');
+        }
+
+        $code = $this->canton->label;
+        $pattern = '/(\s\(' . preg_quote($code, '/') . '\)|\s' . preg_quote($code, '/') . ')$/';
+
+        $this->name = preg_replace($pattern, '', $this->name);
+        $this->save();
+    }
 }

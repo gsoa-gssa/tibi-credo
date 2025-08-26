@@ -55,4 +55,17 @@ class Zipcode extends Model implements HasAllowedFilters, HasAllowedIncludes, Ha
         ];
         return $sorts;
     }
+
+    public function fixCantonSuffix(): void
+    {
+        if (!$this->commune->canton || !$this->commune->canton->label) {
+            throw new \Exception('Canton or canton label is missing for commune ' . $this->name . ' with id ' . $this->id . '.');
+        }
+
+        $code = $this->commune->canton->label;
+        $pattern = '/(\s\(' . preg_quote($code, '/') . '\)|\s' . preg_quote($code, '/') . ')$/';
+
+        $this->name = preg_replace($pattern, '', $this->name);
+        $this->save();
+    }
 }

@@ -83,6 +83,19 @@ class ZipcodeResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\BulkAction::make('fix_canton_suffix')
+                        ->label('Fix Canton Suffix')
+                        ->action(function ($records) {
+                            foreach ($records as $record) {
+                                $record->fixCantonSuffix();
+                            }
+                            Notification::make()
+                                ->title('Canton suffix fixed for selected communes.')
+                                ->success()
+                                ->send();
+                        })
+                        ->requiresConfirmation()
+                        ->color('primary'),
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
