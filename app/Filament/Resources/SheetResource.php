@@ -18,6 +18,8 @@ use Filament\View\LegacyComponents\Widget;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Rmsramos\Activitylog\RelationManagers\ActivitylogRelationManager;
+use Filament\Notifications\Notification;
+
 
 
 class SheetResource extends Resource
@@ -126,7 +128,7 @@ class SheetResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('label')
                     ->fontFamily(\Filament\Support\Enums\FontFamily::Mono)
-                    ->formatStateUsing(fn (string $state): string => str_starts_with($state, 'VOX') ? $state : sprintf('%06d', $state))
+                    ->formatStateUsing(fn ($state, $record) => $record->getLabel())
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('signatureCount')
@@ -215,6 +217,18 @@ class SheetResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\BulkAction::make('fix_labels')
+                        ->label('Fix Labels')
+                        ->action(function ($records) {
+                            foreach ($records as $record) {
+                                $record->fixLabel();
+                            }
+                            Notification::make()
+                                ->title('Sheet label normalized for selected sheets.')
+                                ->success()
+                                ->send();
+                        })
+                        ->requiresConfirmation(),
                     Tables\Actions\RestoreBulkAction::make(),
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),

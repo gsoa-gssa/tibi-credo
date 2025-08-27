@@ -91,7 +91,35 @@ class Sheet extends Model
      */
     public function getLabel()
     {
-        return str_starts_with($this->label, 'VOX') ? $this->label : sprintf('%06d', $this->label);
+        // Remove 'VOX' prefix if present and get the number part
+        if (preg_match('/^(VOX-)?(\d+)$/', $this->label, $matches)) {
+            $prefix = $matches[1] ?? '';
+            $number = $matches[2];
+            return $prefix . preg_replace('/(\d{3})(\d{3})/', '$1 $2', sprintf('%06d', $number));
+        } else {
+            return $this->label; // Return original label if it doesn't match expected format
+        }
+    }
+
+    public function fixLabel(): void
+    {
+        # if label has only digits, return early
+        if (preg_match('/^\d+$/', $this->label)) {
+            return;
+        }
+
+        # remove all whitespace
+        $this->label = preg_replace('/\s+/', '', $this->label);
+
+        # otherwise it should match vox[nondigit][0-9]+
+        if (preg_match('/^VOX[^0-9](\d+)$/u', $this->label, $matches)) {
+            $this->label = 'VOX-' . $matches[1];
+        }
+
+        $this->label = $this->getLabel();
+        $this->label = preg_replace('/\s+/', '', $this->label);
+
+        $this->saveQuietly();
     }
 
     /**

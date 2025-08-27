@@ -57,7 +57,10 @@ class CreateBatchWorkflow extends Page implements HasForms
         return $form
             ->schema([
                 Forms\Components\Select::make("commune_id")
-                    ->required() # BUG this required is not working
+                    ->required() // BUG this required is not working
+                    ->getOptionLabelFromRecordUsing(function ($record) {
+                        return $record->name . ' ' . ($record->canton->label ?? '');
+                    })
                     ->autofocus()
                     ->relationship('commune', 'name')
                     ->preload()
@@ -98,7 +101,7 @@ class CreateBatchWorkflow extends Page implements HasForms
         # to do this map the unassigned sheets to checkboxes
         $checkboxes = $unassignedSheets->map(function ($sheet) {
             return Forms\Components\Checkbox::make("sheet_checkbox_{$sheet->id}")
-                ->label($sheet->label . " (" . $sheet->commune->name . ")");
+                ->label($sheet->getLabel() . " (" . $sheet->commune->name . ")");
         });
 
         // TODO ugly workaround to avoid empty checkbox
