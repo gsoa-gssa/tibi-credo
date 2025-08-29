@@ -159,6 +159,7 @@
     "pages.registerInvalid.street_no_helper": "Wenn unbekannt, kannst du hier auch sonst etwas eintragen, was hilfreich sein könnte, um die Person zu finden.",
     "pages.registerInvalid.submit": "Kontakt erstellen",
     "pages.registerInvalid.title": "Ungültige erfassen",
+    "canton.name": "Kanton",
     "pages.registerInvalid.zipcode_id_helper": "Beim Auswählen eines Bogens wird hier eine beliebige Ortschaft dieser Gemeinde vorausgewählt. Bitte prüfen.",
     "pages.sheetWorkflow.moreInformation.description": "Falls du Kontakte auf deinem Bogen hast, welche das Feld «Mehr Informationen» angekreuzt haben, kannst du hier die Informationen eintragen. Klick auf «Kontakt hinzufügen» um einen neuen Kontakt hinzuzufügen.",
     "pages.sheetWorkflow.moreInformation.title": "«Mehr Informationen» Kontakte",

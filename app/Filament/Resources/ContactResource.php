@@ -217,10 +217,16 @@ class ContactResource extends Resource
                 Tables\Columns\TextColumn::make('zipcode.code')
                     ->label(__('zipcode.fields.code'))
                     ->searchable()
+                    ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('zipcode.name')
                     ->label(__('zipcode.fields.name'))
                     ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('zipcode.commune.canton.label')
+                    ->label(__('canton.name'))
+                    ->searchable()
+                    ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('lang')
                     ->label(__('commune.fields.lang'))
@@ -289,6 +295,11 @@ class ContactResource extends Resource
                 Tables\Filters\SelectFilter::make('contact_type_id')
                     ->label(__('contact.fields.contact_type'))
                     ->relationship('contactType', 'name')
+                    ->searchable()
+                    ->preload(),
+                Tables\Filters\SelectFilter::make('zipcode.commune.canton_id')
+                    ->label(__('canton.name'))
+                    ->relationship('zipcode.commune.canton', 'label')
                     ->searchable()
                     ->preload(),
             ])
