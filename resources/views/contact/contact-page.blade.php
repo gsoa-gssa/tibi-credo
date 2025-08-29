@@ -1,7 +1,7 @@
 <x-letter addressPosition="right">
   <x-slot name="ppLine">
-    Allianz für ein Atomwaffenverbot,<br>
-                PF 1069, 8031 Zürich</br>
+    <b>P.P.</b> Allianz für ein Atomwaffenverbot,<br>
+                PF 1069, 8031 Zürich, POST CH AG</br>
   </x-slot>
   <x-slot name="address">
     {{ $contact->firstname }} {{ $contact->lastname }}

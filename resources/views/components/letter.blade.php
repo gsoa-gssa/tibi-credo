@@ -15,7 +15,7 @@
   <div class="workaround">.</div>
   <div class="address-block {{ $addressPosition === 'right' ? 'address-block-right' : 'address-block-left' }}">
     <div>
-          <p style="border-bottom: 1px solid black; margin-bottom: 0">
+          <p style="border-bottom: 1px solid black; margin-bottom: 3mm">
               <small>
                 {{ $ppLine }}
               </small>
