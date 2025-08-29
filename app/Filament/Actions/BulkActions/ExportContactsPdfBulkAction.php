@@ -41,6 +41,9 @@ class ExportContactsPdfBulkAction extends BulkAction
             // Generate combined HTML from individual templates
             $combinedHtml = $this->generateCombinedHtml($contacts);
 
+            // Generate filename
+            $filename = 'contacts_export_' . now()->format('Y-m-d_H-i-s') . '.pdf';
+
             // Create PDF from combined HTML
             $pdf = Pdf::loadHTML($combinedHtml)
                 ->setPaper('a4', 'portrait')
@@ -53,8 +56,6 @@ class ExportContactsPdfBulkAction extends BulkAction
                     'debugCss' => false,
                 ]);
 
-            // Generate filename
-            $filename = 'contacts_export_' . now()->format('Y-m-d_H-i-s') . '.pdf';
 
             // for all contacts, set letter_sent to current timestamp
             foreach ($contacts as $contact) {

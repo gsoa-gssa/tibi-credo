@@ -231,6 +231,7 @@ class ContactResource extends Resource
                 Tables\Columns\TextColumn::make('lang')
                     ->label(__('commune.fields.lang'))
                     ->searchable()
+                    ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->formatStateUsing(function ($state, $record) {
                         return $record->lang ?? ($record->zipcode->commune->lang ?? 'Commune has no lang');
@@ -302,6 +303,14 @@ class ContactResource extends Resource
                     ->relationship('zipcode.commune.canton', 'label')
                     ->searchable()
                     ->preload(),
+                Tables\Filters\SelectFilter::make('lang')
+                    ->label(__('commune.fields.lang'))
+                    ->options([
+                        'de' => __('input.label.source.label.de'),
+                        'fr' => __('input.label.source.label.fr'),
+                        'it' => __('input.label.source.label.it'),
+                    ])
+                    ->searchable(),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),

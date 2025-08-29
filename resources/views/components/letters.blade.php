@@ -14,18 +14,26 @@
         }
 
         .letter-content .main-body {
-            margin-top: 10cm;
+            margin-top: 7cm;
+        }
+
+        .letter-content {
+          position: relative;
         }
 
         .letter-content .address-block {
             width: 8cm;
             height: 2.5cm;
             position: absolute;
-            display: flex;
+            /*display: flex;*/
             justify-content: center;
             padding-left: 1cm;
             padding-right: 1cm;
             box-sizing: border-box;
+        }
+        
+        .workaround {
+          color: white;
         }
 
         .letter-content .address-block-right {
@@ -56,6 +64,14 @@
         .letter-content .additional-pages {
           page-break-before: always;
           width: 100%;
+        }
+
+        .letter-content {
+          page-break-after: always;
+        }
+
+        .letter-content:last-child {
+            page-break-after: auto;
         }
 
         @if(isset($css))

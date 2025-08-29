@@ -12,8 +12,9 @@
   @endif
 </x-slot>
 <div class="letter-content">
+  <div class="workaround">.</div>
   <div class="address-block {{ $addressPosition === 'right' ? 'address-block-right' : 'address-block-left' }}">
-      <div>
+    <div>
           <p style="border-bottom: 1px solid black; margin-bottom: 0">
               <small>
                 {{ $ppLine }}
@@ -26,12 +27,10 @@
   </div>
   <div class="main-body">
       <div class="date-and-subject">
-          <p>
-              <em style="font-size: 8pt">
+              <em style="font-size: 8pt; margin-bottom: 0;">
                 {{ $datePlaceLine }}
               </em>
-          </p>
-          <p>
+          <p style="margin-top: 0;">
               {{ $subjectLine }}
           </p>
       </div>
