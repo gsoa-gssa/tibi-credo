@@ -21,7 +21,15 @@ class SignatureCountStats extends BaseWidget
             ),
             Stat::make(
                 __("widgets.signature_count_stats.month"),
-                Counting::whereMonth('created_at', today())->sum('count')
+                Counting::whereMonth('created_at', today())
+                    ->whereYear('created_at', today())
+                    ->sum('count')
+            ),
+            Stat::make(
+                __("widgets.signature_count_stats.last_month"),
+                Counting::whereMonth('created_at', today()->subMonth())
+                    ->whereYear('created_at', today()->subMonth())
+                    ->sum('count')
             ),
         ];
     }
