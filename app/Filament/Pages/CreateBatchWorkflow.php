@@ -154,6 +154,14 @@ class CreateBatchWorkflow extends Page implements HasForms
                 ->default(true);
         })->toArray();
 
+        // TODO ugly workaround to avoid empty checkbox
+        // for each unassigned sheet write default true to data['sheets']
+        if (!isset($this->data['sheets']) || empty($this->data['sheets'])) {
+            $this->data['sheets'] = $unassignedSheets->mapWithKeys(function ($sheet) {
+                return [$sheet->id => true];
+            })->toArray();
+        }
+
         $lastBatch = Batch::where('commune_id', $commune->id)
             ->orderByDesc('created_at')
             ->first();
