@@ -38,11 +38,25 @@ class ViewBatch extends ViewRecord
                                 ->send();
                             return;
                         }
-                        $lang = $batch->commune->lang;
-                        $pdf = Pdf::loadView('batch.letter-left-a4-' . $lang, ['batch' => $batch]);
-                        return response()->streamDownload(function () use ($pdf) {
-                            echo $pdf->output();
-                        }, 'batch-letter-ID_' . $batch->id . '.pdf');
+                        return $batch->pdf(true, false);
+                    }),
+                Action::make("exportLetterLeftA4Priority")
+                    ->label(__('batch.action.exportLetterLeftA4Priority'))
+                    ->icon("heroicon-o-envelope")
+                    ->action(function (Model $batch){
+                        if ($batch->commune->address === null) {
+                            Notification::make()
+                                ->danger()
+                                ->seconds(15)
+                                ->title(
+                                    "The commune does not have an address. <a href=\"" .
+                                    route('filament.app.resources.communes.edit', $batch->commune) .
+                                    "\" class=\"underline\" target=\"_blank\">Add it here.</a>"
+                                )
+                                ->send();
+                            return;
+                        }
+                        return $batch->pdf(true, true);
                     }),
                 Action::make('exportLetterRightA4')
                     ->label(__('batch.action.exportLetterRightA4'))
@@ -60,10 +74,25 @@ class ViewBatch extends ViewRecord
                                 ->send();
                             return;
                         }
-                        $pdf = Pdf::loadView('batch.letter-right-a4-' . $batch->commune->lang, ['batch' => $batch]);
-                        return response()->streamDownload(function () use ($pdf) {
-                            echo $pdf->output();
-                        }, 'batch-letter-right-a4-ID_' . $batch->id . '.pdf');
+                        return $batch->pdf(false);
+                    }),
+                Action::make('exportLetterRightA4Priority')
+                    ->label(__('batch.action.exportLetterRightA4Priority'))
+                    ->icon('heroicon-o-envelope')
+                    ->action(function (Model $batch){
+                        if ($batch->commune->address === null) {
+                            Notification::make()
+                                ->danger()
+                                ->seconds(15)
+                                ->title(
+                                    "The commune does not have an address. <a href=\"" .
+                                    route('filament.app.resources.communes.edit', $batch->commune) .
+                                    "\" class=\"underline\" target=\"_blank\">Add it here.</a>"
+                                )
+                                ->send();
+                            return;
+                        }
+                        return $batch->pdf(false, true);
                     }),
             ])
             ->button()

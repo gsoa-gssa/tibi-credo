@@ -35,6 +35,15 @@ class Commune extends Model
         return $this->hasMany(Batch::class);
     }
 
+    public function nameWithCanton(): string
+    {
+        if ($this->canton && $this->canton->label) {
+            return $this->name . ' ' . $this->canton->label ;
+        }
+
+        return $this->name;
+    }
+
     public function fixCantonSuffix(): void
     {
         if (!$this->canton || !$this->canton->label) {

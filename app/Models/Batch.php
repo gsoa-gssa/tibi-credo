@@ -37,6 +37,21 @@ class Batch extends Model
         return $this->sheets()->sum('signatureCount');
     }
 
+    public function pdf($posLeft = true, $priority = false): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        // change locale to render in correct language
+        $currentLocale = (string) app()->getLocale();
+        $lang = $this->commune->lang;
+        app()->setLocale($lang);
+        $addressPosition = $posLeft ? 'left' : 'right';
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('batch.partials.letter-a4-' . $lang, ['batch' => $this, 'addressPosition' => $addressPosition, 'priorityMail' => $priority]);
+        // restore locale
+        app()->setLocale($currentLocale);
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->output();
+        }, 'batch-letter-ID_' . $this->id . '.pdf');
+    }
+
     /**
      * Hook into the model's boot method.
      */

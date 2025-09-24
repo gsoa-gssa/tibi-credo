@@ -342,7 +342,24 @@ class ContactResource extends Resource
                     })
                     ->deselectRecordsAfterCompletion(),
                 ]),
-                ExportContactsPdfBulkAction::make(),
+                Tables\Actions\BulkActionGroup::make([
+                    ExportContactsPdfBulkAction::make('letters_left')
+                        ->addressPosition('left')
+                        ->priorityMail(false)
+                        ->label(__('contact.letter.action.label.left')),
+                    ExportContactsPdfBulkAction::make('letters_left_priority')
+                        ->addressPosition('left')
+                        ->priorityMail(true)
+                        ->label(__('contact.letter.action.label.left_priority')),
+                    ExportContactsPdfBulkAction::make('letters_right')
+                        ->addressPosition('right')
+                        ->priorityMail(false)
+                        ->label(__('contact.letter.action.label.right')),
+                    ExportContactsPdfBulkAction::make('letters_right_priority')
+                        ->addressPosition('right')
+                        ->priorityMail(true)
+                        ->label(__('contact.letter.action.label.right_priority')),
+                ])->label(__('contact.letter.action.label')),
             ]);
     }
 

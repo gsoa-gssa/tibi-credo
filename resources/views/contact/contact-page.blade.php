@@ -1,7 +1,6 @@
-<x-letter addressPosition="right">
+<x-letter pp_postcode="8031" pp_place="{{ __('contact.letter.place') }}" priorityMail="{{ $priorityMail }}" addressPosition="{{ $addressPosition }}">
   <x-slot name="ppLine">
-    <b>P.P.</b> Allianz für ein Atomwaffenverbot,<br>
-                PF 1069, 8031 Zürich, POST CH AG</br>
+    {{__('letter.pp_sender') }}
   </x-slot>
   <x-slot name="address">
     {{ $contact->firstname }} {{ $contact->lastname }}

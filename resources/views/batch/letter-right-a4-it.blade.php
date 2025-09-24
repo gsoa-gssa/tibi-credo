@@ -1,1 +1,0 @@
-@include('batch.partials.letter-a4-it', ['addressPosition' => 'right'])

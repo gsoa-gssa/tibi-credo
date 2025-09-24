@@ -12,9 +12,28 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ExportContactsPdfBulkAction extends BulkAction
 {
+
+    protected bool $priorityMail = false;
+    protected string $addressPosition = 'left'; // 'left' or 'right'
+
     public static function getDefaultName(): ?string
     {
         return 'export_contacts_pdf';
+    }
+
+    public function priorityMail(bool $priorityMail = true): static
+    {
+        $this->priorityMail = $priorityMail;
+        return $this;
+    }
+
+    public function addressPosition(string $addressPosition): static
+    {
+        if (!in_array($addressPosition, ['left', 'right'])) {
+            throw new \InvalidArgumentException("addressPosition must be 'left' or 'right'");
+        }
+        $this->addressPosition = $addressPosition;
+        return $this;
     }
 
     protected function setUp(): void
@@ -107,12 +126,14 @@ class ExportContactsPdfBulkAction extends BulkAction
             ];
             try {
                 // change locale to render in correct language
-                $currentLocale = app()->getLocale();
-                app()->setLocale($contact->zipcode->commune->lang);
+                $currentLocale = (string) app()->getLocale();
+                app()->setLocale($contact->lang);
                 $individualPages[] = view('contact.contact-page', [
                     'contact' => $contact,
-                    'language' => $contact->zipcode->commune->lang,
+                    'language' => $contact->lang,
                     'replacementDict' => $replacementDict,
+                    'addressPosition' => $this->addressPosition,
+                    'priorityMail' => $this->priorityMail,
                 ])->render();
                 app()->setLocale($currentLocale); // Reset locale after rendering
             } catch (\Exception $e) {
@@ -123,6 +144,12 @@ class ExportContactsPdfBulkAction extends BulkAction
                     ->send();
             }
         }
+
+        \Filament\Notifications\Notification::make()
+            ->title('Contacts Processed')
+            ->body(count($individualPages) . ' out of ' . $contacts->count() . ' letters were generated with address position ' . $this->addressPosition . ' and priority mail ' . ($this->priorityMail ? 'enabled' : 'disabled') . '.')
+            ->success()
+            ->send();
 
         // Combine all pages with CSS page breaks
         return view('contact.contacts-combined', [

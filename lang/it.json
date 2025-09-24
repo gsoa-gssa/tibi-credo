@@ -5,6 +5,8 @@
     "input.label.sheetWorkflow.vox": "input.label.sheetWorkflow.vox",
     "input.helper.sheetWorkflow.vox": "input.helper.sheetWorkflow.vox",
     "input.label.sheetWorkflow.label": "Bogennummer",
+    "letter.post_company": "Posta CH AG",
+    "letter.pp_sender": "Alleanza per la proibizione delle armi nucleari, CP 1069",
     "input.helper.sheetWorkflow.label": "Gib die Nummer ein, welche du mit einem Numero-Stempel auf den Bogen gestempelt hast.",
     "input.label.sheetWorkflow.source": "Quelle",
     "input.helper.sheetWorkflow.source": "Gib dazu die Buchstaben ein, welche oben rechts auf dem Bogen stehen.",

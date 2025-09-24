@@ -1,5 +1,5 @@
 <x-letters>
-  <x-letter addressPosition="{{ $addressPosition }}">
+  <x-letter pp_postcode="8031" pp_place="Zurigo" addressPosition="{{ $addressPosition }}" priorityMail="{{ $priorityMail ?? false }}">
     <x-slot name="css">
       #thank-you {
           margin-top: 50px;
@@ -29,8 +29,7 @@
       }
     </x-slot>
     <x-slot name="ppLine">
-      Alleanza per la proibizione delle armi nucleari,<br>
-      CP 1069, 8031 Zurigo</br>
+      {{__('letter.pp_sender') }}
     </x-slot>
     <x-slot name="address">
       {!! $batch->commune->address !!}
