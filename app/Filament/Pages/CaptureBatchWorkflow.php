@@ -60,7 +60,9 @@ class CaptureBatchWorkflow extends Page implements HasForms
                         ->schema([
                             Forms\Components\Select::make('commune')
                                 ->label(__('pages.captureBatchWorkflow.selectCommuneForm.commune'))
-                                ->options(Commune::all()->pluck('name', 'id'))
+                                ->options(Commune::all()->mapWithKeys(function ($commune) {
+                                    return [$commune->id => $commune->nameWithCanton()];
+                                }))
                                 ->required()
                                 ->searchable()
                                 ->live()

@@ -64,7 +64,7 @@ class ContactResource extends Resource
         ];
         $schema[] = Forms\Components\Select::make('zipcode_id')
                     ->label(__('zipcode.name'))
-                    ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->code} {$record->name}")
+                    ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->code} {$record->nameWithCanton()}")
                     ->relationship('zipcode', 'name')
                     ->required()
                     ->searchable(['code', 'name'])

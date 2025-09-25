@@ -65,6 +65,7 @@ class SheetResource extends Resource
                 Forms\Components\Select::make('commune_id')
                     ->relationship('commune', 'name')
                     ->searchable()
+                    ->getOptionLabelFromRecordUsing(fn ($record) => $record->nameWithCanton())
                     ->getSearchResultsUsing(
                         function (string $search): array {
                             // if $search can be cast to int...
@@ -73,14 +74,14 @@ class SheetResource extends Resource
                                 $results = [];
                                 foreach ($zipcodes as $zipcode) {
                                     $results[] = [
-                                        $zipcode->commune->id => $zipcode->commune->name . ' (' . $zipcode->name . ')',
+                                        $zipcode->commune->id => $zipcode->commune->nameWithCanton() . ' (' . $zipcode->nameWithCanton() . ')',
                                     ];
                                 }
                             } else {
                                 $communes = Commune::where('name', 'like', "%$search%")->limit(10)->get();
                                 foreach ($communes as $commune) {
                                     $results[] = [
-                                        $commune->id => $commune->name,
+                                        $commune->id => $commune->nameWithCanton(),
                                     ];
                                 }
                             }
@@ -111,7 +112,7 @@ class SheetResource extends Resource
                                 $query->orWhere('id', $batchId);
                             });
                         })
-                        ->getOptionLabelFromRecordUsing(fn ($record) => $record->id . ': ' . $record->commune->name . ', ' . $record->created_at->format('Y-m-d'))
+                        ->getOptionLabelFromRecordUsing(fn ($record) => $record->id . ': ' . $record->commune->nameWithCanton() . ', ' . $record->created_at->format('Y-m-d'))
                         ->searchable()
                         ->preload()
                         ->placeholder(__('input.placeholder.select_batch')),
@@ -164,9 +165,16 @@ class SheetResource extends Resource
                     ->numeric()
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->sortable(),
-                Tables\Columns\TextColumn::make('commune.name')
-                    ->numeric()
-                    ->sortable(),
+                Tables\Columns\TextColumn::make('commune_name')
+                    ->label(__('sheet.commune'))
+                    ->getStateUsing(fn ($record) => $record->commune ? $record->commune->nameWithCanton() : '')
+                    ->searchable(query: function (Builder $query, string $search): Builder {
+                        return $query->whereHas('commune', fn (Builder $query) => $query->where('name', 'like', "%{$search}%"));
+                    })
+                    ->sortable(query: function (Builder $query, string $direction): Builder {
+                        return $query->join('communes', 'sheets.commune_id', '=', 'communes.id')
+                                    ->orderBy('communes.name', $direction);
+                    }),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable(),
@@ -180,6 +188,7 @@ class SheetResource extends Resource
                 Tables\Filters\SelectFilter::make('commune')
                     ->label(__('sheet.commune'))
                     ->relationship('commune', 'name')
+                    ->getOptionLabelFromRecordUsing(fn ($record) => $record->nameWithCanton())
                     ->searchable()
                     ->preload(),
                 Tables\Filters\Filter::make('has_maeppli')

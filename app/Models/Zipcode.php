@@ -56,6 +56,15 @@ class Zipcode extends Model implements HasAllowedFilters, HasAllowedIncludes, Ha
         return $sorts;
     }
 
+    public function nameWithCanton(): string
+    {
+        if ($this->commune && $this->commune->canton && $this->commune->canton->label) {
+            return $this->name . ' ' . $this->commune->canton->label ;
+        }
+
+        return $this->name;
+    }
+
     public function fixCantonSuffix(): void
     {
         if (!$this->commune->canton || !$this->commune->canton->label) {

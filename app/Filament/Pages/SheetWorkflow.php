@@ -206,8 +206,12 @@ class SheetWorkflow extends Page implements HasForms, HasTable
             $livewire->commune_id = $zipcode->commune->id;
 
             $communeIds = $zipcodes->pluck('commune_id')->unique();
-            $communeNames = $zipcodes->pluck('commune.name')->unique();
-            $places = $zipcodes->pluck('name')->unique();
+            $communeNames = $zipcodes->map(function ($zipcode) {
+                return $zipcode->commune->nameWithCanton();
+            })->unique();
+            $places = $zipcodes->map(function ($zipcode) {
+                return $zipcode->nameWithCanton();
+            })->unique();
             $places = $places->merge($communeNames)->unique();
             
             if ($communeNames->count() > 1) {
@@ -240,8 +244,12 @@ class SheetWorkflow extends Page implements HasForms, HasTable
             $livewire->resetErrorBag('commune_id');
 
             $zipcodes = Zipcode::where('code', $livewire->zipcode)->get();
-            $communeNamesForZipCode = $zipcodes->pluck('commune.name')->unique();
-            $placeNamesForZipCode = $zipcodes->pluck('name')->unique();
+            $communeNamesForZipCode = $zipcodes->map(function ($zipcode) {
+                return $zipcode->commune->nameWithCanton();
+            })->unique();
+            $placeNamesForZipCode = $zipcodes->map(function ($zipcode) {
+                return $zipcode->nameWithCanton();
+            })->unique();
             $placeAndCommuneNamesForZipCode = $placeNamesForZipCode->merge($communeNamesForZipCode)->unique();
 
             $filteredPlaces = $placeAndCommuneNamesForZipCode->filter(function ($candidateName) use ($state) {
@@ -249,6 +257,7 @@ class SheetWorkflow extends Page implements HasForms, HasTable
               return stripos(mb_strtolower($candidateName), mb_strtolower($state)) === 0;
             });
 
+            // supposed to check if prefix is unique
             // copilot, didn't check
             if ($filteredPlaces->count() > 1) {
               $placesArray = $filteredPlaces->values()->all();
@@ -287,29 +296,50 @@ class SheetWorkflow extends Page implements HasForms, HasTable
 
               $component->state($place_name);
 
+              // Split place_name to extract name and canton
+              $parts = explode(' ', trim($place_name));
+              if (count($parts) < 2) {
+                throw new \Exception("Programming or places data error: place name does not contain a canton code: " . $place_name);
+              }
+              
+              $canton_code = array_pop($parts);
+              $name_part = implode(' ', $parts);
+              
               $commune_ids = Zipcode::where('code', $livewire->zipcode)
-                ->where('name', $place_name)
-                ->orWhereHas('commune', function ($query) use ($place_name) {
-                  $query->where('name', $place_name);
+                ->where(function ($query) use ($name_part) {
+                  $query->where('name', $name_part)
+                    ->orWhereHas('commune', function ($query) use ($name_part) {
+                      $query->where('name', $name_part);
+                    });
                 })
                 ->get()
                 ->pluck('commune_id')
                 ->unique();
 
-              $communes = Commune::whereIn('id', $commune_ids)->get();
+              $communes = Commune::whereIn('id', $commune_ids)
+                ->whereHas('canton', function ($query) use ($canton_code) {
+                  $query->where('label', $canton_code);
+                })
+                ->get();
 
+              if ($communes->isEmpty()) {
+                // this is not supposed to be possible, make user aware of bug
+                throw new \Exception("Programming error, commune not found");
+              }
               if ($communes->count() === 1) {
                 $livewire->commune_id = $commune_ids->first();
                 $livewire->resetErrorBag('commune_id');
                 $livewire->placeHelperText = '';
-                $commune_name = $communes->first()->name;
+                $commune_name = $communes->first()->nameWithCanton();
                 $livewire->communeHelperText = __('pages.sheetWorkflow.validation.commune.determined_zip_place', [
                   'zipcode' => $livewire->zipcode,
                   'place' => $livewire->place,
                   'commune' => $commune_name
                 ]);
               } else {
-                $commune_names = $communes->pluck('name')->unique();
+                $commune_names = $communes->map(function ($commune) {
+                    return $commune->nameWithCanton();
+                })->unique();
                 if ($commune_names->contains($place_name)) {
                   $commune = $communes->firstWhere('name', $place_name);
                   $livewire->commune_id = $commune->id;
@@ -331,7 +361,9 @@ class SheetWorkflow extends Page implements HasForms, HasTable
             'required' => __('pages.sheetWorkflow.validation.commune_id.required'),
           ])
           ->helperText(fn () => $this->communeHelperText)
-          ->options(Commune::all()->pluck('name', 'id'))
+          ->options(Commune::all()->mapWithKeys(function ($commune) {
+              return [$commune->id => $commune->nameWithCanton()];
+          }))
           ->disabled(true)
           ->columnSpan(3),
       ])

@@ -42,7 +42,7 @@ class ContactsRelationManager extends RelationManager
                     ->searchable()
                     ->searchDebounce(100)
                     ->required()
-                    ->afterStateUpdated(fn (Forms\Set $set, $state) => $set('city', Zipcode::find($state)?->name))
+                    ->afterStateUpdated(fn (Forms\Set $set, $state) => $set('city', Zipcode::find($state)?->nameWithCanton()))
                     ->live(),
                 Forms\Components\TextInput::make('city')
                     ->label(__('input.label.contacts.city'))
@@ -59,7 +59,8 @@ class ContactsRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('firstname'),
                 Tables\Columns\TextColumn::make('lastname'),
                 Tables\Columns\TextColumn::make('street_no'),
-                Tables\Columns\TextColumn::make('sheet.commune.name'),
+                Tables\Columns\TextColumn::make('sheet.commune.name')
+                    ->formatStateUsing(fn ($record) => $record->sheet->commune->nameWithCanton()),
             ])
             ->filters([
                 //

@@ -32,6 +32,7 @@ class ViewSheet extends ViewRecord
                             ->label('Source'),
                         Infolists\Components\TextEntry::make('commune.name')
                             ->label('Commune')
+                            ->formatStateUsing(fn ($state, $record) => $record->commune ? $record->commune->nameWithCanton() : $state)
                             ->url(fn ($record) => $record->commune ? 
                                 \App\Filament\Resources\CommuneResource::getUrl('view', ['record' => $record->commune]) : 
                                 null)

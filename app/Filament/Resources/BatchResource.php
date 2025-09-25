@@ -52,7 +52,9 @@ class BatchResource extends Resource
                 Forms\Components\Select::make('commune_id')
                     ->relationship('commune', 'name')
                     ->searchable()
-                    ->getSearchResultsUsing(fn (string $search): array => Commune::whereHas('zipcodes', fn (Builder $query) => $query->where('code', 'like', "%$search%"))->limit(10)->pluck('name', 'id')->toArray())
+                    ->getSearchResultsUsing(fn (string $search): array => Commune::whereHas('zipcodes', fn (Builder $query) => $query->where('code', 'like', "%$search%"))->limit(10)->get()->mapWithKeys(function ($commune) {
+                        return [$commune->id => $commune->nameWithCanton()];
+                    })->toArray())
                     ->required()
             ]);
     }
@@ -62,6 +64,7 @@ class BatchResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('commune.name')
+                    ->formatStateUsing(fn ($record) => $record->commune->nameWithCanton())
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\IconColumn::make('status')
@@ -106,6 +109,7 @@ class BatchResource extends Resource
             ->filters([
                 SelectFilter::make('commune')
                     ->relationship('commune', 'name')
+                    ->getOptionLabelFromRecordUsing(fn ($record) => $record->nameWithCanton())
                     ->searchable()
                     ->multiple()
                     ->preload(),

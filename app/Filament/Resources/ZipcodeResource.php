@@ -40,6 +40,7 @@ class ZipcodeResource extends Resource
                     ->maxLength(255),
                 Forms\Components\Select::make('commune_id')
                     ->relationship('commune', 'name')
+                    ->getOptionLabelFromRecordUsing(fn ($record) => $record->nameWithCanton())
                     ->searchable()
                     ->native(false)
                     ->required(),
@@ -60,6 +61,7 @@ class ZipcodeResource extends Resource
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('commune.name')
+                    ->formatStateUsing(fn ($record) => $record->commune->nameWithCanton())
                     ->numeric()
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->sortable(),
