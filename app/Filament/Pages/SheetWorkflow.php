@@ -178,7 +178,8 @@ class SheetWorkflow extends Page implements HasForms, HasTable
           ])
           ->disabled(true),
       ])
-      ->columns(2),
+      ->columns(2)
+      ->columnSpan(2),
       Forms\Components\Group::make([
         Forms\Components\TextInput::make('zipcode')
           ->label(__('zipcode.fields.code'))
@@ -367,9 +368,10 @@ class SheetWorkflow extends Page implements HasForms, HasTable
           ->disabled(true)
           ->columnSpan(3),
       ])
-      ->columns(3),
+      ->columns(3)
+      ->columnSpan(2),
     ])
-    ->columns(3);
+    ->columns(5);
   }
       
   public function table(Tables\Table $table): Tables\Table
