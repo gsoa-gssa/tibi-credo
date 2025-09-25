@@ -16,8 +16,12 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class ContactTypeResource extends Resource
 {
     protected static ?string $model = ContactType::class;
-    protected static ?string $navigationGroup = 'System Settings';
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('navigation.group.systemSettings');
+    }
     protected static int $max_subject_length = 80;
     protected static int $max_body_length = 2000;
 

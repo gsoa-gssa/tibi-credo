@@ -20,7 +20,10 @@ class SourceResource extends Resource implements HasShieldPermissions
 
     protected static ?string $navigationIcon = 'heroicon-o-arrow-right-end-on-rectangle';
 
-    protected static ?string $navigationGroup = 'System Settings';
+    public static function getNavigationGroup(): ?string
+    {
+        return __('navigation.group.systemSettings');
+    }
 
     protected static ?int $navigationSort = 4;
 

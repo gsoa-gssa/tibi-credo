@@ -68,9 +68,16 @@ class AppPanelProvider extends PanelProvider
                 ActivitylogPlugin::make()->navigationGroup(__('navigation.group.control')),
             ])
             ->navigationGroups([
-                __('pages.sheetWorkflow.navigationGroup'),
-                __('navigation.group.sheetManagement'),
-                __('navigation.group.control'),
+                \Filament\Navigation\NavigationGroup::make()
+                    ->label(fn (): string => __('pages.sheetWorkflow.navigationGroup')),
+                \Filament\Navigation\NavigationGroup::make()
+                    ->label(fn (): string => __('navigation.group.sheetManagement')),
+                \Filament\Navigation\NavigationGroup::make()
+                    ->label(fn (): string => __('navigation.group.control')),
+                \Filament\Navigation\NavigationGroup::make()
+                    ->label(fn (): string => __('navigation.group.systemSettings')),
+                \Filament\Navigation\NavigationGroup::make()
+                    ->label('System Settings'),
             ])
             ->authMiddleware([
                 Authenticate::class,

@@ -26,9 +26,12 @@ class CommuneResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-building-library';
 
-    protected static ?string $navigationGroup = 'System Settings';
-
     protected static ?int $navigationSort = 2;
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('navigation.group.systemSettings');
+    }
 
     public static function form(Form $form): Form
     {
