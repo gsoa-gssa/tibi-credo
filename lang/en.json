@@ -238,5 +238,6 @@
     "widgets.sourceStats.signatures": "Number of Signatures",
     "zipcode.fields.code": "Postal Code",
     "zipcode.fields.name": "Place",
-    "zipcode.name": "Postal Code and Place"
+    "zipcode.name": "Postal Code and Place",
+    "zipcode.namePlural": "Postal Codes and Places"
 }

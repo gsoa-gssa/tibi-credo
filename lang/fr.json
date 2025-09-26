@@ -92,7 +92,7 @@
     "navigation.group.control": "Contrôle",
     "navigation.group.sheetManagement": "Gestion des feuilles",
     "navigation.group.systemSettings": "Paramètres système",
-    "commune.computed.last_batch_created_at": "Dernier lot créé",
+    "commune.computed.last_batch_created_at": "Dernier envoi créé",
     "notifications.sheetWorkflow.labelExists": "Une feuille avec ce numéro existe déjà.",
     "notifications.sheetWorkflow.labelExistsBody": "Veuillez vérifier le numéro et réessayer. Si cela ne fonctionne pas, mettez la feuille de côté.",
     "notifications.sheetWorkflow.success": "Feuille enregistrée avec succès",
@@ -238,5 +238,6 @@
     "widgets.sourceStats.signatures": "Nombre de signatures",
     "zipcode.fields.code": "Code postal",
     "zipcode.fields.name": "Lieu",
-    "zipcode.name": "Code postal et lieu"
+    "zipcode.name": "Code postal et lieu",
+    "zipcode.namePlural": "Codes postaux et lieux"
 }

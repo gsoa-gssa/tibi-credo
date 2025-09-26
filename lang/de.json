@@ -235,5 +235,6 @@
     "widgets.sourceStats.signatures": "Anzahl Unterschriften",
     "zipcode.fields.code": "PLZ",
     "zipcode.fields.name": "Ort",
-    "zipcode.name": "PLZ und Ort"
+    "zipcode.name": "PLZ und Ort",
+    "zipcode.namePlural": "PLZ und Orte"
 }
