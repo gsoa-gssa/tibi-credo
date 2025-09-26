@@ -342,7 +342,7 @@ class SheetWorkflow extends Page implements HasForms, HasTable
                     return $commune->nameWithCanton();
                 })->unique();
                 if ($commune_names->contains($place_name)) {
-                  $commune = $communes->firstWhere('name', $place_name);
+                  $commune = $communes->firstWhere('name', $name_part);
                   $livewire->commune_id = $commune->id;
                 }
                 $livewire->addError('commune_id', __('pages.sheetWorkflow.validation.commune_id.multiple', [
