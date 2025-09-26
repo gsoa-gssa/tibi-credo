@@ -92,6 +92,7 @@
     "navigation.group.control": "Kontrolle",
     "navigation.group.sheetManagement": "Bogenverwaltung",
     "navigation.group.systemSettings": "Systemeinstellungen",
+    "commune.computed.last_batch_created_at": "Letzter Versand erstellt",
     "notifications.sheetWorkflow.labelExists": "Ein Bogen mit dieser Nummer existiert bereits.",
     "notifications.sheetWorkflow.labelExistsBody": "Bitte überprüfe die Nummer und versuche es erneut. Falls es nicht funktioniert, lege den Bogen beiseite.",
     "notifications.sheetWorkflow.success": "Bogen erfolgreich erfasst",

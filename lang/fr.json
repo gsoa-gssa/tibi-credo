@@ -92,6 +92,7 @@
     "navigation.group.control": "Contrôle",
     "navigation.group.sheetManagement": "Gestion des feuilles",
     "navigation.group.systemSettings": "Paramètres système",
+    "commune.computed.last_batch_created_at": "Dernier lot créé",
     "notifications.sheetWorkflow.labelExists": "Une feuille avec ce numéro existe déjà.",
     "notifications.sheetWorkflow.labelExistsBody": "Veuillez vérifier le numéro et réessayer. Si cela ne fonctionne pas, mettez la feuille de côté.",
     "notifications.sheetWorkflow.success": "Feuille enregistrée avec succès",

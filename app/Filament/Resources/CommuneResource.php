@@ -119,6 +119,22 @@ class CommuneResource extends Resource
                             'total' => $total
                         ]);
                     }),
+                Tables\Columns\TextColumn::make('last_batch_created_at')
+                    ->label(__('commune.computed.last_batch_created_at'))
+                    ->dateTime()
+                    ->sortable(query: function (Builder $query, $direction) {
+                        return $query->addSelect([
+                            'last_batch_created_at' => \App\Models\Batch::select('created_at')
+                                ->whereColumn('commune_id', 'communes.id')
+                                ->latest('created_at')
+                                ->limit(1)
+                        ])->orderBy('last_batch_created_at', $direction);
+                    })
+                    ->getStateUsing(function (Model $record) {
+                        $lastBatch = $record->batches()->latest('created_at')->first();
+                        return $lastBatch ? $lastBatch->created_at : null;
+                    })
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
