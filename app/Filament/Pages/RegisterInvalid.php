@@ -62,15 +62,20 @@ class RegisterInvalid extends Page implements HasForms
         Forms\Components\DatePicker::make('birthdate')
           ->label(__('contact.fields.birthdate'))
           ->helperText(__('pages.registerInvalid.birthdate_helper')),
-        Forms\Components\TextInput::make('sheet_id')
+        Forms\Components\TextInput::make('sheet_label')
           ->label(__('sheet.name'))
           ->helperText(__('pages.registerInvalid.sheet_id_helper'))
           ->live()
           ->rules([
               function () {
                   return function (string $attribute, $value, \Closure $fail) {
-                      if ($value && !\App\Models\Sheet::where('label', $value)->exists()) {
-                          $fail('The selected sheet does not exist.');
+                      if ($value) {
+                          $sheets = \App\Models\Sheet::where('label', $value)->get();
+                          if ($sheets->isEmpty()) {
+                              $fail('The sheet with this label does not exist.');
+                          } elseif ($sheets->count() > 1) {
+                              $fail('Multiple sheets found with this label. Please contact support.');
+                          }
                       }
                   };
               },
@@ -79,28 +84,32 @@ class RegisterInvalid extends Page implements HasForms
               if ($state) {
                 $sheet = \App\Models\Sheet::where('label', $state)->first();
                 if($sheet) {
+                  $set('sheet_id', $sheet->id);
                   $zipcode = $sheet->commune->zipcodes()->first();
                   if ($zipcode) {
                       $set('zipcode_id', $zipcode->id);
                       $set('lang', $zipcode->commune->lang);
                   }
+                } else {
+                  $set('sheet_id', null);
                 }
               }
           })
           ->suffixIcon(function (Forms\Get $get) {
-              $id = $get('sheet_id');
-              if (!$id) return null;
-
-              $sheet = \App\Models\Sheet::find($id);
-              return $sheet ? 'heroicon-o-check-circle' : 'heroicon-o-x-circle';
+            if ($get('sheet_label') == null) {
+              return null;
+            }
+            $id = $get('sheet_id');
+            return $id ? 'heroicon-o-check-circle' : 'heroicon-o-exclamation-triangle';
           })
           ->suffixIconColor(function (Forms\Get $get) {
-              $id = $get('sheet_id');
-              if (!$id) return null;
-
-              $sheet = \App\Models\Sheet::find($id);
-              return $sheet ? 'success' : 'danger';
+            if ($get('sheet_label') == null) {
+              return null;
+            }
+            $id = $get('sheet_id');
+            return $id ? 'success' : 'danger';
           }),
+        Forms\Components\Hidden::make('sheet_id'),
         Forms\Components\Select::make('zipcode_id')
           ->label(__('zipcode.name'))
           ->helperText(__('pages.registerInvalid.zipcode_id_helper'))
@@ -152,11 +161,11 @@ class RegisterInvalid extends Page implements HasForms
     $data = $this->form->getState();
     
     try {
-      // Process the invalid signature registration
-      // Add your logic here, for example:
-      // InvalidSignature::create($data);
+      // Remove sheet_label from data since it's not a database column
+      $contactData = $data;
+      unset($contactData['sheet_label']);
 
-      Contact::create($data);
+      Contact::create($contactData);
       
       Notification::make()
         ->title(__('pages.registerInvalid.notifications.success.title'))
@@ -164,16 +173,12 @@ class RegisterInvalid extends Page implements HasForms
         ->success()
         ->send();
       
-      // Reset the form but keep the sheet_id and zipcode_id
-      $currentSheetLabel = null;
-      if (isset($data['sheet_id'])) {
-          $sheet = \App\Models\Sheet::find($data['sheet_id']);
-          $currentSheetLabel = $sheet ? $sheet->label : null;
-      }
+      // Reset the form but keep the sheet_label and zipcode_id
+      $currentSheetLabel = $data['sheet_label'] ?? null;
       $currentZipcodeId = $data['zipcode_id'] ?? null;
       $this->form->fill();
       if ($currentSheetLabel) {
-          $this->form->fill(['sheet_id' => $currentSheetLabel]);
+          $this->form->fill(['sheet_label' => $currentSheetLabel]);
       }
       if ($currentZipcodeId) {
           $this->form->fill(['zipcode_id' => $currentZipcodeId]);

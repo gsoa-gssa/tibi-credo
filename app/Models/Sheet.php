@@ -91,7 +91,9 @@ class Sheet extends Model
      */
     public function getLabel()
     {
-        // Remove 'VOX' prefix if present and get the number part
+        $this->fixLabel();
+
+        // if the label has the right format, add space for better readability
         if (preg_match('/^(VOX-)?(\d+)$/', $this->label, $matches)) {
             $prefix = $matches[1] ?? '';
             $number = $matches[2];
@@ -101,25 +103,30 @@ class Sheet extends Model
         }
     }
 
+    /**
+     * Fix the label format: no whitespace is saved to db, capitalize VOX, etc.
+     */
     public function fixLabel(): void
     {
-        # if label has only digits, return early
-        if (preg_match('/^\d+$/', $this->label)) {
-            return;
-        }
+        $label_old = $this->label;
 
-        # remove all whitespace
+        // remove all whitespace
         $this->label = preg_replace('/\s+/', '', $this->label);
 
-        # otherwise it should match vox[nondigit][0-9]+
-        if (preg_match('/^VOX[^0-9](\d+)$/u', $this->label, $matches)) {
+        // remove leading zeros
+        $this->label = preg_replace('/^0+/', '', $this->label);
+
+        // if it has no dash after vox, add it
+        if (preg_match('/^VOX(\d+)$/ui', $this->label, $matches)) {
+            $this->label = 'VOX-' . $matches[1];
+        } elseif (preg_match('/^VOX[^0-9](\d+)$/ui', $this->label, $matches)) {
+            // if the wrong unicode symbol is used after vox, replace it with a dash
             $this->label = 'VOX-' . $matches[1];
         }
 
-        $this->label = $this->getLabel();
-        $this->label = preg_replace('/\s+/', '', $this->label);
-
-        $this->saveQuietly();
+        if($label_old !== $this->label) {
+            $this->saveQuietly();
+        }
     }
 
     /**
