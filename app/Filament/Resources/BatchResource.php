@@ -52,7 +52,10 @@ class BatchResource extends Resource
                 Forms\Components\Select::make('commune_id')
                     ->relationship('commune', 'name')
                     ->searchable()
-                    ->getSearchResultsUsing(fn (string $search): array => Commune::whereHas('zipcodes', fn (Builder $query) => $query->where('code', 'like', "%$search%"))->limit(10)->get()->mapWithKeys(function ($commune) {
+                    ->getSearchResultsUsing(fn (string $search): array => Commune::where(function (Builder $query) use ($search) {
+                        $query->where('name', 'like', "%$search%")
+                              ->orWhereHas('zipcodes', fn (Builder $q) => $q->where('code', 'like', "%$search%"));
+                    })->limit(10)->get()->mapWithKeys(function ($commune) {
                         return [$commune->id => $commune->nameWithCanton()];
                     })->toArray())
                     ->required()
