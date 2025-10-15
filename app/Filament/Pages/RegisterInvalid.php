@@ -62,32 +62,22 @@ class RegisterInvalid extends Page implements HasForms
         Forms\Components\DatePicker::make('birthdate')
           ->label(__('contact.fields.birthdate'))
           ->helperText(__('pages.registerInvalid.birthdate_helper')),
-        Forms\Components\Select::make('sheet_id')
+        Forms\Components\TextInput::make('sheet_id')
           ->label(__('sheet.name'))
           ->helperText(__('pages.registerInvalid.sheet_id_helper'))
-          ->hint(__('pages.registerInvalid.sheet_id_question'))
-          ->options(function (Forms\Get $get) {
-            $currentSheetId = $get('sheet_id');
-            
-            $query = \App\Models\Sheet::query();
-            
-            if ($currentSheetId) {
-              $currentSheet = \App\Models\Sheet::find($currentSheetId);
-              if ($currentSheet) {
-                $query->orderByRaw('CASE WHEN batch_id = ? THEN 0 ELSE 1 END', [$currentSheet->batch_id])
-                      ->orderBy('batch_id', 'desc')
-                      ->orderBy('label');
-              }
-            }
-            
-            return $query->get()->pluck('label', 'id');
-          })
-          ->searchable()
-          ->preload()
           ->live()
-          ->afterStateUpdated(function ($state, Forms\Set $set) {
+          ->rules([
+              function () {
+                  return function (string $attribute, $value, \Closure $fail) {
+                      if ($value && !\App\Models\Sheet::where('label', $value)->exists()) {
+                          $fail('The selected sheet does not exist.');
+                      }
+                  };
+              },
+          ])
+          ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
               if ($state) {
-                $sheet = \App\Models\Sheet::find($state);
+                $sheet = \App\Models\Sheet::where('label', $state)->first();
                 if($sheet) {
                   $zipcode = $sheet->commune->zipcodes()->first();
                   if ($zipcode) {
@@ -96,6 +86,20 @@ class RegisterInvalid extends Page implements HasForms
                   }
                 }
               }
+          })
+          ->suffixIcon(function (Forms\Get $get) {
+              $id = $get('sheet_id');
+              if (!$id) return null;
+
+              $sheet = \App\Models\Sheet::find($id);
+              return $sheet ? 'heroicon-o-check-circle' : 'heroicon-o-x-circle';
+          })
+          ->suffixIconColor(function (Forms\Get $get) {
+              $id = $get('sheet_id');
+              if (!$id) return null;
+
+              $sheet = \App\Models\Sheet::find($id);
+              return $sheet ? 'success' : 'danger';
           }),
         Forms\Components\Select::make('zipcode_id')
           ->label(__('zipcode.name'))
@@ -161,11 +165,15 @@ class RegisterInvalid extends Page implements HasForms
         ->send();
       
       // Reset the form but keep the sheet_id and zipcode_id
-      $currentSheetId = $data['sheet_id'] ?? null;
+      $currentSheetLabel = null;
+      if (isset($data['sheet_id'])) {
+          $sheet = \App\Models\Sheet::find($data['sheet_id']);
+          $currentSheetLabel = $sheet ? $sheet->label : null;
+      }
       $currentZipcodeId = $data['zipcode_id'] ?? null;
       $this->form->fill();
-      if ($currentSheetId) {
-          $this->form->fill(['sheet_id' => $currentSheetId]);
+      if ($currentSheetLabel) {
+          $this->form->fill(['sheet_id' => $currentSheetLabel]);
       }
       if ($currentZipcodeId) {
           $this->form->fill(['zipcode_id' => $currentZipcodeId]);

@@ -158,7 +158,7 @@
     "pages.registerInvalid.notifications.error.title": "Speichern fehlgeschlagen",
     "pages.registerInvalid.notifications.success.body": "Die ungültige Unterschrift wurde erfolgreich erfasst.",
     "pages.registerInvalid.notifications.success.title": "Erfolgreich gespeichert",
-    "pages.registerInvalid.sheet_id_helper": "Wenn schon eine Nummer steht, dann kommen die Nummern dieses Versandes zuerst beim Auswahldialog.",
+    "pages.registerInvalid.sheet_id_helper": "Kein Pflichtfeld, aber wenn du es ausfüllst, dann wird PLZ und Ort schon geraten/vorausgefüllt.",
     "pages.registerInvalid.sheet_id_question": "Besser als reines Textfeld? Bitte Feedback.",
     "pages.registerInvalid.street_no_helper": "Wenn unbekannt, kannst du hier auch sonst etwas eintragen, was hilfreich sein könnte, um die Person zu finden.",
     "pages.registerInvalid.submit": "Kontakt erstellen",
