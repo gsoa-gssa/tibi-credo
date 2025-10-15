@@ -87,7 +87,9 @@ class BatchResource extends Resource
                     ->label(__('batch.sheets_count'))
                     ->numeric()
                     ->getStateUsing(fn (Batch $batch) => $batch->sheets->count())
-                    ->sortable(),
+                    ->sortable(query: function (Builder $query, $direction) {
+                        return $query->withCount('sheets')->orderBy('sheets_count', $direction);
+                    }),
                 Tables\Columns\TextColumn::make('returned_sheets_count')
                     ->label(__('batch.sheets_returned_count'))
                     ->numeric()
