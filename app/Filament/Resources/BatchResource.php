@@ -137,6 +137,34 @@ class BatchResource extends Resource
                                 $query->whereNull('maeppli_id');
                             });
                     }),
+                SelectFilter::make('age')
+                    ->label(__('batch.filters.age'))
+                    ->options([
+                        '2_weeks' => __('batch.filters.age.2_weeks'),
+                        '4_weeks' => __('batch.filters.age.4_weeks'),
+                        '6_weeks' => __('batch.filters.age.6_weeks'),
+                        '8_weeks' => __('batch.filters.age.8_weeks'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query->when(
+                            $data['value'],
+                            function (Builder $query, $value): Builder {
+                                $weeks = match($value) {
+                                    '2_weeks' => 2,
+                                    '4_weeks' => 4,
+                                    '6_weeks' => 6,
+                                    '8_weeks' => 8,
+                                    default => 0,
+                                };
+                                
+                                if ($weeks > 0) {
+                                    return $query->where('created_at', '<', now()->subWeeks($weeks));
+                                }
+                                
+                                return $query;
+                            }
+                        );
+                    }),
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
