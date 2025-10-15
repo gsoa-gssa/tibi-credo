@@ -117,18 +117,19 @@ class BatchResource extends Resource
                     ->getOptionLabelFromRecordUsing(fn ($record) => $record->nameWithCanton())
                     ->searchable()
                     ->multiple()
-                    ->preload(),
+                    ->preload()
+                    ->label(__('batch.filters.commune')),
                 SelectFilter::make('status')
                     ->options([
-                        'pending' => 'Pending',
-                        'sent' => 'Sent',
-                        'returned' => 'Returned',
+                        'pending' => __('batch.filters.status.pending'),
+                        'sent' => __('batch.filters.status.sent'),
+                        'returned' => __('batch.filters.status.returned'),
                     ])
                     ->default('pending')
-                    ->label('Status')
+                    ->label(__('batch.filters.status'))
                     ->multiple(),
-                Filter::make('problem')
-                    ->label('Problem')
+                Filter::make('partially_returned')
+                    ->label(__('batch.filters.partially_returned'))
                     ->toggle()
                     ->query(function (Builder $query) {
                         $query 

@@ -37,6 +37,20 @@ class Batch extends Model
         return $this->sheets()->sum('signatureCount');
     }
 
+    /**
+     * Update the status of the batch: If at least 90% of the sheets have been returned, mark the batch as 'returned'.
+     */
+    public function updateStatus(): void
+    {
+        $returnedSheetsCount = $this->sheets()->whereNotNull('maeppli_id')->count();
+        $totalSheetsCount = $this->sheets()->count();
+
+        if ($totalSheetsCount > 0 && $returnedSheetsCount / $totalSheetsCount >= 0.9) {
+            $this->status = 'returned';
+            $this->save();
+        }
+    }
+
     public function pdf($posLeft = true, $priority = false): \Symfony\Component\HttpFoundation\StreamedResponse
     {
         // change locale to render in correct language
