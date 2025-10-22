@@ -12,6 +12,7 @@
     "batch.sheets_count": "Feuilles envoyées",
     "batch.sheets_returned_count": "Feuilles retournées",
     "canton.name": "Canton",
+    "widgets.signature_count_stats.required_min": "Estimation brute du total nécessaire (probablement plus sera requis)",
     "commune.computed.sheets_no_batch": "Feuilles pas encore envoyées",
     "commune.computed.validity_quota_current": "Validité (dernière comptabilisation)",
     "commune.computed.validity_quota_current_data": ":percent (sur :total dans le dernier envoi)",

@@ -346,6 +346,15 @@ class CaptureBatchWorkflow extends Page implements HasForms
                 ]);
             }
         }
+
+        // Update status of all batches that contain sheets with this maeppli
+        $batchIds = Sheet::where('maeppli_id', $maeppli->id)
+            ->whereNotNull('batch_id')
+            ->pluck('batch_id')
+            ->unique();
+        
+        \App\Models\Batch::whereIn('id', $batchIds)->get()->each->updateStatus();
+        
         redirect()->route('filament.app.resources.maepplis.view', $maeppli->id);
 
     }
