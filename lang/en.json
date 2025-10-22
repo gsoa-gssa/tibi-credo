@@ -242,6 +242,7 @@
     "widgets.signature_count_stats.registered": "Recorded Signatures",
     "widgets.signature_count_stats.registered_with_batch": "Sent Signatures",
     "widgets.signature_count_stats.registered_with_maeppli": "Returned Signatures (incl. invalid)",
+    "widgets.signature_count_stats.required_30days": "Rough estimate total needed (rather pessimistic, but can always be worse)",
     "widgets.signature_count_stats.required_min": "Rough estimate total needed (probably more will be required)",
     "widgets.signature_count_stats.today": "Counted Today",
     "widgets.signature_count_stats.total": "Number of Counted Signatures",

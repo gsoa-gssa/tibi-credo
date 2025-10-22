@@ -101,6 +101,7 @@
     "batch.filters.commune": "Gemeinde",
     "batch.filters.status": "Status",
     "batch.filters.status.pending": "In Bearbeitung",
+    "widgets.signature_count_stats.required_30days": "Grobe Schätzung total nötig (eher pessimistisch, aber kann immer auch schlimmer sein)",
     "widgets.signature_count_stats.required_min": "Grobe Schätzung total nötig (wahrscheinlich wird mehr benötigt)",
     "batch.filters.status.sent": "Gesendet",
     "batch.filters.status.returned": "Retourniert",

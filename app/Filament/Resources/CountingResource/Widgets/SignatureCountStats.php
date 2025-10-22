@@ -11,10 +11,26 @@ class SignatureCountStats extends BaseWidget
 {
     protected function getStats(): array
     {
-        $validity_total = Maeppli::sum('sheets_valid_count');
-        $validity_total = $validity_total / ($validity_total + Maeppli::sum('sheets_invalid_count'));
         $required_valid = 103000;
-        $required_min = ceil( $required_valid / $validity_total );
+
+        $validity_total = Maeppli::sum('sheets_valid_count');
+        $validity_total_quotient = $validity_total + Maeppli::sum('sheets_invalid_count');
+        if ( $validity_total_quotient == 0 ) {
+            $required_min = 0;
+        } else {
+            $validity_total = $validity_total / $validity_total_quotient;
+            $required_min = ceil( $required_valid / $validity_total );
+        }
+        
+
+        $validity_30days = Maeppli::where('created_at', '>=', now()->subDays(30))->sum('sheets_valid_count');
+        $validity_30days_quotient = ($validity_30days + Maeppli::where('created_at', '>=', now()->subDays(30))->sum('sheets_invalid_count'));
+        if ( $validity_30days_quotient == 0 ) {
+            $required_min_30days = 0;
+        } else {
+            $validity_30days = $validity_30days / $validity_30days_quotient;
+            $required_min_30days = ceil( $required_valid / $validity_30days );
+        }
         return [
             Stat::make(
                 __("widgets.signature_count_stats.total"),
@@ -23,6 +39,10 @@ class SignatureCountStats extends BaseWidget
             Stat::make(
                 __("widgets.signature_count_stats.required_min"),
                 $required_min
+            ),
+            Stat::make(
+                __("widgets.signature_count_stats.required_30days"),
+                $required_min_30days
             ),
             Stat::make(
                 __("widgets.signature_count_stats.today"),

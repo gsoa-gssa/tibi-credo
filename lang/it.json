@@ -242,6 +242,7 @@
     "widgets.signature_count_stats.registered": "Firme registrate",
     "widgets.signature_count_stats.registered_with_batch": "Firme inviate",
     "widgets.signature_count_stats.registered_with_maeppli": "Firme restituite (incl. non valide)",
+    "widgets.signature_count_stats.required_30days": "Stima approssimativa del totale necessario (piuttosto pessimistica, ma può sempre essere peggio)",
     "widgets.signature_count_stats.required_min": "Stima approssimativa totale necessaria (probabilmente ne serviranno di più)",
     "widgets.signature_count_stats.today": "Contate oggi",
     "widgets.signature_count_stats.total": "Numero di firme contate",
