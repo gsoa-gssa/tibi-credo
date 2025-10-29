@@ -52,12 +52,7 @@ class BatchResource extends Resource
                 Forms\Components\Select::make('commune_id')
                     ->relationship('commune', 'name')
                     ->searchable()
-                    ->getSearchResultsUsing(fn (string $search): array => Commune::where(function (Builder $query) use ($search) {
-                        $query->where('name', 'like', "%$search%")
-                              ->orWhereHas('zipcodes', fn (Builder $q) => $q->where('code', 'like', "%$search%"));
-                    })->limit(10)->get()->mapWithKeys(function ($commune) {
-                        return [$commune->id => $commune->nameWithCanton()];
-                    })->toArray())
+                    ->getSearchResultsUsing(fn (string $search): array => Commune::whereHas('zipcodes', fn (Builder $query) => $query->where('code', 'like', "%$search%"))->limit(10)->pluck('name', 'id')->toArray())
                     ->required()
             ]);
     }
@@ -67,7 +62,6 @@ class BatchResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('commune.name')
-                    ->formatStateUsing(fn ($record) => $record->commune->nameWithCanton())
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\IconColumn::make('status')
@@ -87,9 +81,7 @@ class BatchResource extends Resource
                     ->label(__('batch.sheets_count'))
                     ->numeric()
                     ->getStateUsing(fn (Batch $batch) => $batch->sheets->count())
-                    ->sortable(query: function (Builder $query, $direction) {
-                        return $query->withCount('sheets')->orderBy('sheets_count', $direction);
-                    }),
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('returned_sheets_count')
                     ->label(__('batch.sheets_returned_count'))
                     ->numeric()
@@ -114,22 +106,20 @@ class BatchResource extends Resource
             ->filters([
                 SelectFilter::make('commune')
                     ->relationship('commune', 'name')
-                    ->getOptionLabelFromRecordUsing(fn ($record) => $record->nameWithCanton())
                     ->searchable()
                     ->multiple()
-                    ->preload()
-                    ->label(__('batch.filters.commune')),
+                    ->preload(),
                 SelectFilter::make('status')
                     ->options([
-                        'pending' => __('batch.filters.status.pending'),
-                        'sent' => __('batch.filters.status.sent'),
-                        'returned' => __('batch.filters.status.returned'),
+                        'pending' => 'Pending',
+                        'sent' => 'Sent',
+                        'returned' => 'Returned',
                     ])
                     ->default('pending')
-                    ->label(__('batch.filters.status'))
+                    ->label('Status')
                     ->multiple(),
-                Filter::make('partially_returned')
-                    ->label(__('batch.filters.partially_returned'))
+                Filter::make('problem')
+                    ->label('Problem')
                     ->toggle()
                     ->query(function (Builder $query) {
                         $query 
@@ -139,34 +129,6 @@ class BatchResource extends Resource
                             ->whereHas('sheets', function (Builder $query) {
                                 $query->whereNull('maeppli_id');
                             });
-                    }),
-                SelectFilter::make('age')
-                    ->label(__('batch.filters.age'))
-                    ->options([
-                        '2_weeks' => __('batch.filters.age.2_weeks'),
-                        '4_weeks' => __('batch.filters.age.4_weeks'),
-                        '6_weeks' => __('batch.filters.age.6_weeks'),
-                        '8_weeks' => __('batch.filters.age.8_weeks'),
-                    ])
-                    ->query(function (Builder $query, array $data): Builder {
-                        return $query->when(
-                            $data['value'],
-                            function (Builder $query, $value): Builder {
-                                $weeks = match($value) {
-                                    '2_weeks' => 2,
-                                    '4_weeks' => 4,
-                                    '6_weeks' => 6,
-                                    '8_weeks' => 8,
-                                    default => 0,
-                                };
-                                
-                                if ($weeks > 0) {
-                                    return $query->where('created_at', '<', now()->subWeeks($weeks));
-                                }
-                                
-                                return $query;
-                            }
-                        );
                     }),
                 Tables\Filters\TrashedFilter::make(),
             ])
@@ -187,6 +149,10 @@ class BatchResource extends Resource
                         ])))
                         ->requiresConfirmation()
                         ->icon('heroicon-o-check-circle'),
+                    Tables\Actions\BulkAction::make('updateStatus')
+                        ->label('Update Status')
+                        ->action(fn (\Illuminate\Support\Collection $batches) => $batches->each(fn (Batch $batch) => $batch->updateStatus()))
+                        ->icon('heroicon-o-arrow-path'),
                 ]),
             ]);
     }

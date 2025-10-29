@@ -8,6 +8,9 @@ use App\Models\Maeppli;
 use App\Models\Sheet;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Infolists;
+use Filament\Infolists\Components;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -78,6 +81,53 @@ class MaeppliResource extends Resource
                         ->required(),
                 ])->columns(3),
             ])->columns(1);
+    }
+
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->schema([
+                Components\Section::make(__('maeppli.sections.basic_info'))
+                    ->schema([
+                        Components\TextEntry::make('label')
+                            ->label(__('maeppli.label')),
+                        Components\TextEntry::make('commune.name')
+                            ->label(__('maeppli.commune')),
+                        Components\TextEntry::make('created_at')
+                            ->label(__('maeppli.created_at'))
+                            ->dateTime(),
+                    ])
+                    ->columns(3),
+                Components\Section::make(__('maeppli.sections.statistics'))
+                    ->schema([
+                        Components\TextEntry::make('sheets_count')
+                            ->label(__('maeppli.sheets_count')),
+                        Components\TextEntry::make('sheets_valid_count')
+                            ->label(__('maeppli.sheets_valid_count')),
+                        Components\TextEntry::make('sheets_invalid_count')
+                            ->label(__('maeppli.sheets_invalid_count')),
+                        Components\TextEntry::make('sheets_valid_ratio')
+                            ->label(__('maeppli.sheets_valid_ratio'))
+                            ->getStateUsing(function ($record) {
+                                $valid = (int) $record->sheets_valid_count;
+                                $invalid = (int) $record->sheets_invalid_count;
+                                $total = $valid + $invalid;
+                                return $total > 0 ? (string)(int)($valid / $total * 100) . '%' : $valid . ' / ' . $total;
+                            }),
+                        Components\TextEntry::make('signatures_on_sheets')
+                            ->label(__('maeppli.signatures_on_sheets'))
+                            ->getStateUsing(function ($record) {
+                                return $record->sheets()->sum('signatureCount');
+                            }),
+                        Components\TextEntry::make('signatures_total')
+                            ->label(__('maeppli.signatures_total'))
+                            ->getStateUsing(function ($record) {
+                                return $record->sheets_valid_count+$record->sheets_invalid_count;
+                            }),
+                        
+                    ])
+                    ->columns(3),
+            ]);
     }
 
     public static function table(Table $table): Table
@@ -152,7 +202,16 @@ class MaeppliResource extends Resource
                         ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                Tables\Filters\Filter::make('signature_count_suspicious')
+                    ->label(__('maeppli.filters.signature_count_suspicious'))
+                    ->query(fn (Builder $query) =>
+                        $query->whereHas('sheets', function (Builder $subQuery) {
+                            $subQuery->selectRaw('SUM(signatureCount) as total_signatures')
+                                ->groupBy('maeppli_id')
+                                ->havingRaw('total_signatures > (sheets_valid_count + sheets_invalid_count)');
+                        })
+                    )
+                    ->toggle(),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
