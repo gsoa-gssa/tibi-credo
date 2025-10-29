@@ -136,4 +136,20 @@ class Sheet extends Model
     {
         return $this->hasMany(Contact::class);
     }
+
+    public function checkMaeppliExistsIfNotNull(): bool
+    {
+        if ($this->maeppli_id === null) {
+            return true;
+        }
+
+        return Maeppli::where('id', $this->maeppli_id)->exists();
+    }
+
+    public static function findSheetsWithInvalidMaeppli()
+    {
+        return static::whereNotNull('maeppli_id')
+            ->whereDoesntHave('maeppli')
+            ->get();
+    }
 }
