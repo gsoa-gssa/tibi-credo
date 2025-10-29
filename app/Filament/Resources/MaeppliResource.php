@@ -223,7 +223,7 @@ class MaeppliResource extends Resource
                             ])
                             ->orderBy('signature_difference', $direction);
                     })
-                    ->toggleable(),
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\Filter::make('signature_count_suspicious')
