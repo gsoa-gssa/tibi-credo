@@ -200,6 +200,30 @@ class MaeppliResource extends Resource
                         })
                         ->sortable(false)
                         ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('signature_count_difference')
+                    ->label(__('maeppli.signature_count_difference'))
+                    ->getStateUsing(function ($record) {
+                        $signaturesOnSheets = $record->sheets()->sum('signatureCount');
+                        $signaturesTotal = $record->sheets_valid_count + $record->sheets_invalid_count;
+                        return $signaturesOnSheets - $signaturesTotal;
+                    })
+                    ->sortable(query: function (Builder $query, string $direction) {
+                        return $query->leftJoin('sheets', 'maepplis.id', '=', 'sheets.maeppli_id')
+                            ->selectRaw('maepplis.*, (COALESCE(SUM(sheets.signatureCount), 0) - (maepplis.sheets_valid_count + maepplis.sheets_invalid_count)) as signature_difference')
+                            ->groupBy([
+                                'maepplis.id',
+                                'maepplis.label', 
+                                'maepplis.commune_id',
+                                'maepplis.sheets_count',
+                                'maepplis.sheets_valid_count',
+                                'maepplis.sheets_invalid_count',
+                                'maepplis.created_at',
+                                'maepplis.updated_at',
+                                'maepplis.deleted_at',
+                            ])
+                            ->orderBy('signature_difference', $direction);
+                    })
+                    ->toggleable(),
             ])
             ->filters([
                 Tables\Filters\Filter::make('signature_count_suspicious')
