@@ -12,6 +12,10 @@ class SignatureCountStats extends BaseWidget
     {
         return [
             Stat::make(
+                __("widgets.signature_count_stats.missing_valid"),
+                max(0, 103000-Maeppli::sum('sheets_valid_count'))
+            ),
+            Stat::make(
                 __("widgets.signature_count_stats.valid"),
                 Maeppli::sum('sheets_valid_count')
             ),

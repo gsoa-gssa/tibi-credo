@@ -37,6 +37,14 @@ class SignatureCountStats extends BaseWidget
                 Counting::sum('count')
             ),
             Stat::make(
+                __("widgets.signature_count_stats.left_min"),
+                max(0, $required_min-Counting::sum('count'))
+            ),
+            Stat::make(
+                __("widgets.signature_count_stats.left_30days"),
+                max(0, $required_min_30days-Counting::sum('count'))
+            ),
+            Stat::make(
                 __("widgets.signature_count_stats.required_min"),
                 $required_min
             ),
