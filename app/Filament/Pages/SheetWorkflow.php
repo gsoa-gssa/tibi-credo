@@ -74,6 +74,7 @@ class SheetWorkflow extends Page implements HasForms, HasTable
   
   public function form(Form $form): Form
   {
+    $sources = Source::all()->pluck('code', 'id')->toArray();
     return $form->schema([
       Forms\Components\TextInput::make('label')
         ->label(__('sheet.fields.label'))
@@ -117,51 +118,50 @@ class SheetWorkflow extends Page implements HasForms, HasTable
           ->dehydrated(false)
           ->live()
           ->extraAttributes([
-            'x-data' => '{}',
+            'x-data' => '{ sources: ' . \Illuminate\Support\Js::from($sources) . ' }',
             'x-on:input' => '
                 let text = $event.target.value;
                 console.log("Original: " + text);
                 text = text.replace(/\s+/g, "");
                 text = text.toUpperCase();
+
+                // if there is digits followed by a letter, set signature count to digits
+                let match = text.match(/^(\d+)([a-zA-Z].+)$/);
+                if (match) {
+                  let count = parseInt(match[1]);
+                  // only set if count is reasonable, i.e. between 1 and 12
+                  if (count >= 1 && count <= 12) {
+                    $wire.set("signatureCount", count);
+                  }
+                  source_part = match[2];
+                  console.log("Extracted count: " + count + ", source part: " + source_part);
+                  console.log("Sources are: " + JSON.stringify(sources));
+                  console.log("Have " + Object.keys(sources).length + " sources");
+                  // filter sources object by whether code starts with text
+                  sourcesCandidates = Object.entries(sources).filter(([id, code]) => code.startsWith(source_part));
+                  if (sourcesCandidates.length === 1) {
+                    console.log("Unique source match: " + sourcesCandidates);
+                    $wire.set("source_id", sourcesCandidates[0][0]);
+                  } else if (sourcesCandidates.length > 1) {
+                    // do nothing, user has to be more specific
+                  } else {
+                    // no match, do nothing
+                  }
+                }
                 
                 $event.target.value = text;
                 $wire.set("srcAndCount", text);
                 console.log("New: " + text);
             '
           ])
-          ->afterStateUpdated(function (Forms\Contracts\HasForms $livewire, Forms\Components\TextInput $component) { 
-            $state = $component->getState();
-            $component->state($state);
-
-            $livewire->resetErrorBag($component->getStatePath());
-
-            if (preg_match('/^([A-Za-z]*)(\d+)$/', $state, $matches)) {
-              $letters = $matches[1];
-              $digits = $matches[2];
-
-              if (empty($this->source_id) && empty($letters)) {
-                $livewire->addError($component->getStatePath(), __('pages.sheetWorkflow.validation.source_id.empty', ['srcAndCount' => $state]));
-              }
-
-              if (!empty($letters)) {
-                $source = Source::where('code', 'LIKE', $letters . '%')->first();
-                if ($source) {
-                  $livewire->source_id = $source->id;
-                } else {
-                  $livewire->addError($component->getStatePath(), __('pages.sheetWorkflow.validation.source_id.not_found', ['srcAndCount' => $state]));
-                }
-              }
-
-              $signatureCount = (int) $digits;
-              $livewire->signatureCount = $signatureCount;
-              if ($signatureCount > 15 || $signatureCount < 1) {
-                $livewire->addError($component->getStatePath(), __('pages.sheetWorkflow.validation.signatureCount.range', ['signatureCount' => $signatureCount]));
-              }              
-            } else {
-              $livewire->addError($component->getStatePath(), __('pages.sheetWorkflow.validation.srcAndCount.structure', ['srcAndCount' => $state]));
-            }
-          })
           ->columnSpan(3),
+        Forms\Components\TextInput::make('signatureCount')
+          ->label(__('sheet.fields.signatureCountShort'))
+          ->required()
+          ->validationMessages([
+            'required' => __('pages.sheetWorkflow.validation.signatureCount.required'),
+          ])
+          ->disabled(true),
         Forms\Components\Select::make('source_id')
           ->label(__('source.name'))
           ->required()
@@ -169,13 +169,6 @@ class SheetWorkflow extends Page implements HasForms, HasTable
             'required' => __('pages.sheetWorkflow.validation.source_id.empty', ['srcAndCount' => $this->srcAndCount]),
           ])
           ->options(Source::all()->pluck('code', 'id'))
-          ->disabled(true),
-        Forms\Components\TextInput::make('signatureCount')
-          ->label(__('sheet.fields.signatureCountShort'))
-          ->required()
-          ->validationMessages([
-            'required' => __('pages.sheetWorkflow.validation.signatureCount.required'),
-          ])
           ->disabled(true),
       ])
       ->columns(2)

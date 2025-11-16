@@ -189,7 +189,7 @@
     "pages.sheetWorkflow.navigationGroup": "Arbeitsvorgänge",
     "pages.sheetWorkflow.navigationLabel": "Bögen erfassen",
     "pages.sheetWorkflow.placeOrCommune": "Ort oder Gemeinde",
-    "pages.sheetWorkflow.srcAndCount": "Quelle und Anzahl Unterschriften",
+    "pages.sheetWorkflow.srcAndCount": "Anzahl Unterschriften und dann Quelle",
     "pages.sheetWorkflow.title": "Bögen erfassen",
     "pages.sheetWorkflow.validation.commune_id.multiple": "Stimmt Gemeinde? Für :zipcode/:place wären möglich: :communes.",
     "pages.sheetWorkflow.validation.commune_id.multiple_unknown_place": "Stimmt Gemeinde? Für :zipcode wären möglich: :communes.",
