@@ -116,42 +116,55 @@ class SheetWorkflow extends Page implements HasForms, HasTable
         Forms\Components\TextInput::make('srcAndCount')
           ->label(__('pages.sheetWorkflow.srcAndCount'))
           ->dehydrated(false)
-          ->live()
           ->extraAttributes([
-            'x-data' => '{ sources: ' . \Illuminate\Support\Js::from($sources) . ' }',
+            'x-data' => '{ 
+              sources: ' . \Illuminate\Support\Js::from($sources) . ',
+              errorMsg: ""
+            }',
             'x-on:input' => '
                 let text = $event.target.value;
-                console.log("Original: " + text);
                 text = text.replace(/\s+/g, "");
                 text = text.toUpperCase();
+                errorMsg = "";
 
-                // if there is digits followed by a letter, set signature count to digits
-                let match = text.match(/^(\d+)([a-zA-Z].+)$/);
-                if (match) {
-                  let count = parseInt(match[1]);
-                  // only set if count is reasonable, i.e. between 1 and 12
-                  if (count >= 1 && count <= 12) {
-                    $wire.set("signatureCount", count);
-                  }
-                  source_part = match[2];
-                  console.log("Extracted count: " + count + ", source part: " + source_part);
-                  console.log("Sources are: " + JSON.stringify(sources));
-                  console.log("Have " + Object.keys(sources).length + " sources");
-                  // filter sources object by whether code starts with text
-                  sourcesCandidates = Object.entries(sources).filter(([id, code]) => code.startsWith(source_part));
-                  if (sourcesCandidates.length === 1) {
-                    console.log("Unique source match: " + sourcesCandidates);
-                    $wire.set("source_id", sourcesCandidates[0][0]);
-                  } else if (sourcesCandidates.length > 1) {
-                    // do nothing, user has to be more specific
+                if (text) {
+                  let match = text.match(/^(\d+)([a-zA-Z].*)$/);
+                  if (match) {
+                    let count = parseInt(match[1]);
+                    if (count >= 1 && count <= 12) {
+                      $wire.signatureCount = count;
+                      
+                      source_part = match[2];
+                      sourcesCandidates = Object.entries(sources).filter(([id, code]) => code.startsWith(source_part));
+                      
+                      if (sourcesCandidates.length === 1) {
+                        $wire.source_id = sourcesCandidates[0][0];
+                      } else if (sourcesCandidates.length > 1) {
+                        let codes = sourcesCandidates.map(([id, code]) => code).join(", ");
+                        errorMsg = "Multiple source matches: " + codes;
+                      } else {
+                        errorMsg = "No source match found for: " + source_part;
+                      }
+                    } else {
+                      errorMsg = "Count must be between 1 and 12";
+                    }
                   } else {
-                    // no match, do nothing
+                    errorMsg = "Format: [count][source] (e.g. 5ABC)";
                   }
                 }
                 
+                // Show/hide error
+                let errorEl = $el.parentElement.parentElement.querySelector(".srcAndCount-error");
+                if (!errorEl) {
+                  errorEl = document.createElement("p");
+                  errorEl.className = "srcAndCount-error text-sm text-danger-600 dark:text-danger-400 mt-1";
+                  $el.parentElement.parentElement.appendChild(errorEl);
+                }
+                errorEl.textContent = errorMsg;
+                errorEl.style.display = errorMsg ? "block" : "none";
+                
                 $event.target.value = text;
-                $wire.set("srcAndCount", text);
-                console.log("New: " + text);
+                $wire.srcAndCount = text;
             '
           ])
           ->columnSpan(3),
