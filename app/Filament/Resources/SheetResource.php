@@ -207,6 +207,24 @@ class SheetResource extends Resource
                     ->label(__('sheet.filters.no_batch'))
                     ->toggle()
                     ->query(fn (Builder $query): Builder => $query->whereNull('batch_id')),
+                Tables\Filters\Filter::make('count_gt_12')
+                    ->label(__('sheet.filters.count_gt_12'))
+                    ->toggle()
+                    ->query(fn (Builder $query): Builder => $query->where('signatureCount', '>', 12)),
+                Tables\Filters\Filter::make('source')
+                    ->label(__('sheet.filters.source'))
+                    ->form([
+                        Forms\Components\Select::make('source_id')
+                            ->relationship('source', 'code')
+                            ->searchable()
+                            ->preload(),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        if ($data['source_id']) {
+                            $query->where('source_id', $data['source_id']);
+                        }
+                        return $query;
+                    }),
                 Tables\Filters\TrashedFilter::make(),
                 Tables\Filters\Filter::make("demovox")
                     ->label("Demo Vox")
@@ -234,6 +252,19 @@ class SheetResource extends Resource
                             }
                             Notification::make()
                                 ->title('Sheet label normalized for selected sheets.')
+                                ->success()
+                                ->send();
+                        })
+                        ->requiresConfirmation(),
+                    Tables\Actions\BulkAction::make('subtract_20_signatures')
+                        ->label('Subtract 20 Signatures')
+                        ->action(function ($records) {
+                            foreach ($records as $record) {
+                                $record->signatureCount = max(0, $record->signatureCount - 20);
+                                $record->save();
+                            }
+                            Notification::make()
+                                ->title('20 signatures subtracted from selected sheets.')
                                 ->success()
                                 ->send();
                         })
