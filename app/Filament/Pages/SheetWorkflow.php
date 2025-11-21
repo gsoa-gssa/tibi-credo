@@ -128,22 +128,34 @@ class SheetWorkflow extends Page implements HasForms, HasTable
                 errorMsg = "";
 
                 if (text) {
-                  let match = text.match(/^(\d+)([a-zA-Z].*)$/);
+                  let match = text.match(/^(\d+)([a-zA-Z]*.*)$/);
                   if (match) {
                     let count = parseInt(match[1]);
                     if (count >= 1 && count <= 12) {
                       $wire.signatureCount = count;
                       
                       source_part = match[2];
-                      sourcesCandidates = Object.entries(sources).filter(([id, code]) => code.startsWith(source_part));
-                      
-                      if (sourcesCandidates.length === 1) {
-                        $wire.source_id = sourcesCandidates[0][0];
-                      } else if (sourcesCandidates.length > 1) {
-                        let codes = sourcesCandidates.map(([id, code]) => code).join(", ");
-                        errorMsg = "Multiple source matches: " + codes;
+                      // if source_part not empty
+                      if (source_part) {
+                        sourcesCandidates = Object.entries(sources).filter(([id, code]) => code.startsWith(source_part));
+                        
+                        if (sourcesCandidates.length === 1) {
+                          $wire.source_id = sourcesCandidates[0][0];
+                        } else if (sourcesCandidates.length > 1) {
+                          let codes = sourcesCandidates.map(([id, code]) => code).join(", ");
+                          $wire.source_id = sourcesCandidates[0][0];
+                          errorMsg = "Multiple source matches: " + codes;
+                        } else {
+                          errorMsg = "No source match found for: " + source_part;
+                        }
                       } else {
-                        errorMsg = "No source match found for: " + source_part;
+                        // if there is already a source_id set, keep it and notify user about that through errorMsg
+                        // if there is noe source_id set, tell user in error message to add one
+                        if ($wire.source_id) {
+                          errorMsg = "Using existing source from last time (see below)";
+                        } else {
+                          errorMsg = "Please add a source";
+                        }
                       }
                     } else {
                       errorMsg = "Count must be between 1 and 12";

@@ -65,7 +65,6 @@ class CaptureBatchWorkflow extends Page implements HasForms
                                 }))
                                 ->required()
                                 ->searchable()
-                                ->live()
                                 ->preload(),
                             Forms\Components\Radio::make('certificationType')
                                 ->label(__('pages.captureBatchWorkflow.certificationTypeForm.certificationType'))
@@ -194,10 +193,18 @@ class CaptureBatchWorkflow extends Page implements HasForms
                                 ->view('filament.forms.components.capture-batch-wizard.selected-sheets-list')
                                 ->columnSpanFull(),
                             Forms\Components\Checkbox::make('override_number_of_sheets')
-                                ->label(__('pages.captureBatchWorkflow.step.review.override_number_of_sheets'))
+                                ->label(new HtmlString(__('pages.captureBatchWorkflow.step.review.override_number_of_sheets', [
+                                    'selected' => $this->sheetCounts()[0],
+                                    'claimed' => $this->sheetCounts()[1],
+                                    'diff' => $this->sheetCounts()[0] - $this->sheetCounts()[1],
+                                ])))
                                 ->visible(fn () => !$this->checkSheetCount()),
                             Forms\Components\Checkbox::make('override_number_of_signatures')
-                                ->label(__('pages.captureBatchWorkflow.step.review.override_number_of_signatures'))
+                                ->label(new HtmlString(__('pages.captureBatchWorkflow.step.review.override_number_of_signatures', [
+                                    'expected' => $this->signatureCounts()[0],
+                                    'claimed' => $this->signatureCounts()[1],
+                                    'diff' => $this->signatureCounts()[0] - $this->signatureCounts()[1],
+                                ])))
                                 ->visible(fn () => !$this->checkSignatureCount()),
                             Forms\Components\Checkbox::make('confirm')
                                 ->label(__('pages.captureBatchWorkflow.step.review.confirm'))
@@ -374,8 +381,12 @@ class CaptureBatchWorkflow extends Page implements HasForms
         return $sheets->sort()->values();
     }
 
-    public function checkSignatureCount()
+    public function signatureCounts()
     {
+        // data is null return [0,0]
+        if (!$this->data) {
+            return [0, 0];
+        }
         $returned = $this->data['number_of_valid_signatures'] + $this->data['number_of_invalid_signatures'];
         // map sheet ids to number of signatures on sheet
         $sheets = collect($this->data['sheets'] ?? [])->filter();
@@ -384,13 +395,25 @@ class CaptureBatchWorkflow extends Page implements HasForms
             return $sheet->signatureCount;
         });
         $total = $sheets->sum();
+        return [$total, $returned];
+    }
+
+    public function checkSignatureCount()
+    {
+        [$total, $returned] = $this->signatureCounts();
         return $total === $returned;
     }
 
     public function checkSheetCount()
     {
+        [$selectedSheets, $claimedSheets] = $this->sheetCounts();
+        return $selectedSheets === $claimedSheets;
+    }
+
+    public function sheetCounts()
+    {
         $selectedSheets = collect($this->data['sheets'] ?? [])->filter()->count();
         $claimedSheets = (int) ($this->data['number_of_sheets'] ?? 0);
-        return $selectedSheets === $claimedSheets;
+        return [$selectedSheets, $claimedSheets];
     }
 }
