@@ -272,7 +272,7 @@ class CaptureBatchWorkflow extends Page implements HasForms
                     ->label($sheet->label)
                     ->default(true);
             }
-            $sections[] = Forms\Components\Section::make("Batch " . $batch->id . ' - ' . $sheets->count() . ' Bögen - ' . $batch->countSignatures() . ' Unterschriften')
+            $sections[] = Forms\Components\Section::make("Batch " . $batch->id . ' - ' . $sheets->count() . ' Bögen - ' . $batch->countNotReturnedSignatures() . ' Unterschriften')
                 ->schema([
                     Forms\Components\ViewField::make('toggle-all')
                         ->view('filament.forms.components.capture-batch-wizard.toggle-all')

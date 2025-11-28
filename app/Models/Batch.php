@@ -37,6 +37,11 @@ class Batch extends Model
         return $this->sheets()->sum('signatureCount');
     }
 
+    public function countNotReturnedSignatures(): int
+    {
+        return $this->sheets()->whereNull('maeppli_id')->sum('signatureCount');
+    }
+
     /**
      * Update the status of the batch: If at least 90% of the sheets have been returned, mark the batch as 'returned'.
      */
