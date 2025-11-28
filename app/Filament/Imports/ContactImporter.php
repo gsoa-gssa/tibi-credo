@@ -55,6 +55,10 @@ class ContactImporter extends Importer
               ->label(__('contact.fields.address_corrected'))
               ->ignoreBlankState()
               ->boolean(),
+            ImportColumn::make('address_uncorrectable')
+              ->label(__('contact.fields.address_uncorrectable'))
+              ->ignoreBlankState()
+              ->boolean(),
         ];
     }
 

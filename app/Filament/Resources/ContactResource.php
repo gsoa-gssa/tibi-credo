@@ -171,6 +171,8 @@ class ContactResource extends Resource
                     ->label(__('contact.fields.letter_sent'));
             $schema[] = Forms\Components\Checkbox::make('address_corrected')
                     ->label(__('contact.fields.address_corrected'));
+            $schema[] = Forms\Components\Checkbox::make('address_uncorrectable')
+                    ->label(__('contact.fields.address_uncorrectable'));
         }
         return $schema;
     }
@@ -236,7 +238,10 @@ class ContactResource extends Resource
                         Infolists\Components\IconEntry::make('address_corrected')
                             ->label(__('contact.fields.address_corrected'))
                             ->boolean(),
-                    ])->columns(4),
+                        Infolists\Components\IconEntry::make('address_uncorrectable')
+                            ->label(__('contact.fields.address_uncorrectable'))
+                            ->boolean(),
+                    ])->columns(5),
             ]);
     }
 
@@ -349,6 +354,15 @@ class ContactResource extends Resource
                     ->queries(
                         true: fn (Builder $query) => $query->where('address_corrected', true),
                         false: fn (Builder $query) => $query->where('address_corrected', false),
+                    ),
+                Tables\Filters\TernaryFilter::make('address_uncorrectable')
+                    ->label(__('contact.filter.address_uncorrectable_or_not'))
+                    ->placeholder(__('filter.all'))
+                    ->trueLabel(__('contact.filter.address_uncorrectable_is_true'))
+                    ->falseLabel(__('contact.filter.address_uncorrectable_is_false'))
+                    ->queries(
+                        true: fn (Builder $query) => $query->where('address_uncorrectable', true),
+                        false: fn (Builder $query) => $query->where('address_uncorrectable', false),
                     ),
                 Tables\Filters\SelectFilter::make('contact_type_id')
                     ->label(__('contact.fields.contact_type'))

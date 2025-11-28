@@ -37,6 +37,8 @@ class ContactExporter extends Exporter
                 ->label(__('sheet.fields.id')),
             ExportColumn::make('address_corrected')
                 ->label(__('contact.fields.address_corrected')),
+            ExportColumn::make('address_uncorrectable')
+                ->label(__('contact.fields.address_uncorrectable')),
         ];
     }
 
