@@ -51,6 +51,10 @@ class ContactImporter extends Importer
               ->label(__('contact.fields.birthdate'))
               ->ignoreBlankState()
               ->rules(['date']),
+            ImportColumn::make('address_corrected')
+              ->label(__('contact.fields.address_corrected'))
+              ->ignoreBlankState()
+              ->boolean(),
         ];
     }
 

@@ -35,6 +35,8 @@ class ContactExporter extends Exporter
                 ->formatStateUsing(fn ($state) => (string) $state),
             ExportColumn::make('sheet_id')
                 ->label(__('sheet.fields.id')),
+            ExportColumn::make('address_corrected')
+                ->label(__('contact.fields.address_corrected')),
         ];
     }
 

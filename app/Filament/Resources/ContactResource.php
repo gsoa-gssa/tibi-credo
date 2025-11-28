@@ -169,6 +169,8 @@ class ContactResource extends Resource
         if ( !$attachedToSheet ){
             $schema[] = Forms\Components\DateTimePicker::make('letter_sent')
                     ->label(__('contact.fields.letter_sent'));
+            $schema[] = Forms\Components\Checkbox::make('address_corrected')
+                    ->label(__('contact.fields.address_corrected'));
         }
         return $schema;
     }
@@ -230,8 +232,11 @@ class ContactResource extends Resource
                             ->color('primary'),
                         Infolists\Components\TextEntry::make('letter_sent')
                             ->label(__('contact.fields.letter_sent'))
-                            ->dateTime()
-                    ])->columns(3),
+                            ->dateTime(),
+                        Infolists\Components\IconEntry::make('address_corrected')
+                            ->label(__('contact.fields.address_corrected'))
+                            ->boolean(),
+                    ])->columns(4),
             ]);
     }
 
@@ -329,12 +334,21 @@ class ContactResource extends Resource
                     }),
                 Tables\Filters\TernaryFilter::make('letter_sent_null')
                     ->label(__('contact.filter.letter_sent_or_not'))
-                    ->placeholder(__('All'))
+                    ->placeholder(__('filter.all'))
                     ->trueLabel(__('contact.filter.letter_sent_is_null_true'))
                     ->falseLabel(__('contact.filter.letter_sent_is_null_false'))
                     ->queries(
                         true: fn (Builder $query) => $query->whereNull('letter_sent'),
                         false: fn (Builder $query) => $query->whereNotNull('letter_sent'),
+                    ),
+                Tables\Filters\TernaryFilter::make('address_corrected')
+                    ->label(__('contact.filter.address_corrected_or_not'))
+                    ->placeholder(__('filter.all'))
+                    ->trueLabel(__('contact.filter.address_corrected_is_true'))
+                    ->falseLabel(__('contact.filter.address_corrected_is_false'))
+                    ->queries(
+                        true: fn (Builder $query) => $query->where('address_corrected', true),
+                        false: fn (Builder $query) => $query->where('address_corrected', false),
                     ),
                 Tables\Filters\SelectFilter::make('contact_type_id')
                     ->label(__('contact.fields.contact_type'))
