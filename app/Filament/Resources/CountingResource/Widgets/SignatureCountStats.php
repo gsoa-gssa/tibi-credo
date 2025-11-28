@@ -51,6 +51,7 @@ class SignatureCountStats extends BaseWidget
         $required_worst_50 = self::requiredValidityByWorstMaeppli($required_valid, 0.5);
 
         $required_valid_extra = 106000;
+        $required_min106 = self::requiredMin($required_valid_extra);
         $required_worst_50_extra = self::requiredValidityByWorstMaeppli($required_valid_extra, 0.5);
         return [
             Stat::make(
@@ -68,6 +69,10 @@ class SignatureCountStats extends BaseWidget
             Stat::make(
                 __("widgets.signature_count_stats.left_min"),
                 max(0, $required_min-$total_collected)
+            ),
+            Stat::make(
+                __("widgets.signature_count_stats.left_min106"),
+                max(0, $required_min106-$total_collected)
             ),
             Stat::make(
                 __("widgets.signature_count_stats.left_worst_50"),
