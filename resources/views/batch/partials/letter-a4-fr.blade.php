@@ -40,6 +40,7 @@
     <x-slot name="subjectLine">
       <b>Sujet :</b> Attestation de la qualité d’électeur pour l'initiative pour l’interdiction des armes nucléaires
     </x-slot>
+    <b style="font-size: 2rem; border: 5px solid black; padding: 5px;">Dépôt prévu le 23 décembre</b>
     <p>
       <b>Madame, Monsieur,</b>
     </p>
@@ -47,7 +48,7 @@
       Nous fondant sur les articles 62, 63 et 70 de la loi fédérale du 17 décembre 1976 sur les droits politiques, nous vous remettons ci-joint {{count($batch->sheets)}} liste(s) de signatures à l’appui de notre Initiative populaire fédérale «Pour l’adhésion de la Suisse au Traité des Nations Unies sur l’interdiction des armes nucléaires (initiative pour l’interdiction des armes nucléaires)» comprenant au total {{$batch->sheets->sum("signatureCount")}} signature(s). Les numéros de référence des feuilles sont indiqués dans le tableau de la ou des pages suivantes.
     </p>
     <p>
-      Nous vous prions de bien vouloir attester le droit de vote des signataires et renvoyer, dans un délai de deux semaines au maximum, les listes de signatures validées à l’adresse suivante:
+      Nous vous prions de bien vouloir attester le droit de vote des signataires et renvoyer aussi vite que possible, les listes de signatures validées à l’adresse suivante:
     </p>
     <p>
       <b>Alliance pour l’interdiction des armes nucléaires</b></br>

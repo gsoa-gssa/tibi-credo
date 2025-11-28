@@ -40,6 +40,7 @@
     <x-slot name="subjectLine">
       <b>Soggetto :</b> Attestazione del diritto di voto «Iniziativa per la proibizione delle armi nucleari»
     </x-slot>
+    <b style="font-size: 2rem; border: 5px solid black; padding: 5px;">Consegna prevista il 23 dicembre</b>
     <p>
         <b>Gentili Signore e Signori,</b>
     </p>
@@ -47,7 +48,7 @@
         Visti gli articoli 62, 63 e 70 della legge federale del 17 dicembre 1976 sui diritti politici vi inviamo in allegato {{count($batch->sheets)}} liste delle firme a sostegno della nostra Iniziativa popolare federale «Per l’adesione della Svizzera al Trattato delle Nazioni Unite sulla proibizione delle armi nucleari (Iniziativa per la proibizione delle armi nucleari)» sulle quali figurano complessivamente {{$batch->sheets->sum("signatureCount")}} firme. I numeri di riferimento delle schede sono riportati nella tabella della/e pagina/e seguente/i.
     </p>
     <p>
-        Vi preghiamo cortesemente di attestare il diritto di voto dei firmatari e di rinviarci le liste con le relative attestazioni entro due settimane al seguente indirizzo:
+        Vi preghiamo cortesemente di attestare il diritto di voto dei firmatari e di rinviarci le liste con le relative attestazioni il prima possibile al seguente indirizzo:
     </p>
     <p>
         <b>Alleanza per la proibizione delle armi nucleari</b></br>

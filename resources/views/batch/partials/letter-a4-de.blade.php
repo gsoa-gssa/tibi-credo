@@ -39,8 +39,9 @@
     </x-slot>
     <x-slot name="subjectLine">
       <b>Betreff:</b>
-      Stimmrechtsbescheinigung der Unterschriftenbögen für die Atomwaffenverbots-Initiative
+      Stimmrechtsbescheinigung Atomwaffenverbots-Initiative
     </x-slot>
+    <b style="font-size: 2rem; border: 5px solid black; padding: 5px;">Geplante Einreichung 23. Dezember</b>
     <p>
       <b>Sehr geehrte Damen und Herren,</b>
     </p>
@@ -48,7 +49,7 @@
       Geschützt auf die Artikel 62, 63 und 70 Bundesgesetz über die politische Rechte vom 17. Dezember 1976 stellen wir Ihnen in der Beilage {{count($batch->sheets)}} Unterschriftenliste(n) für die eidgenössische Volksinitiative für den Beitritt der Schweiz zum UNO-Atomwaffenverbotsvertrag «Atomwaffenverbots-Initiative» mit insgesamt {{$batch->sheets->sum("signatureCount")}} Unterschriften zu. Die Referenznummern der Bögen können Sie der Tabelle der folgenden Seite(n) entnehmen.
     </p>
     <p>
-      Wir ersuchen Sie höflich, das Stimmrecht der Unterzeichnerinnen und Unterzeichner zu bescheinigen. Bitte achten Sie darauf, dass die Felder für Ort, Datum, eigenhändige Unterschrift, amtliche Eigenschaft und Amtsstempel auf allen Unterschriftenlisten vollständig ausgefüllt sind. Dürfen wir Sie bitten, die Unterschriftenlisten innerhalb einer Woche bescheinigt zurückzusenden an:
+      Wir ersuchen Sie höflich, das Stimmrecht der Unterzeichnerinnen und Unterzeichner zu bescheinigen. Bitte achten Sie darauf, dass die Felder für Ort, Datum, eigenhändige Unterschrift, amtliche Eigenschaft und Amtsstempel auf allen Unterschriftenlisten vollständig ausgefüllt sind. Dürfen wir Sie bitten, die Unterschriftenlisten so schnell wie möglich bescheinigt zurückzusenden an:
     </p>
     <p>
       <b>Allianz für ein Atomwaffenverbot</b></br>
