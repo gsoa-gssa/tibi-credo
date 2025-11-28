@@ -100,11 +100,54 @@ class ContactResource extends Resource
                         }
                     });
         if ( !$attachedToSheet ) {
-            $schema[] = Forms\Components\Select::make('sheet_id')
-                    ->label(__('sheet.name'))
-                    ->relationship('sheet', 'label')
-                    ->searchable()
-                    ->preload();
+            $schema[] = Forms\Components\TextInput::make('sheet_label')
+                ->label(__('sheet.name'))
+                ->helperText(__('pages.registerInvalid.sheet_id_helper'))
+                ->live()
+                ->rules([
+                    function () {
+                        return function (string $attribute, $value, \Closure $fail) {
+                            if ($value) {
+                                $sheets = \App\Models\Sheet::where('label', $value)->get();
+                                if ($sheets->isEmpty()) {
+                                    $fail('The sheet with this label does not exist.');
+                                } elseif ($sheets->count() > 1) {
+                                    $fail('Multiple sheets found with this label. Please contact support.');
+                                }
+                            }
+                        };
+                    },
+                ])
+                ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
+                    if ($state) {
+                        $sheet = \App\Models\Sheet::where('label', $state)->first();
+                        if($sheet) {
+                        $set('sheet_id', $sheet->id);
+                        $zipcode = $sheet->commune->zipcodes()->first();
+                        if ($zipcode) {
+                            $set('zipcode_id', $zipcode->id);
+                            $set('lang', $zipcode->commune->lang);
+                        }
+                        } else {
+                        $set('sheet_id', null);
+                        }
+                    }
+                })
+                ->suffixIcon(function (Forms\Get $get) {
+                    if ($get('sheet_label') == null) {
+                    return null;
+                    }
+                    $id = $get('sheet_id');
+                    return $id ? 'heroicon-o-check-circle' : 'heroicon-o-exclamation-triangle';
+                })
+                ->suffixIconColor(function (Forms\Get $get) {
+                    if ($get('sheet_label') == null) {
+                    return null;
+                    }
+                    $id = $get('sheet_id');
+                    return $id ? 'success' : 'danger';
+                });
+            $schema[] = Forms\Components\Hidden::make('sheet_id');
         }
         if ( $attachedToSheet ){
             $schema[] = Forms\Components\Select::make('contact_type_id')

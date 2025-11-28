@@ -16,14 +16,25 @@ class ContactExporter extends Exporter
     public static function getColumns(): array
     {
         return [
-            ExportColumn::make('id'),
-            ExportColumn::make('firstname'),
-            ExportColumn::make('lastname'),
-            ExportColumn::make('street_no'),
-            // ExportColumn::make('zipcode_id'),
+            ExportColumn::make('id')
+                ->label(__('contact.fields.id')),
+            ExportColumn::make('firstname')
+                ->label(__('contact.fields.firstname')),
+            ExportColumn::make('lastname')
+                ->label(__('contact.fields.lastname')),
+            ExportColumn::make('street_no')
+                ->label(__('contact.fields.street_no')),
+            ExportColumn::make('zipcode.code')
+                ->label(__('zipcode.fields.code'))
+                ->state(fn (Contact $record): string => $record->zipcode?->code ?? ''),
+            ExportColumn::make('zipcode.name')
+                ->label(__('zipcode.fields.name'))
+                ->state(fn (Contact $record): string => $record->zipcode?->name ?? ''),
             ExportColumn::make('birthdate')
+                ->label(__('contact.fields.birthdate'))
                 ->formatStateUsing(fn ($state) => (string) $state),
-            ExportColumn::make('sheet_id'),
+            ExportColumn::make('sheet_id')
+                ->label(__('sheet.fields.id')),
         ];
     }
 
