@@ -91,7 +91,12 @@ class ContactImporter extends Importer
         [$zip, $place] = explode(' ', $zip_and_place, 2);
 
         $zip = trim($zip);
-        $place = strtolower(trim($place));
+        $place = trim($place);
+        // cut off any two letter upper case suffix separated by space, comma and space or if it's in parentheses
+        if (preg_match('/^(.*?)([\s,]+\w{2}|\s*\(\w{2}\))$/', $place, $matches)) {
+            $place = $matches[1];
+        }
+        $place = strtolower($place);
 
         $zipcode = Zipcode::where('code', $zip)
           ->whereRaw('LOWER(name) = ?', $place)
