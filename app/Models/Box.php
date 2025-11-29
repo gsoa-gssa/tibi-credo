@@ -33,6 +33,16 @@ class Box extends Model
     }
 
     /**
+     * Sum of valid signatures across all Boxes (sheets_valid_count field).
+     */
+    public static function signature_count_all(): int
+    {
+        return (int) static::with('maepplis')->get()->sum(function (Box $box) {
+            return $box->maepplis->sum('sheets_valid_count');
+        });
+    }
+
+    /**
      * Sum of total signatures across Maepplis (sheets_valid_count+sheets_invalid_count).
      */
     public function getSignaturesCountTotalAttribute(): int

@@ -13,7 +13,7 @@ class BoxStats extends BaseWidget
         return [
             Stat::make(
                 __("widgets.box_stats.count"),
-                0
+                Box::signature_count_all()
             ),
         ];
     }
