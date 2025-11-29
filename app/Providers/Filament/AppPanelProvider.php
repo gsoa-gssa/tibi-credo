@@ -55,6 +55,7 @@ class AppPanelProvider extends PanelProvider
                 \App\Filament\Resources\CountingResource\Widgets\SignatureCountStats::class,
                 \App\Filament\Resources\SheetResource\Widgets\SignatureCountStats::class,
                 \App\Filament\Resources\MaeppliResource\Widgets\SignatureCountStats::class,
+                \App\Filament\Resources\BoxResource\Widgets\BoxStats::class,
             ])
             ->middleware([
                 EncryptCookies::class,
