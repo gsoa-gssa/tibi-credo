@@ -9,18 +9,17 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class SignatureCountStats extends BaseWidget
 {
-    protected static function requiredMin($required_valid): int
+    protected static function validityTotal(): float
     {
         $validity_total = Maeppli::sum('sheets_valid_count');
         $validity_total_quotient = $validity_total + Maeppli::sum('sheets_invalid_count');
         if ( $validity_total_quotient == 0 ) {
             return 0;
         }
-        $validity_total = $validity_total / $validity_total_quotient;
-        return ceil( $required_valid / $validity_total );
+        return $validity_total / $validity_total_quotient;
     }
 
-    protected static function requiredValidityByWorstMaeppli($required_valid, $ratio): int
+    protected static function validityByWorstMaeppli($ratio): float
     {
         $total_amount_of_maeppli = Maeppli::count();
         $number_of_worst_maeppli = max(1, (int) ceil($total_amount_of_maeppli * $ratio));
@@ -39,6 +38,18 @@ class SignatureCountStats extends BaseWidget
             return 0;
         }
         $validity_worst = $validity_worst / $validity_worst_quotient;
+        return $validity_worst;
+    }
+
+    protected static function requiredMin($required_valid): int
+    {
+        $validity_total = self::validityTotal();
+        return ceil( $required_valid / $validity_total );
+    }
+
+    protected static function requiredValidityByWorstMaeppli($required_valid, $ratio): int
+    {
+        $validity_worst = self::validityByWorstMaeppli($ratio);
         return ceil( $required_valid / $validity_worst );
     }
     protected function getStats(): array
@@ -55,16 +66,16 @@ class SignatureCountStats extends BaseWidget
         $required_worst_50_extra = self::requiredValidityByWorstMaeppli($required_valid_extra, 0.5);
         return [
             Stat::make(
+                __("widgets.signature_count_stats.min_valid_collected"),
+                floor($total_collected * self::validityByWorstMaeppli(0.5))
+            ),
+            Stat::make(
+                __("widgets.signature_count_stats.max_valid_collected"),
+                floor($total_collected * self::validityTotal())
+            ),
+            Stat::make(
                 __("widgets.signature_count_stats.total"),
                 $total_collected
-            ),
-            Stat::make(
-                __("widgets.signature_count_stats.total_valid_required"),
-                $required_valid
-            ),
-            Stat::make(
-                __("widgets.signature_count_stats.total_valid_required_extra"),
-                $required_valid_extra
             ),
             Stat::make(
                 __("widgets.signature_count_stats.left_min"),
