@@ -38,7 +38,7 @@
 
         .letter-content .address-block-right {
           right: 0;
-          top: 4.2cm;
+          top: 3.2cm;
         }
 
         .letter-content .address-block-left {
