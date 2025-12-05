@@ -13,12 +13,14 @@ use Filament\Forms\Form;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\TrashedFilter;
 use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\BatchResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\BatchResource\RelationManagers;
 use App\Filament\Resources\BatchResource\RelationManagers\SheetsRelationManager;
-use Filament\Tables\Filters\Filter;
+use App\Filament\Actions\BulkActions\ExportBatchesPdfBulkAction;
 
 class BatchResource extends Resource
 {
@@ -119,6 +121,15 @@ class BatchResource extends Resource
                     ->multiple()
                     ->preload()
                     ->label(__('batch.filters.commune')),
+                Filter::make('created_by_me')
+                    ->label(__('batch.filters.created_by_me'))
+                    ->toggle()
+                    ->query(function (Builder $query): Builder {
+                        return $query->whereHas('activities', function (Builder $q) {
+                            $q->where('causer_id', auth()->id())
+                              ->where('event', 'created');
+                        });
+                    }),
                 SelectFilter::make('status')
                     ->options([
                         'pending' => __('batch.filters.status.pending'),
@@ -143,6 +154,7 @@ class BatchResource extends Resource
                 SelectFilter::make('age')
                     ->label(__('batch.filters.age'))
                     ->options([
+                        'today' => __('batch.filters.age.today'),
                         '2_weeks' => __('batch.filters.age.2_weeks'),
                         '4_weeks' => __('batch.filters.age.4_weeks'),
                         '6_weeks' => __('batch.filters.age.6_weeks'),
@@ -152,19 +164,24 @@ class BatchResource extends Resource
                         return $query->when(
                             $data['value'],
                             function (Builder $query, $value): Builder {
-                                $weeks = match($value) {
-                                    '2_weeks' => 2,
-                                    '4_weeks' => 4,
-                                    '6_weeks' => 6,
-                                    '8_weeks' => 8,
-                                    default => 0,
-                                };
-                                
-                                if ($weeks > 0) {
-                                    return $query->where('created_at', '<', now()->subWeeks($weeks));
+                                if ($value == 'today') {
+                                    return $query->whereDate('created_at', today());
+                                } else {
+                                    $weeks = match($value) {
+                                        '2_weeks' => 2,
+                                        '4_weeks' => 4,
+                                        '6_weeks' => 6,
+                                        '8_weeks' => 8,
+                                        default => 0,
+                                    };
+                                    
+                                    if ($weeks > 0) {
+                                        return $query->where('created_at', '<', now()->subWeeks($weeks));
+                                    }
+                                    
+                                    return $query;
                                 }
                                 
-                                return $query;
                             }
                         );
                     }),
@@ -192,6 +209,26 @@ class BatchResource extends Resource
                         ->action(fn (\Illuminate\Support\Collection $batches) => $batches->each(fn (Batch $batch) => $batch->updateStatus()))
                         ->icon('heroicon-o-arrow-path'),
                 ]),
+                Tables\Actions\BulkActionGroup::make([
+                    ExportBatchesPdfBulkAction::make('letters_left')
+                        ->addressPosition('left')
+                        ->priorityMail(false)
+                        ->label(__('batch.action.exportLetterLeftA4')),
+                    ExportBatchesPdfBulkAction::make('letters_left_priority')
+                        ->addressPosition('left')
+                        ->priorityMail(true)
+                        ->label(__('batch.action.exportLetterLeftA4Priority')),
+                    ExportBatchesPdfBulkAction::make('letters_right')
+                        ->addressPosition('right')
+                        ->priorityMail(false)
+                        ->label(__('batch.action.exportLetterRightA4')),
+                    ExportBatchesPdfBulkAction::make('letters_right_priority')
+                        ->addressPosition('right')
+                        ->priorityMail(true)
+                        ->label(__('batch.action.exportLetterRightA4Priority')),
+                ])
+                    ->label(__('batch.action.exportLetter'))
+                    ->icon('heroicon-o-envelope'),
             ]);
     }
 
