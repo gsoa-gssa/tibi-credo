@@ -14,6 +14,7 @@
     "batch.filters.age.6_weeks": "Älter als 6 Wochen",
     "batch.filters.age.8_weeks": "Älter als 8 Wochen",
     "batch.filters.commune": "Gemeinde",
+    "batch.filters.my_pending_today": "Aktuelle Versände von mir",
     "batch.filters.created_by_me": "Von mir erstellt",
     "batch.filters.partially_returned": "Teilweise retourniert",
     "batch.filters.status": "Status",

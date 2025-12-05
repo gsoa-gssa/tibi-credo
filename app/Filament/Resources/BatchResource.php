@@ -193,6 +193,25 @@ class BatchResource extends Resource
                     ->label("Activity Log")
                     ->url(fn (Batch $batch) => BatchResource::getUrl('activities', ['record' => $batch])),
             ])
+            ->headerActions([
+                Tables\Actions\Action::make('filter_my_pending_today')
+                    ->label(__('batch.filters.my_pending_today'))
+                    ->icon('heroicon-o-funnel')
+                    ->action(function ($livewire) {
+                            $filters = [
+                                'age' => ['value' => 'today'],
+                                'created_by_me' => ['isActive' => true],
+                                'status' => ['values' => ['pending']],
+                            ];
+
+                            // Redirect to the index with filters in the query string so they persist after reload.
+                            return redirect()->to(
+                                \App\Filament\Resources\BatchResource::getUrl('index') .
+                                '?' . http_build_query(['tableFilters' => $filters])
+                            );
+                    })
+                    ->color('info'),
+            ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
