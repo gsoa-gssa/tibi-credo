@@ -76,8 +76,7 @@ class CreateBatchWorkflow extends Page implements HasForms
                                     'required' => __('pages.createBatchWorkflow.validation.select_commune'),
                                 ])
                                 ->preload()
-                                ->searchable()
-                                ->live(),
+                                ->searchable(),
                         ]),
                     Forms\Components\Wizard\Step::make(__('pages.createBatchWorkflow.step.sheets'))
                         ->schema($this->getSheetSelectionSchema()),
