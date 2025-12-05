@@ -80,26 +80,6 @@ class CreateBatchWorkflow extends Page implements HasForms
                         ]),
                     Forms\Components\Wizard\Step::make(__('pages.createBatchWorkflow.step.sheets'))
                         ->schema($this->getSheetSelectionSchema()),
-                    Forms\Components\Wizard\Step::make(__('pages.createBatchWorkflow.step.review'))
-                        ->schema([
-                            Forms\Components\Checkbox::make('confirm')
-                                ->label(__('pages.createBatchWorkflow.review.confirm'))
-                                ->required()
-                                ->validationMessages([
-                                    'required' => __('pages.createBatchWorkflow.validation.confirm'),
-                                ])
-                                ->live()
-                                ->rules([
-                                    function () {
-                                        return function (string $attribute, $value, \Closure $fail) {
-                                            $selectedSheets = collect($this->data['sheets'] ?? [])->filter()->count();
-                                            if ($selectedSheets === 0) {
-                                                $fail(__('pages.createBatchWorkflow.validation.no_sheets_selected'));
-                                            }
-                                        };
-                                    },
-                                ]),
-                            ]),
                     ])->submitAction(new HtmlString(Blade::render(<<<BLADE
                     <x-filament::button
                         type="submit"
@@ -191,11 +171,6 @@ class CreateBatchWorkflow extends Page implements HasForms
     public function createBatch(): void
     {
         $this->validate();
-
-        if (!$this->data['confirm']) {
-            $this->addError('confirm', __('validation.confirm'));
-            return;
-        }
 
         $selectedSheets = collect($this->data['sheets'] ?? [])->filter();
         
