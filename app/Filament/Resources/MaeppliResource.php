@@ -180,6 +180,7 @@ class MaeppliResource extends Resource
                             ->groupBy([
                             'maepplis.id',
                             'maepplis.label',
+                            'maepplis.box_id'
                             'maepplis.commune_id',
                             'maepplis.sheets_count',
                             'maepplis.sheets_valid_count',
@@ -212,7 +213,8 @@ class MaeppliResource extends Resource
                             ->selectRaw('maepplis.*, (COALESCE(SUM(sheets.signatureCount), 0) - (maepplis.sheets_valid_count + maepplis.sheets_invalid_count)) as signature_difference')
                             ->groupBy([
                                 'maepplis.id',
-                                'maepplis.label', 
+                                'maepplis.label',
+                                'maepplis.box_id',
                                 'maepplis.commune_id',
                                 'maepplis.sheets_count',
                                 'maepplis.sheets_valid_count',
