@@ -43,6 +43,68 @@ class Batch extends Model
     }
 
     /**
+     * If this batch has sheets, return a list of their labels as a string.
+     * Consecutive labels are shortened to ranges, ranges of length 1 are shown as single labels, single labels and ranges are separated by commas.
+     * @return string
+     */
+    public function sheetsString(): string
+    {
+        if($this->sheets()->count() == 0) {
+            return '';
+        }
+        $labels = $this->sheets()->orderBy('label')->pluck('label')->toArray();
+        // if possible cast labels to integers
+        $labels = array_map(function ($label) {
+            return is_numeric($label) ? (int) $label : $label;
+        }, $labels);
+        $result = [];
+        $start = null;
+        $end = null;
+
+        foreach ($labels as $label) {
+            if (is_numeric($label) && $start === null) {
+                $start = $label;
+                $end = $label;
+            } elseif (is_numeric($label) && $label == $end + 1) {
+                $end = $label;
+            } else {
+                if ($start == $end) {
+                    $result[] = $start;
+                } else {
+                    $result[] = $start . '-' . $end;
+                }
+                $start = $label;
+                $end = $label;
+            }
+        }
+
+        if ($start !== null) {
+            if ($start == $end) {
+                $result[] = $start;
+            } else {
+                $result[] = $start . '-' . $end;
+            }
+        }
+
+        $r_string = implode(', ', $result);
+        // add thousand separators for better readability
+        // use a space to make it more locale-independent
+        $r_string = preg_replace_callback('/\d{4,}/', function ($matches) {
+            return number_format($matches[0], 0, '', ' ');
+        }, $r_string);
+        return $r_string;
+    }
+
+    /**
+     * Return the sheets string with non-breaking space number separators instead of normal spaces.
+     */
+    public function sheetsHTMLString(): string
+    {
+        $string = $this->sheetsString();
+        return preg_replace('/([0-9]) ([0-9])/', '$1&nbsp;$2', $string);
+    }
+
+    /**
      * Update the status of the batch: If at least 90% of the sheets have been returned, mark the batch as 'returned'.
      */
     public function updateStatus(): void

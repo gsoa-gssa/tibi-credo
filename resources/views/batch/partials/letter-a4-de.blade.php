@@ -1,3 +1,6 @@
+@php
+  $sheet_labels = $batch->sheetsHTMLString();
+@endphp
 <x-letters>
   <x-letter addressPosition="{{ $addressPosition }}" pp_postcode="8031" pp_place="Zürich" priorityMail="{{ $priorityMail ?? false }}">
     <x-slot name="css">
@@ -46,7 +49,10 @@
       <b>Sehr geehrte Damen und Herren,</b>
     </p>
     <p>
-      Geschützt auf die Artikel 62, 63 und 70 Bundesgesetz über die politische Rechte vom 17. Dezember 1976 stellen wir Ihnen in der Beilage {{count($batch->sheets)}} Unterschriftenliste(n) für die eidgenössische Volksinitiative für den Beitritt der Schweiz zum UNO-Atomwaffenverbotsvertrag «Atomwaffenverbots-Initiative» mit insgesamt {{$batch->sheets->sum("signatureCount")}} Unterschriften zu. Die Referenznummern der Bögen können Sie der Tabelle der folgenden Seite(n) entnehmen.
+      Geschützt auf die Artikel 62, 63 und 70 Bundesgesetz über die politische Rechte vom 17. Dezember 1976 stellen wir Ihnen in der Beilage {{count($batch->sheets)}} Unterschriftenliste(n) für die eidgenössische Volksinitiative für den Beitritt der Schweiz zum UNO-Atomwaffenverbotsvertrag «Atomwaffenverbots-Initiative» mit insgesamt {{$batch->sheets->sum("signatureCount")}} Unterschriften zu.
+      @if($sheet_labels != '')
+        Die Bögen haben folgende Referenznummern: {!! $sheet_labels !!}.
+      @endif
     </p>
     <p>
       Wir ersuchen Sie höflich, das Stimmrecht der Unterzeichnerinnen und Unterzeichner zu bescheinigen. Bitte achten Sie darauf, dass die Felder für Ort, Datum, eigenhändige Unterschrift, amtliche Eigenschaft und Amtsstempel auf allen Unterschriftenlisten vollständig ausgefüllt sind. Dürfen wir Sie bitten, die Unterschriftenlisten so schnell wie möglich bescheinigt zurückzusenden an:
@@ -63,28 +69,7 @@
         Wir danken Ihnen für Ihre Unterstützung und verbleiben mit freundlichen Grüssen</br>
         <b>Allianz für ein Atomwaffenverbot</b><br><br>
         <small><em>Dieses Dokument ist gültig ohne Unterschrift.</em></small><br>
-        <small><b>Anhang:</b> Tabelle mit Referenznummern der Unterschriftenbögen</small>
       </p>
     </div>
-    <x-slot name="additionalPages">
-      <div id="sheets-table">
-        <table>
-          <thead>
-              <tr>
-                  <th>Nummer</th>
-                  <th>Anzahl Unterschriften</th>
-              </tr>
-          </thead>
-          <tbody>
-              @foreach ($batch->sheets->sortBy("label") as $sheet)
-                  <tr>
-                      <td class="monospace">{{$sheet->label}}</td>
-                      <td style="text-align: end">{{$sheet->signatureCount}}</td>
-                  </tr>
-              @endforeach
-          </tbody>
-        </table>
-      </div>
-    </x-slot>
   </x-letter>
 </x-letters>

@@ -1,3 +1,6 @@
+@php
+  $sheet_labels = $batch->sheetsHTMLString();
+@endphp
 <x-letters>
   <x-letter addressPosition="{{ $addressPosition }}" pp_postcode="8031" pp_place="Zurich" priorityMail="{{ $priorityMail ?? false }}">
     <x-slot name="css">
@@ -45,7 +48,11 @@
       <b>Madame, Monsieur,</b>
     </p>
     <p>
-      Nous fondant sur les articles 62, 63 et 70 de la loi fédérale du 17 décembre 1976 sur les droits politiques, nous vous remettons ci-joint {{count($batch->sheets)}} liste(s) de signatures à l’appui de notre Initiative populaire fédérale «Pour l’adhésion de la Suisse au Traité des Nations Unies sur l’interdiction des armes nucléaires (initiative pour l’interdiction des armes nucléaires)» comprenant au total {{$batch->sheets->sum("signatureCount")}} signature(s). Les numéros de référence des feuilles sont indiqués dans le tableau de la ou des pages suivantes.
+      Nous fondant sur les articles 62, 63 et 70 de la loi fédérale du 17 décembre 1976 sur les droits politiques, nous vous remettons ci-joint {{count($batch->sheets)}} liste(s) de signatures à l’appui de notre Initiative populaire fédérale «Pour l’adhésion de la Suisse au Traité des Nations Unies sur l’interdiction des armes nucléaires (initiative pour l’interdiction des armes nucléaires)» comprenant au total {{$batch->sheets->sum("signatureCount")}} signature(s).
+      Les numéros de référence des feuilles sont indiqués dans le tableau de la ou des pages suivantes.
+      @if($sheet_labels != '')
+        Les feuilles ont les numéros de référence suivants : {!! $sheet_labels !!}.
+      @endif
     </p>
     <p>
       Nous vous prions de bien vouloir attester le droit de vote des signataires et renvoyer aussi vite que possible, les listes de signatures validées à l’adresse suivante:
@@ -62,28 +69,7 @@
         Nous vous remercions de votre soutien et vous prions d'agréer, Madame, Monsieur, nos salutations les meilleures.</br>
         <b>Alliance pour l’interdiction des armes nucléaires</b><br><br>
         <small><em>Ce document est valable sans signature.</em></small><br>
-        <small><b>Annexe :</b> Tableau des numéros de référence des feuilles de signatures</small>
       </p>
     </div>
-    <x-slot name="additionalPages">
-      <div id="sheets-table">
-        <table>
-          <thead>
-            <tr>
-              <th>Numéro</th>
-              <th>Nombre de signatures</th>
-            </tr>
-          </thead>
-          <tbody>
-              @foreach ($batch->sheets->sortBy("label") as $sheet)
-                  <tr>
-                      <td class="monospace">{{$sheet->label}}</td>
-                      <td style="text-align: end">{{$sheet->signatureCount}}</td>
-                  </tr>
-              @endforeach
-          </tbody>
-        </table>
-      </div>
-    </x-slot>
   </x-letter>
 </x-letters>
