@@ -180,7 +180,7 @@ class MaeppliResource extends Resource
                             ->groupBy([
                             'maepplis.id',
                             'maepplis.label',
-                            'maepplis.box_id'
+                            'maepplis.box_id',
                             'maepplis.commune_id',
                             'maepplis.sheets_count',
                             'maepplis.sheets_valid_count',
