@@ -43,7 +43,14 @@
     <x-slot name="subjectLine">
       <b>Soggetto :</b> Attestazione del diritto di voto «Iniziativa per la proibizione delle armi nucleari»
     </x-slot>
-    <b style="font-size: 2rem; border: 5px solid black; padding: 5px;">Consegna prevista il 23 dicembre</b>
+    <p style="border: 5px solid black; padding: 5px;">
+      <b style="font-size: 2rem; ">Consegna prevista il 23 dicembre</b>
+      <br>
+      @if($batch->created_at->lt(\Carbon\Carbon::create(2025, 12, 19)))
+        Se non è possibile restituire le firme certificate entro il 19.12.25 (posta A consegna presso la nostra sede entro sabato 20.12.24) vi preghiamo di contattarci il prima possibile.
+      @endif
+    </p>
+    <br>
     <p>
         <b>Gentili Signore e Signori,</b>
     </p>

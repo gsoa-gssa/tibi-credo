@@ -43,9 +43,16 @@
     <x-slot name="subjectLine">
       <b>Sujet :</b> Attestation de la qualité d’électeur pour l'initiative pour l’interdiction des armes nucléaires
     </x-slot>
-    <b style="font-size: 2rem; border: 5px solid black; padding: 5px;">Dépôt prévu le 23 décembre</b>
+    <p style="border: 5px solid black; padding: 5px;">
+      <b style="font-size: 2rem; ">Dépôt prévu le 23 décembre</b>
+      <br>
+      @if($batch->created_at->lt(\Carbon\Carbon::create(2025, 12, 19)))
+        S'il n'est pas possible de renvoyer les listes certifiées avant le 19 décembre 2025 (courrier A, livraison chez nous le samedi 20 décembre 2025), veuillez nous contacter.
+      @endif
+    </p>
+    <br>
     <p>
-      <b>Madame, Monsieur,</b>
+      Madame, Monsieur,
     </p>
     <p>
       Nous fondant sur les articles 62, 63 et 70 de la loi fédérale du 17 décembre 1976 sur les droits politiques, nous vous remettons ci-joint {{count($batch->sheets)}} liste(s) de signatures à l’appui de notre Initiative populaire fédérale «Pour l’adhésion de la Suisse au Traité des Nations Unies sur l’interdiction des armes nucléaires (initiative pour l’interdiction des armes nucléaires)» comprenant au total {{$batch->sheets->sum("signatureCount")}} signature(s).

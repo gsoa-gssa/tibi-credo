@@ -44,9 +44,16 @@
       <b>Betreff:</b>
       Stimmrechtsbescheinigung Atomwaffenverbots-Initiative
     </x-slot>
-    <b style="font-size: 2rem; border: 5px solid black; padding: 5px;">Geplante Einreichung 23. Dezember</b>
+    <p style="border: 5px solid black; padding: 5px;">
+      <b style="font-size: 2rem; ">Geplante Einreichung 23. Dezember</b>
+      <br>
+      @if($batch->created_at->lt(\Carbon\Carbon::create(2025, 12, 19)))
+        Falls es nicht möglich ist, die bescheinigten Listen bis zum 19.12.2025 zu retournieren (A-Post, Zustellung bei uns Samstag 20.12.25), setzen Sie sich bitte mit uns in Kontakt.
+      @endif
+    </p>
+    <br>
     <p>
-      <b>Sehr geehrte Damen und Herren,</b>
+      Sehr geehrte Damen und Herren
     </p>
     <p>
       Geschützt auf die Artikel 62, 63 und 70 Bundesgesetz über die politische Rechte vom 17. Dezember 1976 stellen wir Ihnen in der Beilage {{count($batch->sheets)}} Unterschriftenliste(n) für die eidgenössische Volksinitiative für den Beitritt der Schweiz zum UNO-Atomwaffenverbotsvertrag «Atomwaffenverbots-Initiative» mit insgesamt {{$batch->sheets->sum("signatureCount")}} Unterschriften zu.
