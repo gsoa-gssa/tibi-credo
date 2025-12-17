@@ -15,6 +15,7 @@ class Commune extends Model
 
     protected $casts = [
         'id' => 'integer',
+        'last_contacted_on' => 'date',
     ];
 
     public function sheets(): HasMany
