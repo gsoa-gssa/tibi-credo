@@ -148,7 +148,7 @@ class CommuneResource extends Resource
                     ->getStateUsing(function (Model $record) {
                         $lastBatch = $record->batches()->latest('created_at')->first();
                         return $lastBatch ? $lastBatch->created_at : null;
-                    })
+                        })
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('last_contacted_on')
                     ->label(__('commune.fields.last_contacted_on'))
@@ -308,22 +308,25 @@ class CommuneResource extends Resource
                     ->form([
                         Forms\Components\TextInput::make('min')
                             ->numeric()
-                            ->label('Minimum'),
+                            ->label('Minimum Bögen nicht retourniert'),
                         Forms\Components\TextInput::make('max')
                             ->numeric()
-                            ->label('Maximum'),
+                            ->label('Maximum Bögen nicht retourniert'),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
+                        $min = $data['min'] ?? null;
+                        $max = $data['max'] ?? null;
+
                         return $query
-                            ->when($data['min'], function ($query, $min) {
-                                $query->has('sheets', '>=', $min, function ($q) {
+                            ->when($min !== null && $min !== '', function (Builder $q) use ($min) {
+                                $q->whereHas('sheets', function ($q) {
                                     $q->whereNotNull('batch_id')->whereNull('maeppli_id');
-                                });
+                                }, '>=', (int) $min);
                             })
-                            ->when($data['max'], function ($query, $max) {
-                                $query->has('sheets', '<=', $max, function ($q) {
+                            ->when($max !== null && $max !== '', function (Builder $q) use ($max) {
+                                $q->whereHas('sheets', function ($q) {
                                     $q->whereNotNull('batch_id')->whereNull('maeppli_id');
-                                });
+                                }, '<=', (int) $max);
                             });
                     }),
                 Tables\Filters\Filter::make('sheets_not_returned_percent')
@@ -332,33 +335,35 @@ class CommuneResource extends Resource
                         Forms\Components\TextInput::make('min')
                             ->numeric()
                             ->suffix('%')
-                            ->label('Minimum'),
+                            ->label('Minimum % Bögen nicht retourniert'),
                         Forms\Components\TextInput::make('max')
                             ->numeric()
                             ->suffix('%')
-                            ->label('Maximum'),
+                            ->label('Maximum % Bögen nicht retourniert'),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
-                        if (!isset($data['min']) && !isset($data['max'])) {
+                        $min = isset($data['min']) && $data['min'] !== '' ? (float) $data['min'] : null;
+                        $max = isset($data['max']) && $data['max'] !== '' ? (float) $data['max'] : null;
+
+                        if ($min === null && $max === null) {
                             return $query;
                         }
 
-                        return $query->whereHas('sheets', function ($q) {
-                            $q->whereNotNull('batch_id');
-                        })->where(function ($query) use ($data) {
-                            $query->whereRaw('
-                                (SELECT COUNT(*) FROM sheets 
-                                 WHERE sheets.commune_id = communes.id 
-                                 AND sheets.batch_id IS NOT NULL 
-                                 AND sheets.maeppli_id IS NULL) * 100.0 / 
-                                (SELECT COUNT(*) FROM sheets 
-                                 WHERE sheets.commune_id = communes.id 
-                                 AND sheets.batch_id IS NOT NULL)
-                                ' . (isset($data['min']) ? '>= ' . (float)$data['min'] : '') .
-                                (isset($data['min']) && isset($data['max']) ? ' AND ' : '') .
-                                (isset($data['max']) ? '<= ' . (float)$data['max'] : '')
-                            );
-                        });
+                        $notReturnedExpr = '(SELECT COUNT(*) FROM sheets WHERE sheets.commune_id = communes.id AND sheets.batch_id IS NOT NULL AND sheets.maeppli_id IS NULL)';
+                        $sentExpr = '(SELECT COUNT(*) FROM sheets WHERE sheets.commune_id = communes.id AND sheets.batch_id IS NOT NULL)';
+
+                        // Only consider communes that have sent sheets.
+                        $query->whereRaw("{$sentExpr} > 0");
+
+                        if ($min !== null) {
+                            $query->whereRaw("{$notReturnedExpr} * 100.0 / {$sentExpr} >= ?", [$min]);
+                        }
+
+                        if ($max !== null) {
+                            $query->whereRaw("{$notReturnedExpr} * 100.0 / {$sentExpr} <= ?", [$max]);
+                        }
+
+                        return $query;
                     }),
             ])
             ->actions([
@@ -370,6 +375,48 @@ class CommuneResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\BulkAction::make('export_and_mark_contacted')
+                        ->label('Export & mark contacted')
+                        ->icon('heroicon-o-arrow-down-tray')
+                        ->color('warning')
+                        ->requiresConfirmation()
+                        ->action(function (\Illuminate\Support\Collection $records) {
+                            $now = now();
+
+                            $csv = fopen('php://temp', 'r+');
+                            fputcsv($csv, [
+                                'ID',
+                                'Name',
+                                'Email',
+                                'Phone',
+                                'Address',
+                                'Canton',
+                                'Last Contacted On',
+                            ]);
+
+                            foreach ($records as $record) {
+                                // Update last contacted date
+                                $record->update(['last_contacted_on' => $now]);
+
+                                fputcsv($csv, [
+                                    $record->id,
+                                    $record->name,
+                                    $record->email,
+                                    $record->phone,
+                                    $record->address,
+                                    optional($record->canton)->label,
+                                    $now->toDateString(),
+                                ]);
+                            }
+
+                            rewind($csv);
+
+                            return response()->streamDownload(function () use ($csv) {
+                                fpassthru($csv);
+                            }, 'communes-reminder-' . now()->format('Ymd_His') . '.csv', [
+                                'Content-Type' => 'text/csv',
+                            ]);
+                        }),
                     Tables\Actions\BulkAction::make('fix_canton_suffix')
                         ->label('Fix Canton Suffix')
                         ->action(function ($records) {
