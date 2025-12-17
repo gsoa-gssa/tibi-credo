@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\CommuneResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\CommuneResource\RelationManagers;
+use Spatie\Activitylog\Models\Activity;
 
 class CommuneResource extends Resource
 {
@@ -430,6 +431,49 @@ class CommuneResource extends Resource
                         })
                         ->requiresConfirmation()
                         ->color('primary'),
+                    Tables\Actions\BulkAction::make('clear_last_contacted')
+                        ->label('Clear Last Contacted')
+                        ->icon('heroicon-o-x-mark')
+                        ->color('danger')
+                        ->requiresConfirmation()
+                        ->action(function (\Illuminate\Support\Collection $records) {
+                            foreach ($records as $record) {
+                                $record->update(['last_contacted_on' => null]);
+                            }
+                            Notification::make()
+                                ->title('Last contacted date cleared for ' . $records->count() . ' commune(s).')
+                                ->success()
+                                ->send();
+                        }),
+                    Tables\Actions\BulkAction::make('reset_last_contacted_to_previous')
+                        ->label('Reset Last Contacted to Previous')
+                        ->icon('heroicon-o-arrow-uturn-left')
+                        ->color('info')
+                        ->requiresConfirmation()
+                        ->action(function (\Illuminate\Support\Collection $records) {
+                            $updated = 0;
+                            foreach ($records as $record) {
+                                // Find the most recent activity that changed last_contacted_on
+                                $activity = Activity::where('subject_type', Commune::class)
+                                    ->where('subject_id', $record->id)
+                                    ->orderByDesc('created_at')
+                                    ->get()
+                                    ->first(function ($act) {
+                                        $changes = $act->changes();
+                                        return $changes && isset($changes['old']) && array_key_exists('last_contacted_on', $changes['old']);
+                                    });
+                                
+                                if ($activity) {
+                                    $previousValue = $activity->changes()['old']['last_contacted_on'];
+                                    $record->update(['last_contacted_on' => $previousValue]);
+                                    $updated++;
+                                }
+                            }
+                            Notification::make()
+                                ->title('Last contacted date reset to previous values for ' . $updated . ' commune(s).')
+                                ->success()
+                                ->send();
+                        }),
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
