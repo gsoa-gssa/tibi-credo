@@ -38,6 +38,11 @@ class Commune extends Model
         return $this->hasMany(Batch::class);
     }
 
+    public function maepplis(): HasMany
+    {
+        return $this->hasMany(Maeppli::class);
+    }
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()

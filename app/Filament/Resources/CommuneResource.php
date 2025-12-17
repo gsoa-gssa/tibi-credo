@@ -438,6 +438,8 @@ class CommuneResource extends Resource
     public static function getRelations(): array
     {
         return [
+            RelationManagers\BatchesRelationManager::class,
+            RelationManagers\MaepplisRelationManager::class,
             RelationManagers\ZipcodesRelationManager::class,
             RelationManagers\CommuneActivitylogRelationManager::class,
         ];
