@@ -136,6 +136,7 @@
     "maeppli.filters.has_box": "In Kiste",
     "maeppli.filters.no_box": "Noch nicht in Kiste",
     "maeppli.filters.signature_count_suspicious": "Verdächtig",
+    "maeppli.filters.valid_signatures_threshold": "Min. gültige Unterschriften",
     "maeppli.label": "Beschriftung",
     "maeppli.name": "Couvert (beglaubigt)",
     "maeppli.namePlural": "Couverts (beglaubigt)",

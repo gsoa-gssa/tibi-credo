@@ -238,6 +238,18 @@ class MaeppliResource extends Resource
                         })
                     )
                     ->toggle(),
+                Tables\Filters\SelectFilter::make('valid_signatures_threshold')
+                    ->label(__('maeppli.filters.valid_signatures_threshold'))
+                    ->options([
+                        '50' => '> 50',
+                        '100' => '> 100',
+                        '200' => '> 200',
+                        '500' => '> 500',
+                        '1000' => '> 1000',
+                    ])
+                    ->query(fn (Builder $query, array $data) =>
+                        $data['value'] ? $query->where('sheets_valid_count', '>', (int)$data['value']) : $query
+                    ),
                 Tables\Filters\Filter::make('has_box')
                     ->label(__('maeppli.filters.has_box'))
                     ->query(fn (Builder $query) => $query->whereNotNull('box_id'))
