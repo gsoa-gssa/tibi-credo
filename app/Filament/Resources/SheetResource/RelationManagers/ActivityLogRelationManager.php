@@ -107,6 +107,7 @@ class SheetsActivitylogRelationManager extends ActivitylogRelationManager
                 }
             }
             
+            return '';
         }
     }
 }

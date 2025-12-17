@@ -107,6 +107,7 @@ class CommuneActivitylogRelationManager extends ActivitylogRelationManager
                 }
             }
             
+            return '';
         }
     }
 }

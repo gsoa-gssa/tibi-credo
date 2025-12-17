@@ -107,6 +107,7 @@ class BatchActivitylogRelationManager extends ActivitylogRelationManager
                 }
             }
             
+            return '';
         }
     }
 }
