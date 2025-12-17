@@ -238,6 +238,14 @@ class MaeppliResource extends Resource
                         })
                     )
                     ->toggle(),
+                Tables\Filters\Filter::make('has_box')
+                    ->label(__('maeppli.filters.has_box'))
+                    ->query(fn (Builder $query) => $query->whereNotNull('box_id'))
+                    ->toggle(),
+                Tables\Filters\Filter::make('no_box')
+                    ->label(__('maeppli.filters.no_box'))
+                    ->query(fn (Builder $query) => $query->whereNull('box_id'))
+                    ->toggle(),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
