@@ -33,6 +33,16 @@ class CommuneResource extends Resource
         return __('navigation.group.systemSettings');
     }
 
+    public static function getModelLabel(): string
+    {
+        return __('commune.name');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('commune.namePlural');
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -41,6 +51,7 @@ class CommuneResource extends Resource
                     ->required()
                     ->maxLength(255),
                 Forms\Components\TextInput::make('officialId')
+                    ->label(__('commune.fields.official_id'))
                     ->required()
                     ->numeric(),
                 Forms\Components\RichEditor::make('address')
@@ -77,7 +88,7 @@ class CommuneResource extends Resource
                     ->inline()
                     ->default('de'),
                 Forms\Components\DatePicker::make('last_contacted_on')
-                    ->label('Last Contacted On')
+                    ->label(__('commune.fields.last_contacted_on'))
                     ->nullable(),
             ]);
     }
@@ -89,6 +100,7 @@ class CommuneResource extends Resource
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('officialId')
+                    ->label(__('commune.fields.official_id'))
                     ->numeric()
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->sortable(),
@@ -139,6 +151,7 @@ class CommuneResource extends Resource
                     })
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('last_contacted_on')
+                    ->label(__('commune.fields.last_contacted_on'))
                     ->date()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
@@ -149,10 +162,72 @@ class CommuneResource extends Resource
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('sheets_sent_not_returned')
+                    ->label(__('commune.fields.sheets_sent_not_returned'))
+                    ->numeric()
+                    ->sortable(query: function (Builder $query, $direction) {
+                        return $query->withCount(['sheets as sheets_sent_not_returned_count' => function ($q) {
+                            $q->whereNotNull('batch_id')->whereNull('maeppli_id');
+                        }])->orderBy('sheets_sent_not_returned_count', $direction);
+                    })
+                    ->getStateUsing(fn (Model $record) => $record->sheets()->whereNotNull('batch_id')->whereNull('maeppli_id')->count())
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('sheets_sent_not_returned_percent')
+                    ->label(__('commune.fields.sheets_sent_not_returned_percent'))
+                    ->getStateUsing(function (Model $record) {
+                        $sent = $record->sheets()->whereNotNull('batch_id')->count();
+                        if ($sent === 0) return 'N/A';
+                        $notReturned = $record->sheets()->whereNotNull('batch_id')->whereNull('maeppli_id')->count();
+                        return round(($notReturned / $sent) * 100, 1) . '%';
+                    })
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('signatures_on_sheets')
+                    ->label(__('commune.fields.signatures_on_sheets'))
+                    ->numeric()
+                    ->sortable(query: function (Builder $query, $direction) {
+                        return $query->withSum('sheets as total_signatures', 'signatureCount')
+                            ->orderBy('total_signatures', $direction);
+                    })
+                    ->getStateUsing(fn (Model $record) => $record->sheets()->sum('signatureCount'))
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('signatures_in_batches')
+                    ->label(__('commune.fields.signatures_in_batches'))
+                    ->numeric()
+                    ->sortable(query: function (Builder $query, $direction) {
+                        return $query->withSum(['sheets as batch_signatures' => fn($q) => $q->whereNotNull('batch_id')], 'signatureCount')
+                            ->orderBy('batch_signatures', $direction);
+                    })
+                    ->getStateUsing(fn (Model $record) => $record->sheets()->whereNotNull('batch_id')->sum('signatureCount'))
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('signatures_in_maepplis')
+                    ->label(__('commune.fields.signatures_in_maepplis'))
+                    ->numeric()
+                    ->getStateUsing(function (Model $record) {
+                        return \App\Models\Maeppli::where('commune_id', $record->id)
+                            ->selectRaw('SUM(sheets_valid_count + sheets_invalid_count) as total')
+                            ->value('total') ?? 0;
+                    })
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('valid_signatures_in_maepplis')
+                    ->label(__('commune.fields.valid_signatures_in_maepplis'))
+                    ->numeric()
+                    ->getStateUsing(function (Model $record) {
+                        return \App\Models\Maeppli::where('commune_id', $record->id)
+                            ->sum('sheets_valid_count') ?? 0;
+                    })
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('invalid_signatures_in_maepplis')
+                    ->label(__('commune.fields.invalid_signatures_in_maepplis'))
+                    ->numeric()
+                    ->getStateUsing(function (Model $record) {
+                        return \App\Models\Maeppli::where('commune_id', $record->id)
+                            ->sum('sheets_invalid_count') ?? 0;
+                    })
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('last_contacted_before')
-                    ->label('Last Contacted Before')
+                    ->label(__('commune.filters.last_contacted_on_before'))
                     ->options([
                         'today' => 'Today',
                         'yesterday' => 'Yesterday',
@@ -191,7 +266,7 @@ class CommuneResource extends Resource
                         return $query->where('last_contacted_on', '<', $date);
                     }),
                 Tables\Filters\SelectFilter::make('last_contacted_after')
-                    ->label('Last Contacted After')
+                    ->label(__('commune.filters.last_contacted_on_after'))
                     ->options([
                         'yesterday' => 'Yesterday',
                         '2_days' => '2 days ago',
@@ -227,6 +302,63 @@ class CommuneResource extends Resource
                         }
 
                         return $query->where('last_contacted_on', '>', $date);
+                    }),
+                Tables\Filters\Filter::make('sheets_sent_not_returned')
+                    ->label(__('commune.filters.sheets_sent_not_returned'))
+                    ->form([
+                        Forms\Components\TextInput::make('min')
+                            ->numeric()
+                            ->label('Minimum'),
+                        Forms\Components\TextInput::make('max')
+                            ->numeric()
+                            ->label('Maximum'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when($data['min'], function ($query, $min) {
+                                $query->has('sheets', '>=', $min, function ($q) {
+                                    $q->whereNotNull('batch_id')->whereNull('maeppli_id');
+                                });
+                            })
+                            ->when($data['max'], function ($query, $max) {
+                                $query->has('sheets', '<=', $max, function ($q) {
+                                    $q->whereNotNull('batch_id')->whereNull('maeppli_id');
+                                });
+                            });
+                    }),
+                Tables\Filters\Filter::make('sheets_not_returned_percent')
+                    ->label(__('commune.filters.sheets_not_returned_percent'))
+                    ->form([
+                        Forms\Components\TextInput::make('min')
+                            ->numeric()
+                            ->suffix('%')
+                            ->label('Minimum'),
+                        Forms\Components\TextInput::make('max')
+                            ->numeric()
+                            ->suffix('%')
+                            ->label('Maximum'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        if (!isset($data['min']) && !isset($data['max'])) {
+                            return $query;
+                        }
+
+                        return $query->whereHas('sheets', function ($q) {
+                            $q->whereNotNull('batch_id');
+                        })->where(function ($query) use ($data) {
+                            $query->whereRaw('
+                                (SELECT COUNT(*) FROM sheets 
+                                 WHERE sheets.commune_id = communes.id 
+                                 AND sheets.batch_id IS NOT NULL 
+                                 AND sheets.maeppli_id IS NULL) * 100.0 / 
+                                (SELECT COUNT(*) FROM sheets 
+                                 WHERE sheets.commune_id = communes.id 
+                                 AND sheets.batch_id IS NOT NULL)
+                                ' . (isset($data['min']) ? '>= ' . (float)$data['min'] : '') .
+                                (isset($data['min']) && isset($data['max']) ? ' AND ' : '') .
+                                (isset($data['max']) ? '<= ' . (float)$data['max'] : '')
+                            );
+                        });
                     }),
             ])
             ->actions([
