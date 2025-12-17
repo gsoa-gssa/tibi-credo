@@ -10,6 +10,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Filament\Resources\MaeppliResource;
 
 class MaepplisRelationManager extends RelationManager
 {
@@ -29,6 +30,7 @@ class MaepplisRelationManager extends RelationManager
     {
         return $table
             ->recordTitleAttribute('label')
+            ->recordUrl(fn (Model $record) => MaeppliResource::getUrl('view', ['record' => $record]))
             ->columns([
                 Tables\Columns\TextColumn::make('label')
                     ->label(__('maeppli.label'))

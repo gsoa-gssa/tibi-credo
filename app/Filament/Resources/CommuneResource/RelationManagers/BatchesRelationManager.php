@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Models\Batch;
+use App\Filament\Resources\BatchResource;
 
 class BatchesRelationManager extends RelationManager
 {
@@ -30,6 +31,7 @@ class BatchesRelationManager extends RelationManager
     {
         return $table
             ->recordTitleAttribute('id')
+            ->recordUrl(fn (Model $record) => BatchResource::getUrl('view', ['record' => $record]))
             ->columns([
                 Tables\Columns\TextColumn::make('created_at')
                     ->label(__('batch.fields.created_at'))
