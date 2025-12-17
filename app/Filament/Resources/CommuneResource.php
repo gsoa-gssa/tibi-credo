@@ -178,6 +178,7 @@ class CommuneResource extends Resource
     {
         return [
             RelationManagers\ZipcodesRelationManager::class,
+            RelationManagers\CommuneActivitylogRelationManager::class,
         ];
     }
 
