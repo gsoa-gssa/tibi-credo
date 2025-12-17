@@ -255,6 +255,7 @@ class BatchResource extends Resource
     {
         return [
             SheetsRelationManager::class,
+            RelationManagers\BatchActivitylogRelationManager::class,
         ];
     }
 
