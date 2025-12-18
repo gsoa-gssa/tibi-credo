@@ -472,6 +472,39 @@ class CommuneResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\BulkAction::make('export_only')
+                    ->label('Export')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('success')
+                    ->action(function (\Illuminate\Support\Collection $records) {
+                        $csv = fopen('php://temp', 'r+');
+                        fputcsv($csv, [
+                            'ID',
+                            'Name',
+                            'Email',
+                            'Phone',
+                            'Address',
+                            'Canton',
+                            'Last Contacted On',
+                        ]);
+                        foreach ($records as $record) {
+                            fputcsv($csv, [
+                                $record->id,
+                                $record->name,
+                                $record->email,
+                                $record->phone,
+                                $record->address,
+                                optional($record->canton)->label,
+                                optional($record->last_contacted_on)?->toDateString(),
+                            ]);
+                        }
+                        rewind($csv);
+                        return response()->streamDownload(function () use ($csv) {
+                            fpassthru($csv);
+                        }, 'communes-export-' . now()->format('Ymd_His') . '.csv', [
+                            'Content-Type' => 'text/csv',
+                        ]);
+                    }),
                     Tables\Actions\BulkAction::make('export_and_mark_contacted')
                         ->label('Export & mark contacted')
                         ->icon('heroicon-o-arrow-down-tray')
@@ -516,6 +549,8 @@ class CommuneResource extends Resource
                         }),
                     Tables\Actions\BulkAction::make('fix_canton_suffix')
                         ->label('Fix Canton Suffix')
+                        ->icon('heroicon-o-exclamation-triangle')
+                        ->color('danger')
                         ->action(function ($records) {
                             foreach ($records as $record) {
                                 $record->fixCantonSuffix();
@@ -525,8 +560,7 @@ class CommuneResource extends Resource
                                 ->success()
                                 ->send();
                         })
-                        ->requiresConfirmation()
-                        ->color('primary'),
+                        ->requiresConfirmation(),
                     Tables\Actions\BulkAction::make('clear_last_contacted')
                         ->label('Clear Last Contacted')
                         ->icon('heroicon-o-x-mark')
