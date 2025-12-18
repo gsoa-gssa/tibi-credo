@@ -168,10 +168,22 @@ class CommuneResource extends Resource
                     ->numeric()
                     ->sortable(query: function (Builder $query, $direction) {
                         return $query->withCount(['sheets as sheets_sent_not_returned_count' => function ($q) {
-                            $q->whereNotNull('batch_id')->whereNull('maeppli_id');
+                            $q->whereNotNull('batch_id')
+                              ->whereNull('maeppli_id')
+                              ->whereHas('batch', function ($bq) {
+                                  $bq->whereNull('deleted_at')
+                                     ->whereColumn('commune_id', 'communes.id');
+                              });
                         }])->orderBy('sheets_sent_not_returned_count', $direction);
                     })
-                    ->getStateUsing(fn (Model $record) => $record->sheets()->whereNotNull('batch_id')->whereNull('maeppli_id')->count())
+                    ->getStateUsing(fn (Model $record) => $record->sheets()
+                        ->whereNotNull('batch_id')
+                        ->whereNull('maeppli_id')
+                        ->whereHas('batch', function ($bq) use ($record) {
+                            $bq->whereNull('deleted_at')
+                               ->where('commune_id', $record->id);
+                        })
+                        ->count())
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('sheets_sent_not_returned_percent')
                     ->label(__('commune.fields.sheets_sent_not_returned_percent'))
@@ -227,6 +239,62 @@ class CommuneResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
+                Tables\Filters\SelectFilter::make('batch_created_since')
+                    ->label(__('commune.filters.batch_created_since'))
+                    ->options([
+                        'today' => __('commune.filters.batch_created_since.today'),
+                        'since_yesterday' => __('commune.filters.batch_created_since.since_yesterday'),
+                        'since_1_week' => __('commune.filters.batch_created_since.since_1_week'),
+                        'since_1_month' => __('commune.filters.batch_created_since.since_1_month'),
+                        'since_3_months' => __('commune.filters.batch_created_since.since_3_months'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        if (!$data['value']) {
+                            return $query;
+                        }
+                        $date = match($data['value']) {
+                            'today' => now()->startOfDay(),
+                            'since_yesterday' => now()->subDay()->startOfDay(),
+                            'since_1_week' => now()->subWeek()->startOfDay(),
+                            'since_1_month' => now()->subMonth()->startOfDay(),
+                            'since_3_months' => now()->subMonths(3)->startOfDay(),
+                            default => null,
+                        };
+                        if (!$date) {
+                            return $query;
+                        }
+                        return $query->whereHas('batches', function ($q) use ($date) {
+                            $q->whereNull('deleted_at')->where('created_at', '>=', $date);
+                        });
+                    }),
+                Tables\Filters\SelectFilter::make('no_batch_created_since')
+                    ->label(__('commune.filters.no_batch_created_since'))
+                    ->options([
+                        'today' => __('commune.filters.no_batch_created_since.today'),
+                        'since_yesterday' => __('commune.filters.no_batch_created_since.since_yesterday'),
+                        'since_1_week' => __('commune.filters.no_batch_created_since.since_1_week'),
+                        'since_1_month' => __('commune.filters.no_batch_created_since.since_1_month'),
+                        'since_3_months' => __('commune.filters.no_batch_created_since.since_3_months'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        if (!$data['value']) {
+                            return $query;
+                        }
+                        $date = match($data['value']) {
+                            'today' => now()->startOfDay(),
+                            'since_yesterday' => now()->subDay()->startOfDay(),
+                            'since_1_week' => now()->subWeek()->startOfDay(),
+                            'since_1_month' => now()->subMonth()->startOfDay(),
+                            'since_3_months' => now()->subMonths(3)->startOfDay(),
+                            default => null,
+                        };
+                        if (!$date) {
+                            return $query;
+                        }
+                        return $query->whereDoesntHave('batches', function ($q) use ($date) {
+                            $q->whereNull('deleted_at')->where('created_at', '>=', $date);
+                        });
+                    }),
                 Tables\Filters\SelectFilter::make('last_contacted_before')
                     ->label(__('commune.filters.last_contacted_on_before'))
                     ->options([
