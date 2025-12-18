@@ -264,7 +264,10 @@ class CommuneResource extends Resource
                             return $query;
                         }
 
-                        return $query->where('last_contacted_on', '<', $date);
+                        return $query->where(function ($q) use ($date) {
+                            $q->where('last_contacted_on', '<', $date)
+                              ->orWhereNull('last_contacted_on');
+                        });
                     }),
                 Tables\Filters\SelectFilter::make('last_contacted_after')
                     ->label(__('commune.filters.last_contacted_on_after'))
@@ -330,42 +333,42 @@ class CommuneResource extends Resource
                                 }, '<=', (int) $max);
                             });
                     }),
-                Tables\Filters\Filter::make('sheets_not_returned_percent')
-                    ->label(__('commune.filters.sheets_not_returned_percent'))
-                    ->form([
-                        Forms\Components\TextInput::make('min')
-                            ->numeric()
-                            ->suffix('%')
-                            ->label('Minimum % Bögen nicht retourniert'),
-                        Forms\Components\TextInput::make('max')
-                            ->numeric()
-                            ->suffix('%')
-                            ->label('Maximum % Bögen nicht retourniert'),
-                    ])
-                    ->query(function (Builder $query, array $data): Builder {
-                        $min = isset($data['min']) && $data['min'] !== '' ? (float) $data['min'] : null;
-                        $max = isset($data['max']) && $data['max'] !== '' ? (float) $data['max'] : null;
+            //     Tables\Filters\Filter::make('sheets_not_returned_percent')
+            //         ->label(__('commune.filters.sheets_not_returned_percent'))
+            //         ->form([
+            //             Forms\Components\TextInput::make('min')
+            //                 ->numeric()
+            //                 ->suffix('%')
+            //                 ->label('Minimum % Bögen nicht retourniert'),
+            //             Forms\Components\TextInput::make('max')
+            //                 ->numeric()
+            //                 ->suffix('%')
+            //                 ->label('Maximum % Bögen nicht retourniert'),
+            //         ])
+            //         ->query(function (Builder $query, array $data): Builder {
+            //             $min = isset($data['min']) && $data['min'] !== '' ? (float) $data['min'] : null;
+            //             $max = isset($data['max']) && $data['max'] !== '' ? (float) $data['max'] : null;
 
-                        if ($min === null && $max === null) {
-                            return $query;
-                        }
+            //             if ($min === null && $max === null) {
+            //                 return $query;
+            //             }
 
-                        $notReturnedExpr = '(SELECT COUNT(*) FROM sheets WHERE sheets.commune_id = communes.id AND sheets.batch_id IS NOT NULL AND sheets.maeppli_id IS NULL)';
-                        $sentExpr = '(SELECT COUNT(*) FROM sheets WHERE sheets.commune_id = communes.id AND sheets.batch_id IS NOT NULL)';
+            //             $notReturnedExpr = '(SELECT COUNT(*) FROM sheets WHERE sheets.commune_id = communes.id AND sheets.batch_id IS NOT NULL AND sheets.maeppli_id IS NULL)';
+            //             $sentExpr = '(SELECT COUNT(*) FROM sheets WHERE sheets.commune_id = communes.id AND sheets.batch_id IS NOT NULL)';
 
-                        // Only consider communes that have sent sheets.
-                        $query->whereRaw("{$sentExpr} > 0");
+            //             // Only consider communes that have sent sheets.
+            //             $query->whereRaw("{$sentExpr} > 0");
 
-                        if ($min !== null) {
-                            $query->whereRaw("{$notReturnedExpr} * 100.0 / {$sentExpr} >= ?", [$min]);
-                        }
+            //             if ($min !== null) {
+            //                 $query->whereRaw("{$notReturnedExpr} * 100.0 / {$sentExpr} >= ?", [$min]);
+            //             }
 
-                        if ($max !== null) {
-                            $query->whereRaw("{$notReturnedExpr} * 100.0 / {$sentExpr} <= ?", [$max]);
-                        }
+            //             if ($max !== null) {
+            //                 $query->whereRaw("{$notReturnedExpr} * 100.0 / {$sentExpr} <= ?", [$max]);
+            //             }
 
-                        return $query;
-                    }),
+            //             return $query;
+            //         }),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
