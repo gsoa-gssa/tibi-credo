@@ -330,8 +330,9 @@ class CommuneResource extends Resource
                         $query->whereHas('sheets', function ($q) {
                             $q->whereNotNull('batch_id')
                               ->whereHas('batch', function ($bq) {
-                                  // Exclude soft-deleted batches
-                                  $bq->whereNull('deleted_at');
+                                  // Exclude soft-deleted batches and ensure batch belongs to this commune
+                                  $bq->whereNull('deleted_at')
+                                     ->whereColumn('commune_id', 'communes.id');
                               });
                         });
 
@@ -341,7 +342,8 @@ class CommuneResource extends Resource
                                     $q->whereNotNull('batch_id')
                                       ->whereNull('maeppli_id')
                                       ->whereHas('batch', function ($bq) {
-                                          $bq->whereNull('deleted_at');
+                                          $bq->whereNull('deleted_at')
+                                             ->whereColumn('commune_id', 'communes.id');
                                       });
                                 }, '>=', (int) $min);
                             })
@@ -350,7 +352,8 @@ class CommuneResource extends Resource
                                     $q->whereNotNull('batch_id')
                                       ->whereNull('maeppli_id')
                                       ->whereHas('batch', function ($bq) {
-                                          $bq->whereNull('deleted_at');
+                                          $bq->whereNull('deleted_at')
+                                             ->whereColumn('commune_id', 'communes.id');
                                       });
                                 }, '<=', (int) $max);
                             });
