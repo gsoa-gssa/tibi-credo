@@ -321,15 +321,37 @@ class CommuneResource extends Resource
                         $min = $data['min'] ?? null;
                         $max = $data['max'] ?? null;
 
+                        // Only apply filter if at least one value is set
+                        if ($min === null && $max === null) {
+                            return $query;
+                        }
+
+                        // Ensure commune has sent at least one non-deleted batch
+                        $query->whereHas('sheets', function ($q) {
+                            $q->whereNotNull('batch_id')
+                              ->whereHas('batch', function ($bq) {
+                                  // Exclude soft-deleted batches
+                                  $bq->whereNull('deleted_at');
+                              });
+                        });
+
                         return $query
                             ->when($min !== null && $min !== '', function (Builder $q) use ($min) {
                                 $q->whereHas('sheets', function ($q) {
-                                    $q->whereNotNull('batch_id')->whereNull('maeppli_id');
+                                    $q->whereNotNull('batch_id')
+                                      ->whereNull('maeppli_id')
+                                      ->whereHas('batch', function ($bq) {
+                                          $bq->whereNull('deleted_at');
+                                      });
                                 }, '>=', (int) $min);
                             })
                             ->when($max !== null && $max !== '', function (Builder $q) use ($max) {
                                 $q->whereHas('sheets', function ($q) {
-                                    $q->whereNotNull('batch_id')->whereNull('maeppli_id');
+                                    $q->whereNotNull('batch_id')
+                                      ->whereNull('maeppli_id')
+                                      ->whereHas('batch', function ($bq) {
+                                          $bq->whereNull('deleted_at');
+                                      });
                                 }, '<=', (int) $max);
                             });
                     }),
