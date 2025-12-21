@@ -477,6 +477,15 @@ class CommuneResource extends Resource
 
             //             return $query;
             //         }),
+                Tables\Filters\TernaryFilter::make('address_checked')
+                    ->label(__('commune.filters.address_checked'))
+                    ->placeholder(__('commune.filters.address_checked.all'))
+                    ->trueLabel(__('commune.filters.address_checked.true'))
+                    ->falseLabel(__('commune.filters.address_checked.false'))
+                    ->queries(
+                        true: fn(Builder $query) => $query->where('address_checked', true),
+                        false: fn(Builder $query) => $query->where('address_checked', false),
+                    ),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
