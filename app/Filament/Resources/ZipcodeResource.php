@@ -31,6 +31,16 @@ class ZipcodeResource extends Resource
         return __('navigation.group.systemSettings');
     }
 
+    public static function getModelLabel(): string
+    {
+        return __('zipcode.name');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('zipcode.namePlural');
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -84,8 +94,14 @@ class ZipcodeResource extends Resource
                 Tables\Actions\EditAction::make(),
             ])
             ->headerActions([
-                ImportAction::make()->importer(ZipcodeImporter::class),
-                ExportAction::make()->exporter(ZipcodeExporter::class)
+                Tables\Actions\ActionGroup::make([
+                    ImportAction::make()->importer(ZipcodeImporter::class),
+                    ExportAction::make()->exporter(ZipcodeExporter::class),
+                ])
+                    ->label(__('zipcode.headerActionGroup.management'))
+                    ->icon('heroicon-o-table-cells')
+                    ->color('gray')
+                    ->button()
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
