@@ -6,6 +6,7 @@ use App\Models\Commune;
 use App\Models\Zipcode;
 use Filament\Notifications\Notification;
 use Filament\Tables\Actions\BulkAction;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
@@ -53,9 +54,22 @@ class ScrapeAddressesBulkAction extends BulkAction
         return false;
     }
 
+    protected function normalizePlaceName(string $s): string
+    {
+        $s = mb_strtolower(trim($s));
+        // Remove commas and condense spaces
+        $s = str_replace([','], ' ', $s);
+        // Drop trailing canton abbreviations like "ZH", "BE", or "(ZH)"
+        $s = preg_replace('/\s*(\(|\[)?[a-z]{2,3}(\)|\])?$/u', '', $s);
+        $s = preg_replace('/\s+/', ' ', $s);
+        return trim($s);
+    }
+
     protected function extractAddress(string $html, Commune $commune): array
     {
         $body = html_entity_decode($html, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        // Preserve line breaks where <br> was used so street/zip split isn't lost
+        $body = preg_replace('/<br[^>]*>/i', "\n", $body);
         $text = strip_tags($body);
         $normalized = preg_replace('/\r\n|\r/', "\n", $text);
         $normalized = preg_replace('/\n{2,}/', "\n", $normalized);
@@ -134,12 +148,11 @@ class ScrapeAddressesBulkAction extends BulkAction
         }
 
         // Restrict to candidates whose (postcode, place) pair matches a Zipcode entry
+        $normalize = fn (string $s) => $this->normalizePlaceName($s);
         $namesByCode = $validZipcodes
             ->groupBy('code')
-            ->map(fn ($group) => $group->pluck('name')->map(fn ($n) => trim(mb_strtolower($n)))->unique()->values()->all())
+            ->map(fn ($group) => $group->pluck('name')->map($normalize)->unique()->values()->all())
             ->toArray();
-
-        $normalize = fn (string $s) => trim(mb_strtolower($s));
         $pairMatched = array_filter($candidates, function ($c) use ($namesByCode, $normalize) {
             $code = $c['postcode'];
             $place = $normalize($c['place'] ?? '');
@@ -197,27 +210,47 @@ class ScrapeAddressesBulkAction extends BulkAction
                     }
 
                     $handle = fopen('php://temp', 'r+');
-                    fputcsv($handle, ['Kunden-ID', 'Authority', 'Website', 'Strasse', 'Hausnummer', 'PLZ', 'Ort', 'Treffer Rohtext']);
+                    fputcsv($handle, ['Kunden-ID', 'authority_candidate_current', 'authority_candidate_generated', 'Website', 'Strasse', 'Hausnummer', 'PLZ', 'Ort', 'Treffer Rohtext']);
 
                     $total = $valid->count();
                     $success = 0;
                     $noAddress = 0;
-                    $failed = 0;
+                    $httpFailed = 0;
+                    $networkFailed = 0;
+                    $otherErrors = 0;
 
                     foreach ($valid as $commune) {
                         $url = $commune->website;
                         $authority = $commune->address ? trim(strtok(strip_tags(str_replace('<br>', "\n", $commune->address)), "\n")) : $commune->name;
+                        
+                        // Generate authority candidate based on commune language
+                        $authorityGenerated = match($commune->lang) {
+                            'fr' => 'Administration communale ' . $commune->name . ' ' . $commune->canton->code,
+                            'it' => 'Amministrazione comunale ' . $commune->name . ' ' . $commune->canton->code,
+                            default => 'Gemeindeverwaltung ' . $commune->name . ' ' . $commune->canton->code,
+                        };
+                        
                         [$street, $houseNumber, $postcode, $place, $raw] = [null, null, null, null, null];
 
                         try {
                             $response = Http::timeout(1)->get($url);
-                            if ($response->successful()) {
+                        } catch (ConnectionException $e) {
+                            $networkFailed++;
+                            continue;
+                        } catch (Throwable $e) {
+                            $otherErrors++;
+                            continue;
+                        }
+
+                        if ($response->successful()) {
+                            try {
                                 [$street, $houseNumber, $postcode, $place, $raw] = $this->extractAddress($response->body(), $commune);
-                                
+
                                 if ($street || $postcode) {
                                     fputcsv($handle, [
                                         $commune->id,
                                         $authority,
+                                        $authorityGenerated,
                                         $url,
                                         $street,
                                         $houseNumber,
@@ -229,25 +262,31 @@ class ScrapeAddressesBulkAction extends BulkAction
                                 } else {
                                     $noAddress++;
                                 }
-                            } else {
-                                $failed++;
+                            } catch (Throwable $e) {
+                                $otherErrors++;
                             }
-                        } catch (Throwable $e) {
-                            $failed++;
+                        } else {
+                            $httpFailed++;
                         }
                     }
 
                     rewind($handle);
 
+                    $body = __('commune.scrape_addresses_stats', [
+                        'total' => $total,
+                        'success' => $success,
+                        'noAddress' => $noAddress,
+                        'failed' => ($httpFailed + $networkFailed + $otherErrors),
+                    ]);
+
+                    $body .= "\n" . __('commune.scrape_addresses_http_errors', ['count' => $httpFailed]);
+                    $body .= "\n" . __('commune.scrape_addresses_network_errors', ['count' => $networkFailed]);
+                    $body .= "\n" . __('commune.scrape_addresses_other_errors', ['count' => $otherErrors]);
+
                     Notification::make()
                         ->success()
                         ->title(__('commune.scrape_addresses_complete'))
-                        ->body(__('commune.scrape_addresses_stats', [
-                            'total' => $total,
-                            'success' => $success,
-                            'noAddress' => $noAddress,
-                            'failed' => $failed,
-                        ]))
+                        ->body($body)
                         ->send();
 
                     return response()->streamDownload(function () use ($handle) {

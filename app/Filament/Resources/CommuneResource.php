@@ -23,6 +23,9 @@ use Spatie\Activitylog\Models\Activity;
 use App\Filament\Actions\ImportAddressCorrectionsAction;
 use App\Filament\Actions\ScrapeAddressesAction;
 use App\Filament\Actions\ScrapeAddressesBulkAction;
+use App\Filament\Actions\ExportAuthorityCandidatesBulkAction;
+use App\Filament\Actions\FillNameWithCantonAction;
+use App\Filament\Actions\ImportBfsAction;
 
 class CommuneResource extends Resource
 {
@@ -51,56 +54,99 @@ class CommuneResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('name')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('officialId')
-                    ->label(__('commune.fields.official_id'))
-                    ->required()
-                    ->numeric(),
-                Forms\Components\RichEditor::make('address')
-                    ->nullable(),
-                Forms\Components\TextInput::make('email')
-                    ->email()
-                    ->nullable(),
-                Forms\Components\TextInput::make('website')
-                    ->url()
-                    ->nullable(),
-                Forms\Components\TextInput::make('phone')
-                    ->nullable(),
-                Forms\Components\Select::make('addressgroup')
-                    ->options([
-                        'none' => 'None',
-                        'svegeneve' => 'Service des votations et éléctions de Genève',
+                Forms\Components\Section::make(__('commune.sections.details'))
+                    ->schema([
+                            Forms\Components\TextInput::make('name_with_canton')
+                                ->label(__('commune.fields.name_with_canton'))
+                                ->columnSpan(3)
+                                ->disabled(),
+                            Forms\Components\TextInput::make('email')
+                                ->label(__('commune.fields.email'))
+                                ->email()
+                                ->nullable(),
+                            Forms\Components\TextInput::make('website')
+                                ->label(__('commune.fields.website'))
+                                ->url()
+                                ->nullable(),
+                            Forms\Components\TextInput::make('phone')
+                                ->nullable(),
+                            Forms\Components\TextInput::make('authority_address_name')
+                                ->label('Name of Authority')
+                                ->columnSpan(3)
+                                ->nullable(),
+                            Forms\Components\TextInput::make('authority_address_street')
+                                ->label('Street Name')
+                                ->columnSpan(2)
+                                ->nullable(),
+                            Forms\Components\TextInput::make('authority_address_house_number')
+                                ->label('House Number')
+                                ->nullable(),
+                            Forms\Components\TextInput::make('authority_address_extra')
+                                ->label('Extra Address Line')
+                                ->columnSpan(3)
+                                ->nullable(),
+                            Forms\Components\TextInput::make('authority_address_postcode')
+                                ->label('Postcode')
+                                ->numeric()
+                                ->minLength(4)
+                                ->maxLength(4)
+                                ->nullable(),
+                            Forms\Components\TextInput::make('authority_address_place')
+                                ->label('Place')
+                                ->columnSpan(2)
+                                ->nullable(),
+                            Forms\Components\Toggle::make('address_checked')
+                                ->label('Address Checked')
+                                ->columnSpan(3)
+                                ->default(false),
+                            Forms\Components\ToggleButtons::make('lang')
+                                ->options([
+                                    'de' => 'German',
+                                    'fr' => 'French',
+                                    'it' => 'Italian',
+                                ])
+                                ->required()
+                                ->inline()
+                                ->default('de'),
                     ])
-                    ->default('none')
-                    ->label('Address Group')
-                    ->required(),
-                Forms\Components\Select::make('canton_id')
-                    ->relationship('canton', 'label')
-                    ->required()
-                    ->searchable()
-                    ->preload()
-                    ->label('Canton'),
-                Forms\Components\ToggleButtons::make('lang')
-                    ->options([
-                        'de' => 'German',
-                        'fr' => 'French',
-                        'it' => 'Italian',
+                    ->columns(3),
+                Forms\Components\Section::make(__('commune.sections.setup'))
+                    ->schema([
+                        Forms\Components\TextInput::make('name')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\DatePicker::make('checked_on')
+                            ->label(__('commune.fields.checked_on')),
+                        Forms\Components\TextInput::make('officialId')
+                            ->label(__('commune.fields.official_id'))
+                            ->required()
+                            ->numeric(),
+                        Forms\Components\RichEditor::make('address')
+                            ->label(__('commune.fields.address') . ' (deprecated)')
+                            ->nullable()
+                            ->disabled()
+                            ->dehydrated(false),
+                        Forms\Components\Select::make('addressgroup')
+                            ->options([
+                                'none' => 'None',
+                                'svegeneve' => 'Service des votations et éléctions de Genève',
+                            ])
+                            ->default('none')
+                            ->label('Address Group (deprecated)')
+                            ->disabled()
+                            ->dehydrated(false),
+                        Forms\Components\Select::make('canton_id')
+                            ->relationship('canton', 'label')
+                            ->required()
+                            ->searchable()
+                            ->preload()
+                            ->label('Canton'),
                     ])
-                    ->required()
-                    ->inline()
-                    ->default('de'),
+                    ->collapsible()
+                    ->collapsed(),
                 Forms\Components\DatePicker::make('last_contacted_on')
                     ->label(__('commune.fields.last_contacted_on'))
                     ->nullable(),
-                Forms\Components\TextInput::make('authority_address_name')->label('Name of Authority')->nullable(),
-                Forms\Components\TextInput::make('authority_address_street')->label('Street Name')->nullable(),
-                Forms\Components\TextInput::make('authority_address_house_number')->label('House Number')->nullable(),
-                Forms\Components\TextInput::make('authority_address_extra')->label('Extra Address Line')->nullable(),
-                Forms\Components\TextInput::make('authority_address_postcode')->label('Postcode')->numeric()->minLength(4)->maxLength(4)->nullable(),
-                Forms\Components\TextInput::make('authority_address_place')->label('Place')->nullable(),
-                Forms\Components\Toggle::make('address_checked')->label('Address Checked')->default(false),
             ]);
     }
 
@@ -108,8 +154,13 @@ class CommuneResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('name_with_canton')
+                    ->label(__('commune.fields.name_with_canton'))
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('name')
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('officialId')
                     ->label(__('commune.fields.official_id'))
                     ->numeric()
@@ -122,11 +173,13 @@ class CommuneResource extends Resource
                         }])->orderBy("sheets_count", $direction);
                     })
                     ->label(__('commune.computed.sheets_no_batch'))
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->getStateUsing(function (Model $record) {
                         return $record->sheets()->where("status", "recorded")->count();
                     }),
                 Tables\Columns\TextColumn::make('validity_quota_current')
                     ->label(__('commune.computed.validity_quota_current'))
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->getStateUsing(function (Model $record) {
                         $maeppli = \App\Models\Maeppli::where('commune_id', $record->id)
                             ->orderByDesc('created_at')
@@ -163,8 +216,13 @@ class CommuneResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('last_contacted_on')
                     ->label(__('commune.fields.last_contacted_on'))
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->date()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('website')
+                    ->label(__('commune.fields.website'))
+                    ->url(fn(Model $record) => $record->website)
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -256,6 +314,32 @@ class CommuneResource extends Resource
                 Tables\Columns\IconColumn::make('address_checked')->label('Address Checked')->boolean()->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
+                Tables\Filters\SelectFilter::make('checked_on')
+                    ->label(__('commune.filters.checked_on'))
+                    ->options(function () {
+                        $dates = \App\Models\Commune::query()
+                            ->whereNotNull('checked_on')
+                            ->select('checked_on')
+                            ->distinct()
+                            ->orderBy('checked_on', 'desc')
+                            ->get()
+                            ->pluck('checked_on')
+                            ->map(fn($d) => \Illuminate\Support\Carbon::parse($d)->toDateString())
+                            ->unique()
+                            ->mapWithKeys(fn($d) => [$d => $d])
+                            ->all();
+                        return ['__null__' => __('commune.filters.checked_on.never')] + $dates;
+                    })
+                    ->query(function (Builder $query, array $data): Builder {
+                        $val = $data['value'] ?? null;
+                        if (!$val) {
+                            return $query;
+                        }
+                        if ($val === '__null__') {
+                            return $query->whereNull('checked_on');
+                        }
+                        return $query->whereDate('checked_on', $val);
+                    }),
                 Tables\Filters\SelectFilter::make('batch_created_since')
                     ->label(__('commune.filters.batch_created_since'))
                     ->options([
@@ -488,50 +572,88 @@ class CommuneResource extends Resource
                         true: fn(Builder $query) => $query->where('address_checked', true),
                         false: fn(Builder $query) => $query->where('address_checked', false),
                     ),
+                Tables\Filters\SelectFilter::make('lang')
+                    ->label(__('commune.fields.lang'))
+                    ->options([
+                        'de' => __('input.label.source.label.de'),
+                        'fr' => __('input.label.source.label.fr'),
+                        'it' => __('input.label.source.label.it'),
+                    ])
+                    ->attribute('lang'),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
             ])
             ->headerActions([
-                ImportAddressCorrectionsAction::make(),
-                ImportAction::make()->importer(CommuneImporter::class),
-                ExportAction::make()->exporter(CommuneExporter::class),
+                Tables\Actions\ActionGroup::make([
+                    ImportAddressCorrectionsAction::make(),
+                    ImportBfsAction::make(),
+                    ImportAction::make()->importer(CommuneImporter::class),
+                    ExportAction::make()->exporter(CommuneExporter::class),
+                    FillNameWithCantonAction::make(),
+                ])
+                    ->label(__('commune.headerActionGroup.address_maintenance'))
+                    ->icon('heroicon-o-map-pin')
+                    ->color('gray')
+                    ->button(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     ScrapeAddressesBulkAction::make(),
+                    ExportAuthorityCandidatesBulkAction::make(),
+                    Tables\Actions\BulkAction::make('fix_canton_suffix')
+                        ->label('Fix Canton Suffix')
+                        ->icon('heroicon-o-exclamation-triangle')
+                        ->color('danger')
+                        ->action(function ($records) {
+                            foreach ($records as $record) {
+                                $record->fixCantonSuffix();
+                                $record->save();
+                            }
+                            Notification::make()
+                                ->title('Canton suffix fixed for selected communes.')
+                                ->success()
+                                ->send();
+                        })
+                        ->requiresConfirmation(),
+                    Tables\Actions\DeleteBulkAction::make(),
+                ])
+                    ->label(__('commune.bulkActionGroup.addressMaintenance'))
+                    ->icon('heroicon-o-map-pin')
+                    ->color('gray'),
+                Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\BulkAction::make('export_only')
-                    ->label('Export')
-                    ->icon('heroicon-o-arrow-down-tray')
-                    ->color('success')
-                    ->action(function (\Illuminate\Support\Collection $records) {
-                        $csv = fopen('php://temp', 'r+');
-                        fputcsv($csv, [
-                            'ID',
-                            'Name',
-                            'Email',
-                            'Phone',
-                            'Address',
-                            'Canton',
-                            'Last Contacted On',
-                        ]);
-                        foreach ($records as $record) {
+                        ->label('Export')
+                        ->icon('heroicon-o-arrow-down-tray')
+                        ->color('success')
+                        ->action(function (\Illuminate\Support\Collection $records) {
+                            $csv = fopen('php://temp', 'r+');
                             fputcsv($csv, [
-                                $record->id,
-                                $record->name,
-                                $record->email,
-                                $record->phone,
-                                $record->address,
-                                optional($record->canton)->label,
-                                optional($record->last_contacted_on)?->toDateString(),
+                                'ID',
+                                'Name',
+                                'Email',
+                                'Phone',
+                                'Address',
+                                'Canton',
+                                'Last Contacted On',
                             ]);
-                        }
-                        rewind($csv);
-                        return response()->streamDownload(function () use ($csv) {
-                            fpassthru($csv);
-                        }, 'communes-export-' . now()->format('Ymd_His') . '.csv', [
-                            'Content-Type' => 'text/csv',
-                        ]);
+                            foreach ($records as $record) {
+                                fputcsv($csv, [
+                                    $record->id,
+                                    $record->name,
+                                    $record->email,
+                                    $record->phone,
+                                    $record->address,
+                                    optional($record->canton)->label,
+                                    optional($record->last_contacted_on)?->toDateString(),
+                                ]);
+                            }
+                            rewind($csv);
+                            return response()->streamDownload(function () use ($csv) {
+                                fpassthru($csv);
+                            }, 'communes-export-' . now()->format('Ymd_His') . '.csv', [
+                                'Content-Type' => 'text/csv',
+                            ]);
                     }),
                     Tables\Actions\BulkAction::make('export_and_mark_contacted')
                         ->label('Export & mark contacted')
@@ -575,65 +697,53 @@ class CommuneResource extends Resource
                                 'Content-Type' => 'text/csv',
                             ]);
                         }),
-                    Tables\Actions\BulkAction::make('fix_canton_suffix')
-                        ->label('Fix Canton Suffix')
-                        ->icon('heroicon-o-exclamation-triangle')
-                        ->color('danger')
-                        ->action(function ($records) {
-                            foreach ($records as $record) {
-                                $record->fixCantonSuffix();
-                            }
-                            Notification::make()
-                                ->title('Canton suffix fixed for selected communes.')
-                                ->success()
-                                ->send();
-                        })
-                        ->requiresConfirmation(),
-                    Tables\Actions\BulkAction::make('clear_last_contacted')
-                        ->label('Clear Last Contacted')
-                        ->icon('heroicon-o-x-mark')
-                        ->color('danger')
-                        ->requiresConfirmation()
-                        ->action(function (\Illuminate\Support\Collection $records) {
-                            foreach ($records as $record) {
-                                $record->update(['last_contacted_on' => null]);
-                            }
-                            Notification::make()
-                                ->title('Last contacted date cleared for ' . $records->count() . ' commune(s).')
-                                ->success()
-                                ->send();
-                        }),
-                    Tables\Actions\BulkAction::make('reset_last_contacted_to_previous')
-                        ->label('Reset Last Contacted to Previous')
-                        ->icon('heroicon-o-arrow-uturn-left')
-                        ->color('info')
-                        ->requiresConfirmation()
-                        ->action(function (\Illuminate\Support\Collection $records) {
-                            $updated = 0;
-                            foreach ($records as $record) {
-                                // Find the most recent activity that changed last_contacted_on
-                                $activity = Activity::where('subject_type', Commune::class)
-                                    ->where('subject_id', $record->id)
-                                    ->orderByDesc('created_at')
-                                    ->get()
-                                    ->first(function ($act) {
-                                        $changes = $act->changes();
-                                        return $changes && isset($changes['old']) && array_key_exists('last_contacted_on', $changes['old']);
-                                    });
-                                
-                                if ($activity) {
-                                    $previousValue = $activity->changes()['old']['last_contacted_on'];
-                                    $record->update(['last_contacted_on' => $previousValue]);
-                                    $updated++;
+                        Tables\Actions\BulkAction::make('clear_last_contacted')
+                            ->label('Clear Last Contacted')
+                            ->icon('heroicon-o-x-mark')
+                            ->color('danger')
+                            ->requiresConfirmation()
+                            ->action(function (\Illuminate\Support\Collection $records) {
+                                foreach ($records as $record) {
+                                    $record->update(['last_contacted_on' => null]);
                                 }
-                            }
-                            Notification::make()
-                                ->title('Last contacted date reset to previous values for ' . $updated . ' commune(s).')
-                                ->success()
-                                ->send();
-                        }),
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                                Notification::make()
+                                    ->title('Last contacted date cleared for ' . $records->count() . ' commune(s).')
+                                    ->success()
+                                    ->send();
+                            }),
+                        Tables\Actions\BulkAction::make('reset_last_contacted_to_previous')
+                            ->label('Reset Last Contacted to Previous')
+                            ->icon('heroicon-o-arrow-uturn-left')
+                            ->color('info')
+                            ->requiresConfirmation()
+                            ->action(function (\Illuminate\Support\Collection $records) {
+                                $updated = 0;
+                                foreach ($records as $record) {
+                                    // Find the most recent activity that changed last_contacted_on
+                                    $activity = Activity::where('subject_type', Commune::class)
+                                        ->where('subject_id', $record->id)
+                                        ->orderByDesc('created_at')
+                                        ->get()
+                                        ->first(function ($act) {
+                                            $changes = $act->changes();
+                                            return $changes && isset($changes['old']) && array_key_exists('last_contacted_on', $changes['old']);
+                                        });
+                                    
+                                    if ($activity) {
+                                        $previousValue = $activity->changes()['old']['last_contacted_on'];
+                                        $record->update(['last_contacted_on' => $previousValue]);
+                                        $updated++;
+                                    }
+                                }
+                                Notification::make()
+                                    ->title('Last contacted date reset to previous values for ' . $updated . ' commune(s).')
+                                    ->success()
+                                    ->send();
+                            }),
+                    ])
+                        ->label(__('commune.bulkActionGroup.reminders'))
+                        ->icon('heroicon-o-envelope')
+                        ->color('warning'),
             ]);
     }
 

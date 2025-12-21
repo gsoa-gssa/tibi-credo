@@ -63,7 +63,8 @@ class ImportAddressCorrectionsAction extends Action
                         'QSTAT Erklärung' => null,
                         'Firmenname' => null,
                         'Strasse' => null,
-                        'Hausnummer mit Zusatz' => null,
+                        'Hausnummer' => null,
+                        'Hausnummerzusatz' => null,
                         'PLZ' => null,
                         'Ort' => null,
                     ];
@@ -113,7 +114,9 @@ class ImportAddressCorrectionsAction extends Action
 
                         $commune->authority_address_name = $row[$colMap['Firmenname']] ?? null;
                         $commune->authority_address_street = $row[$colMap['Strasse']] ?? null;
-                        $commune->authority_address_house_number = $row[$colMap['Hausnummer mit Zusatz']] ?? null;
+                        $houseNum = $row[$colMap['Hausnummer']] ?? '';
+                        $houseAdd = $row[$colMap['Hausnummerzusatz']] ?? '';
+                        $commune->authority_address_house_number = trim($houseNum . $houseAdd) ?: null;
                         $commune->authority_address_postcode = $row[$colMap['PLZ']] ?? null;
                         $commune->authority_address_place = $row[$colMap['Ort']] ?? null;
                         $commune->address_checked = in_array(

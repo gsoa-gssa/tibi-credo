@@ -40,19 +40,19 @@ class BoxResource extends Resource
         return $form->schema([
             // No editable persisted fields; Box has computed accessors
             Forms\Components\Placeholder::make('label')
-                ->content(fn(Box $record = null) => $record?->label ?? '—')
+                ->content(fn(?Box $record) => $record?->label ?? '—')
                 ->label(__('box.fields.label')),
             Forms\Components\Placeholder::make('label_final')
-                ->content(fn(Box $record = null) => $record?->label_final ?? '—')
+                ->content(fn(?Box $record) => $record?->label_final ?? '—')
                 ->label(__('box.fields.label_final')),
             Forms\Components\Placeholder::make('canton')
-                ->content(fn(Box $record = null) => $record?->canton ?? '—')
+                ->content(fn(?Box $record) => $record?->canton ?? '—')
                 ->label(__('canton.name')),
             Forms\Components\Placeholder::make('signatures')
-                ->content(fn(Box $record = null) => $record?->signatures_count ?? 0)
+                ->content(fn(?Box $record) => $record?->signatures_count ?? 0)
                 ->label(__('box.fields.signature_count')),
             Forms\Components\Placeholder::make('signatures_total')
-              ->content(fn(Box $record = null) => $record?->signatures_count_total ?? 0)
+              ->content(fn(?Box $record) => $record?->signatures_count_total ?? 0)
               ->label(__('box.fields.signature_count_total')),
         ]);
     }

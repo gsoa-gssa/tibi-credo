@@ -22,12 +22,15 @@ class Commune extends Model
         'authority_address_postcode',
         'authority_address_place',
         'address_checked',
+        'checked_on',
+        'name_with_canton',
     ];
 
     protected $casts = [
         'id' => 'integer',
         'last_contacted_on' => 'date',
         'address_checked' => 'boolean',
+        'checked_on' => 'date',
     ];
     /**
      * Return the formatted authority address as HTML.
@@ -92,16 +95,33 @@ class Commune extends Model
         return $this->name;
     }
 
-    public function fixCantonSuffix(): void
+    public function withoutCantonSuffix($name_candidate): string
     {
         if (!$this->canton || !$this->canton->label) {
-            throw new \Exception('Canton or canton label is missing for commune ' . $this->name . ' with id ' . $this->id . '.');
+            return $this->name;
         }
 
         $code = $this->canton->label;
-        $pattern = '/(\s\(' . preg_quote($code, '/') . '\)|\s' . preg_quote($code, '/') . ')$/';
+        $pattern = '/[,\s]*\(?' . preg_quote($code, '/') . '\)?$/';
 
-        $this->name = preg_replace($pattern, '', $this->name);
-        $this->save();
+        return preg_replace($pattern, '', $name_candidate);
+    }
+
+    public function saveNameWithCanton(): void
+    {
+        $this->name_with_canton = $this->nameWithCanton();
+    }
+
+    public function fixCantonSuffix(): void
+    {
+        $this->name = $this->withoutCantonSuffix($this->name);
+    }
+
+    protected static function booted(): void
+    {
+        static::saving(function (Commune $commune) {
+            $commune->fixCantonSuffix();
+            $commune->saveNameWithCanton();
+        });
     }
 }
