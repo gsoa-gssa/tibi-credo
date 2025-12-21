@@ -20,6 +20,7 @@ use App\Filament\Resources\CommuneResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\CommuneResource\RelationManagers;
 use Spatie\Activitylog\Models\Activity;
+use App\Filament\Actions\ImportAddressCorrectionsAction;
 
 class CommuneResource extends Resource
 {
@@ -91,6 +92,13 @@ class CommuneResource extends Resource
                 Forms\Components\DatePicker::make('last_contacted_on')
                     ->label(__('commune.fields.last_contacted_on'))
                     ->nullable(),
+                Forms\Components\TextInput::make('authority_address_name')->label('Name of Authority')->nullable(),
+                Forms\Components\TextInput::make('authority_address_street')->label('Street Name')->nullable(),
+                Forms\Components\TextInput::make('authority_address_house_number')->label('House Number')->nullable(),
+                Forms\Components\TextInput::make('authority_address_extra')->label('Extra Address Line')->nullable(),
+                Forms\Components\TextInput::make('authority_address_postcode')->label('Postcode')->numeric()->minLength(4)->maxLength(4)->nullable(),
+                Forms\Components\TextInput::make('authority_address_place')->label('Place')->nullable(),
+                Forms\Components\Toggle::make('address_checked')->label('Address Checked')->default(false),
             ]);
     }
 
@@ -237,6 +245,13 @@ class CommuneResource extends Resource
                             ->sum('sheets_invalid_count') ?? 0;
                     })
                     ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('authority_address_name')->label('Name of Authority')->searchable()->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('authority_address_street')->label('Street Name')->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('authority_address_house_number')->label('House Number')->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('authority_address_extra')->label('Extra Address Line')->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('authority_address_postcode')->label('Postcode')->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('authority_address_place')->label('Place')->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\IconColumn::make('address_checked')->label('Address Checked')->boolean()->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('batch_created_since')
@@ -467,6 +482,7 @@ class CommuneResource extends Resource
                 Tables\Actions\ViewAction::make(),
             ])
             ->headerActions([
+                ImportAddressCorrectionsAction::make(),
                 ImportAction::make()->importer(CommuneImporter::class),
                 ExportAction::make()->exporter(CommuneExporter::class),
             ])
