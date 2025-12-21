@@ -375,5 +375,7 @@
     "zipcode.namePlural": "PLZ und Orte",
     "commune.actions.fill_name_with_canton": "Name mit Kanton füllen",
     "commune.actions.fill_name_with_canton_complete": "Namen mit Kanton ausgefüllt",
-    "commune.actions.fill_name_with_canton_stats": ":count Gemeinden aktualisiert"
+    "commune.actions.fill_name_with_canton_stats": ":count Gemeinden aktualisiert",
+    "commune.bfs_import.explanation_title": "Anleitung",
+    "commune.bfs_import.explanation": "Die Datei mit dem Gemeindestand / das amtliche Gemeindeverzeichnis bekommt man vom Bundesamt für Statistik (<a href='https://www.bfs.admin.ch/bfs/de/home/grundlagen/agvch.html'>Link</a>). Als Datum soll man das Datum des Gemeindestands wählen, das ist je nach dem in der Zukunft. Nach dem Bestätigen bekommen alle Gemeinden, die exakt gleich im System und in der Datei sind das neue Datum. Alle anderen muss man von Hand überprüfen, d.h. in der Regel die nicht mehr existierenden Gemeinden löschen und bei den neu entstandenen Fusions-Gemeinden die Daten ergänzen. Danach muss man die Daten vom Orte-Verzeichnis aktualisieren."
 }

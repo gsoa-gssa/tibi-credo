@@ -7,6 +7,7 @@ use Filament\Notifications\Notification;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\HtmlString;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Models\Commune;
 use App\Models\Canton;
@@ -26,6 +27,9 @@ class ImportBfsAction extends Action
         $this->label('BfS import')
             ->icon('heroicon-o-arrow-up-on-square')
             ->form([
+                \Filament\Forms\Components\Placeholder::make('explanation')
+                    ->label(__('commune.bfs_import.explanation_title'))
+                    ->content(new HtmlString(__('commune.bfs_import.explanation'))),
                 \Filament\Forms\Components\DatePicker::make('date')
                     ->label(__('commune.bfs_import.date'))
                     ->default(now())
