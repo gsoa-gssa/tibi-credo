@@ -15,6 +15,7 @@ class ExportBatchesPdfBulkAction extends BulkAction
 
     protected bool $priorityMail = false;
     protected string $addressPosition = 'left'; // 'left' or 'right'
+    protected bool $massDelivery = false;
 
     public static function getDefaultName(): ?string
     {
@@ -33,6 +34,13 @@ class ExportBatchesPdfBulkAction extends BulkAction
             throw new \InvalidArgumentException("addressPosition must be 'left' or 'right'");
         }
         $this->addressPosition = $addressPosition;
+        return $this;
+    }
+
+    public function massDelivery(bool $massDelivery = true): static
+    {
+        $this->massDelivery = $massDelivery;
+        $this->priorityMail = false;
         return $this;
     }
 
@@ -117,6 +125,14 @@ class ExportBatchesPdfBulkAction extends BulkAction
                     'addressPosition' => $this->addressPosition,
                     'priorityMail' => $this->priorityMail,
                 ])->render();
+                // Mark batch with appropriate delivery tier
+                if ($this->massDelivery) {
+                    $batch->mark_mass_delivery();
+                } elseif ($this->priorityMail) {
+                    $batch->mark_priority_delivery();
+                } else {
+                    $batch->mark_standard_delivery();
+                }
                 // set to sent
                 $batch->status = 'sent';
                 $batch->save();
@@ -133,7 +149,7 @@ class ExportBatchesPdfBulkAction extends BulkAction
 
         \Filament\Notifications\Notification::make()
             ->title('Batches Processed')
-            ->body(count($individualPages) . ' out of ' . $batches->count() . ' letters were generated with address position ' . $this->addressPosition . ' and priority mail ' . ($this->priorityMail ? 'enabled' : 'disabled') . '.')
+            ->body(count($individualPages) . ' out of ' . $batches->count() . ' letters were generated with address position ' . $this->addressPosition . ', priority mail ' . ($this->priorityMail ? 'enabled' : 'disabled') . ' and mass delivery ' . ($this->massDelivery ? 'enabled' : 'disabled') . '.')
             ->success()
             ->send();
 

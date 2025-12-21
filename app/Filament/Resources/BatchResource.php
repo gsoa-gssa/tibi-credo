@@ -50,7 +50,7 @@ class BatchResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\DatePicker::make('sendDate'),
+                Forms\Components\DatePicker::make('expectedDeliveryDate'),
                 Forms\Components\Select::make('commune_id')
                     ->relationship('commune', 'name')
                     ->searchable()
@@ -100,7 +100,7 @@ class BatchResource extends Resource
                     ->icon(fn ($record) => $record->trashed() ? 'heroicon-o-trash' : null)
                     ->tooltip(fn ($record) => $record->trashed() ? 'Deleted' : null)
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('sendDate')
+                Tables\Columns\TextColumn::make('expectedDeliveryDate')
                     ->date()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -215,14 +215,6 @@ class BatchResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\BulkAction::make('markAsSent')
-                        ->label('Mark as Sent')
-                        ->action(fn (\Illuminate\Support\Collection $batches) => $batches->each(fn (Batch $batch) => $batch->update([
-                            'status' => 'sent',
-                            'sendDate' => now(),
-                        ])))
-                        ->requiresConfirmation()
-                        ->icon('heroicon-o-check-circle'),
                     Tables\Actions\BulkAction::make('updateStatus')
                         ->label('Update Status')
                         ->action(fn (\Illuminate\Support\Collection $batches) => $batches->each(fn (Batch $batch) => $batch->updateStatus()))
@@ -233,6 +225,10 @@ class BatchResource extends Resource
                         ->addressPosition('left')
                         ->priorityMail(false)
                         ->label(__('batch.action.exportLetterLeftA4')),
+                    ExportBatchesPdfBulkAction::make('letters_left_mass_delivery')
+                        ->addressPosition('left')
+                        ->massDelivery(true)
+                        ->label(__('batch.action.exportLetterLeftA4MassDelivery')),
                     ExportBatchesPdfBulkAction::make('letters_left_priority')
                         ->addressPosition('left')
                         ->priorityMail(true)
@@ -241,6 +237,10 @@ class BatchResource extends Resource
                         ->addressPosition('right')
                         ->priorityMail(false)
                         ->label(__('batch.action.exportLetterRightA4')),
+                    ExportBatchesPdfBulkAction::make('letters_right_mass_delivery')
+                        ->addressPosition('right')
+                        ->massDelivery(true)
+                        ->label(__('batch.action.exportLetterRightA4MassDelivery')),
                     ExportBatchesPdfBulkAction::make('letters_right_priority')
                         ->addressPosition('right')
                         ->priorityMail(true)

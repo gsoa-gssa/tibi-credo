@@ -38,6 +38,26 @@ class ViewBatch extends ViewRecord
                                 ->send();
                             return;
                         }
+                        $batch->mark_standard_delivery();
+                        return $batch->pdf(true, false);
+                    }),
+                Action::make("exportLetterLeftA4")
+                    ->label(__('batch.action.exportLetterLeftA4MassDelivery'))
+                    ->icon("heroicon-o-envelope")
+                    ->action(function (Model $batch){
+                        if ($batch->commune->address === null) {
+                            Notification::make()
+                                ->danger()
+                                ->seconds(15)
+                                ->title(
+                                    "The commune does not have an address. <a href=\"" .
+                                    route('filament.app.resources.communes.edit', $batch->commune) .
+                                    "\" class=\"underline\" target=\"_blank\">Add it here.</a>"
+                                )
+                                ->send();
+                            return;
+                        }
+                        $batch->mark_mass_delivery();
                         return $batch->pdf(true, false);
                     }),
                 Action::make("exportLetterLeftA4Priority")
@@ -56,6 +76,7 @@ class ViewBatch extends ViewRecord
                                 ->send();
                             return;
                         }
+                        $batch->mark_priority_delivery();
                         return $batch->pdf(true, true);
                     }),
                 Action::make('exportLetterRightA4')
@@ -74,6 +95,26 @@ class ViewBatch extends ViewRecord
                                 ->send();
                             return;
                         }
+                        $batch->mark_standard_delivery();
+                        return $batch->pdf(false);
+                    }),
+                Action::make('exportLetterRightA4')
+                    ->label(__('batch.action.exportLetterRightA4MassDelivery'))
+                    ->icon('heroicon-o-envelope')
+                    ->action(function (Model $batch){
+                        if ($batch->commune->address === null) {
+                            Notification::make()
+                                ->danger()
+                                ->seconds(15)
+                                ->title(
+                                    "The commune does not have an address. <a href=\"" .
+                                    route('filament.app.resources.communes.edit', $batch->commune) .
+                                    "\" class=\"underline\" target=\"_blank\">Add it here.</a>"
+                                )
+                                ->send();
+                            return;
+                        }
+                        $batch->mark_mass_delivery();
                         return $batch->pdf(false);
                     }),
                 Action::make('exportLetterRightA4Priority')
@@ -92,6 +133,7 @@ class ViewBatch extends ViewRecord
                                 ->send();
                             return;
                         }
+                        $batch->mark_priority_delivery();
                         return $batch->pdf(false, true);
                     }),
             ])
@@ -102,17 +144,7 @@ class ViewBatch extends ViewRecord
                 ->label(__('batch.action.editBatch'))
                 ->icon('heroicon-o-pencil')
                 ->url(fn () => route('filament.app.resources.batches.edit', $this->record)),
-            Action::make('markAsSent')
-                ->label(__('batch.action.markAsSent'))
-                ->icon('heroicon-o-check-circle')
-                ->requiresConfirmation()
-                ->action(function (Model $batch) {
-                        $batch->update([
-                        'status' => 'sent',
-                        'sendDate' => now(),
-                        ]);
-                        return redirect()->route('filament.app.resources.batches.index');
-                }),
+            
         ];
     }
 }

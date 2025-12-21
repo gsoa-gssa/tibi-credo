@@ -18,7 +18,7 @@ class Batch extends Model
 
     protected $casts = [
         'id' => 'integer',
-        'sendDate' => 'date',
+        'expectedDeliveryDate' => 'date',
         'commune_id' => 'integer',
     ];
 
@@ -116,6 +116,52 @@ class Batch extends Model
             $this->status = 'returned';
             $this->save();
         }
+    }
+
+    /**
+     * Calculate the next workday (excluding weekends).
+     * Returns a Carbon date object.
+     */
+    private static function nextWorkday(\Carbon\Carbon $date, int $workdaysToAdd = 1): \Carbon\Carbon
+    {
+        $date = $date->copy();
+        
+        while ($workdaysToAdd > 0) {
+            $date->addDay();
+            // 0 = Sunday, 6 = Saturday
+            if (!in_array($date->dayOfWeek, [0, 6])) {
+                $workdaysToAdd--;
+            }
+        }
+        
+        return $date;
+    }
+
+    /**
+     * Mark batch for priority delivery: expectedDeliveryDate = created_at + 1 workday
+     */
+    public function mark_priority_delivery(): void
+    {
+        $this->expectedDeliveryDate = self::nextWorkday($this->created_at, 1);
+        $this->save();
+    }
+
+    /**
+     * Mark batch for standard delivery: expectedDeliveryDate = created_at + 2 workdays
+     */
+    public function mark_standard_delivery(): void
+    {
+        $this->expectedDeliveryDate = self::nextWorkday($this->created_at, 2);
+        $this->save();
+    }
+
+    /**
+     * Mark batch for mass delivery: expectedDeliveryDate = created_at + 6 workdays
+     */
+    public function mark_mass_delivery(): void
+    {
+        $this->expectedDeliveryDate = self::nextWorkday($this->created_at, 6);
+        $this->save();
     }
 
     public function pdf($posLeft = true, $priority = false): \Symfony\Component\HttpFoundation\StreamedResponse
