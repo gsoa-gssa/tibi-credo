@@ -21,6 +21,8 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\CommuneResource\RelationManagers;
 use Spatie\Activitylog\Models\Activity;
 use App\Filament\Actions\ImportAddressCorrectionsAction;
+use App\Filament\Actions\ScrapeAddressesAction;
+use App\Filament\Actions\ScrapeAddressesBulkAction;
 
 class CommuneResource extends Resource
 {
@@ -497,6 +499,7 @@ class CommuneResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
+                    ScrapeAddressesBulkAction::make(),
                     Tables\Actions\BulkAction::make('export_only')
                     ->label('Export')
                     ->icon('heroicon-o-arrow-down-tray')
