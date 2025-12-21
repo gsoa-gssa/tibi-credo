@@ -151,7 +151,7 @@ class UpdateZipcodesFromBfs implements ShouldQueue
             Log::info('SQLite query completed');
             
             // Build a map of commune officialId => commune_id for fast lookup
-            $communeMap = Commune::pluck('id', 'officialId')->toArray();
+            $communeMap = Commune::bfsToPk();
             
             $batch = [];
             $batchSize = 1000;

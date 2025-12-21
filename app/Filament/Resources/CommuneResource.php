@@ -580,6 +580,11 @@ class CommuneResource extends Resource
                         'it' => __('input.label.source.label.it'),
                     ])
                     ->attribute('lang'),
+                Tables\Filters\SelectFilter::make('canton_id')
+                    ->label(__('canton.name'))
+                    ->relationship('canton', 'label')
+                    ->preload()
+                    ->searchable(),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),

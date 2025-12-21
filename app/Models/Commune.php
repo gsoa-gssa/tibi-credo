@@ -32,6 +32,52 @@ class Commune extends Model
         'address_checked' => 'boolean',
         'checked_on' => 'date',
     ];
+
+    const SVE_GE_BFS_IDS = [
+        6601,
+        6602,
+        6603,
+        6604,
+        6605,
+        6606,
+        6607,
+        6608,
+        6609,
+        6610,
+        6612,
+        6613,
+        6614,
+        6615,
+        6616,
+        6617,
+        6618,
+        6619,
+        6620,
+        6621,
+        6622,
+        6623,
+        6624,
+        6625,
+        6626,
+        6628,
+        6629,
+        6630,
+        6631,
+        6632,
+        6633,
+        6634,
+        6635,
+        6636,
+        6637,
+        6638,
+        6639,
+        6640,
+        6641,
+        6642,
+        6643,
+        6644,
+        6645,
+    ];
     /**
      * Return the formatted authority address as HTML.
      */
@@ -105,6 +151,21 @@ class Commune extends Model
         $pattern = '/[,\s]*\(?' . preg_quote($code, '/') . '\)?$/';
 
         return preg_replace($pattern, '', $name_candidate);
+    }
+
+    public static function bfsToPk()
+    {
+        $mapping = Commune::pluck('id', 'officialId')->toArray();
+        
+        // Map all Geneva special communes to Geneva (6621)
+        $genevaId = $mapping[6621] ?? null;
+        if ($genevaId) {
+            foreach (self::SVE_GE_BFS_IDS as $bfsId) {
+                $mapping[$bfsId] = $genevaId;
+            }
+        }
+        
+        return $mapping;
     }
 
     public function saveNameWithCanton(): void

@@ -70,14 +70,15 @@ class ZipcodeResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
+                    ->label(__('zipcode.fields.name'))
                     ->searchable(),
                 Tables\Columns\TextColumn::make('code')
+                    ->label(__('zipcode.fields.code'))
                     ->sortable()
                     ->searchable(),
-                Tables\Columns\TextColumn::make('commune.name')
-                    ->formatStateUsing(fn ($record) => $record->commune->nameWithCanton())
-                    ->numeric()
-                    ->toggleable(isToggledHiddenByDefault: true)
+                Tables\Columns\TextColumn::make('commune.name_with_canton')
+                    ->label(__('commune.name'))
+                    ->toggleable(isToggledHiddenByDefault: false)
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
