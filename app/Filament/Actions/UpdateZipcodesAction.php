@@ -2,6 +2,27 @@
 
 namespace App\Filament\Actions;
 
+/**
+ * Filament action to download and import zipcode data from BFS.
+ *
+ * EXECUTION: Dispatches queued job (non-blocking)
+ * 
+ * WORKFLOW:
+ * 1. User clicks "Update Zipcodes" button in Zipcode management
+ * 2. Action checks if job already running
+ * 3. Dispatches UpdateZipcodesFromBfs job to queue
+ * 4. Job downloads https://public.madd.bfs.admin.ch/ch.zip
+ * 5. Extracts data.sqlite to storage/app/bfs/
+ * 6. Imports zipcodes into database
+ *
+ * PREREQUISITES:
+ * - Queue worker must be running: php artisan queue:work
+ *
+ * RELATED:
+ * - Job: UpdateZipcodesFromBfs (downloads ZIP + imports zipcodes)
+ * - Used by: ImportAddressesFromBfs (reads the downloaded data.sqlite)
+ * - Different from: ImportBfsAction (manual commune CSV upload)
+ */
 use Filament\Tables\Actions\Action;
 use Filament\Notifications\Notification;
 use App\Jobs\UpdateZipcodesFromBfs;

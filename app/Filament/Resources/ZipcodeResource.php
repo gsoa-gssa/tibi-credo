@@ -11,6 +11,7 @@ use Filament\Resources\Resource;
 use App\Filament\Exports\ZipcodeExporter;
 use App\Filament\Imports\ZipcodeImporter;
 use App\Filament\Actions\UpdateZipcodesAction;
+use App\Filament\Actions\ImportAddressesAction;
 use Filament\Notifications\Notification;
 use Filament\Tables\Actions\ExportAction;
 use Filament\Tables\Actions\ImportAction;
@@ -98,6 +99,7 @@ class ZipcodeResource extends Resource
             ->headerActions([
                 Tables\Actions\ActionGroup::make([
                     UpdateZipcodesAction::make(),
+                    ImportAddressesAction::make(),
                     ImportAction::make()->importer(ZipcodeImporter::class),
                     ExportAction::make()->exporter(ZipcodeExporter::class),
                 ])

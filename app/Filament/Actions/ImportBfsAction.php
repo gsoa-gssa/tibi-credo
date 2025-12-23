@@ -2,6 +2,27 @@
 
 namespace App\Filament\Actions;
 
+/**
+ * Filament action for MANUAL commune data import from user-uploaded files.
+ *
+ * EXECUTION: Synchronous (blocks UI until complete)
+ * 
+ * WORKFLOW:
+ * 1. User uploads CSV/Excel file with columns: "BFS Gde-Nummer", "Kanton", "Gemeindename"
+ * 2. Action processes file immediately (no queue)
+ * 3. Updates existing communes (sets checked_on date) if name/canton match
+ * 4. Creates new communes if not found
+ * 5. Reports mismatches and missing cantons
+ *
+ * PURPOSE:
+ * - Manual maintenance of commune records
+ * - Verification of commune data against BFS lists
+ * - NOT related to automated zipcode/address import system
+ *
+ * RELATED:
+ * - Different from: UpdateZipcodesAction (automated zipcode download)
+ * - Different from: ImportAddressesAction (automated address import)
+ */
 use Filament\Tables\Actions\Action;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Str;
