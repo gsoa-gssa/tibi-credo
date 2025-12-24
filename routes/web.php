@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use Barryvdh\DomPDF\Facade\Pdf;
 
+Route::get('/communes/{commune}/label', [App\Filament\Resources\CommuneResource\Pages\LabelCommune::class, '__invoke'])->name('communes.label');
+
 Route::prefix("stats")->group(function () {
     Route::get('/signatures/count', [App\Http\Controllers\StatsController::class, 'viewSignatureCount']);
 });

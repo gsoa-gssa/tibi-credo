@@ -48,6 +48,9 @@ class ZipcodesRelationManager extends RelationManager
                     ->label(__('zipcode.fields.name'))
                     ->sortable()
                     ->searchable(),
+                Tables\Columns\TextColumn::make('number_of_dwellings')
+                    ->label(__('zipcode.fields.number_of_dwellings'))
+                    ->sortable(),
             ])
             ->filters([
                 //

@@ -20,6 +20,11 @@ class ViewCommune extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
+            Actions\Action::make('label')
+                ->label(__('Label'))
+                ->icon('heroicon-m-printer')
+                ->url(fn () => route('communes.label', $this->record))
+                ->openUrlInNewTab(),
             Actions\DeleteAction::make(),
             Actions\EditAction::make(),
         ];

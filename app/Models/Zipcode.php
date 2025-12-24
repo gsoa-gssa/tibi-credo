@@ -77,4 +77,14 @@ class Zipcode extends Model implements HasAllowedFilters, HasAllowedIncludes, Ha
         $this->name = preg_replace($pattern, '', $this->name);
         $this->save();
     }
+
+    /**
+     * Get the total number of dwellings for this zipcode code and name across all communes.
+     */
+    public function getTotalDwellings(): int
+    {
+        return Zipcode::where('code', $this->code)
+            ->where('name', $this->name)
+            ->sum('number_of_dwellings');
+    }
 }
