@@ -49,6 +49,30 @@
             list-style: none;
             line-height: 1.4;
         }
+        .street-numbers {
+            font-size: 10px;
+            padding-left: 0.5cm;
+            color: #555;
+            margin-top: 0.2cm;
+        }
+        .streets-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5cm;
+            margin-top: 0.3cm;
+            padding-left: 0.5cm;
+        }
+        .streets-column {
+            font-size: 10px;
+            padding: 0.3cm;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+        }
+        .streets-column-title {
+            font-weight: bold;
+            margin-bottom: 0.2cm;
+            font-size: 10px;
+        }
         @media print {
             body {
                 margin: 0;
@@ -66,7 +90,30 @@
                 <div class="zipcodes-title">Postcodes:</div>
                 <ul class="zipcodes-list">
                     @foreach ($record->zipcodes as $zipcode)
-                    <li>{{ $zipcode->code }} {{ $zipcode->name }} ({{ $zipcode->number_of_dwellings }}/{{ $zipcode->getTotalDwellings() }})</li>
+                    <li>
+                        <div>{{ $zipcode->code }} {{ $zipcode->name }} ({{ $zipcode->number_of_dwellings }}/{{ $zipcode->getTotalDwellings() }})</div>
+                        @php $streets = $zipcode->getStreetsWithNumbers(); @endphp
+                        @if (!empty($streets['same_commune']) || !empty($streets['other_communes']))
+                        <div class="streets-container">
+                            <div class="streets-column">
+                                <div class="streets-column-title">{{ $record->name }}</div>
+                                @if (!empty($streets['same_commune']))
+                                    {{ implode(', ', $streets['same_commune']) }}
+                                @else
+                                    <em>None</em>
+                                @endif
+                            </div>
+                            <div class="streets-column">
+                                <div class="streets-column-title">Other communes</div>
+                                @if (!empty($streets['other_communes']))
+                                    {{ implode(', ', $streets['other_communes']) }}
+                                @else
+                                    <em>None</em>
+                                @endif
+                            </div>
+                        </div>
+                        @endif
+                    </li>
                     @endforeach
                 </ul>
             </div>

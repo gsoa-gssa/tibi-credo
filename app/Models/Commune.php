@@ -186,6 +186,44 @@ class Commune extends Model
         $this->name = $this->withoutCantonSuffix($this->name);
     }
 
+    /**
+     * Get the commune with the highest complexity score.
+     * Score is calculated as: zipcodes count + street count from the shorter array.
+     */
+    public static function mostComplicatedCommune(): ?self
+    {
+        $communes = self::with('zipcodes')->get();
+        
+        $maxScore = -1;
+        $mostComplicated = null;
+        
+        foreach ($communes as $commune) {
+            $score = 0;
+            
+            // Add 1 for each zipcode
+            $score += $commune->zipcodes->count();
+            
+            // For each zipcode, add the count of streets from the shorter array
+            foreach ($commune->zipcodes as $zipcode) {
+                $streetsByType = $zipcode->getStreetsWithNumbers();
+                $sameCount = count($streetsByType['same_commune']);
+                $otherCount = count($streetsByType['other_communes']);
+                
+                // Add the count from the shorter array
+                $score += min($sameCount, $otherCount);
+            }
+            
+            if ($score > $maxScore) {
+                // print to terminal
+                echo "New most complicated commune: " . $commune->nameWithCanton() . " with score " . $score . PHP_EOL;
+                $maxScore = $score;
+                $mostComplicated = $commune;
+            }
+        }
+        
+        return $mostComplicated;
+    }
+
     protected static function booted(): void
     {
         static::saving(function (Commune $commune) {
