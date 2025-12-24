@@ -126,6 +126,14 @@ class Commune extends Model
         return $this->hasMany(Maeppli::class);
     }
 
+    /**
+     * All addresses belonging to this commune.
+     */
+    public function addresses(): HasMany
+    {
+        return $this->hasMany(\App\Models\Address::class, 'commune_id');
+    }
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
