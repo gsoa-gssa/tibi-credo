@@ -12,11 +12,11 @@
         }
         body {
             font-family: serif;
-            padding: 2cm;
+            padding: 1cm;
         }
         .label {
-            border: 1px solid #333;
-            padding: 1.5cm;
+            border: none;
+            padding: 0;
             width: 100%;
             min-height: 5cm;
             display: flex;
@@ -44,10 +44,24 @@
             font-weight: bold;
             margin-bottom: 0.3cm;
         }
+        .zipcodes-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5cm;
+        }
         .zipcodes-list {
             font-size: 11px;
             list-style: none;
             line-height: 1.4;
+            column-count: 2;
+            column-gap: 0.5cm;
+        }
+        .zipcodes-list li {
+            break-inside: avoid-column;
+            page-break-inside: avoid;
+        }
+        .zipcodes-list li:nth-child(even) {
+            background: #f5f5f5;
         }
         .street-numbers {
             font-size: 10px;
@@ -58,15 +72,12 @@
         .streets-container {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 0.5cm;
-            margin-top: 0.3cm;
-            padding-left: 0.5cm;
+            gap: 0.3cm;
+            margin-top: 0.1cm;
         }
         .streets-column {
             font-size: 10px;
-            padding: 0.3cm;
-            background: #f9f9f9;
-            border: 1px solid #ddd;
+            padding: 0.1cm 0;
         }
         .streets-column-title {
             font-weight: bold;
@@ -76,7 +87,7 @@
         @media print {
             body {
                 margin: 0;
-                padding: 0;
+                padding: 1cm;
             }
         }
     </style>
@@ -87,26 +98,25 @@
             <div class="name">{{ $record->name_with_canton }}</div>
             @if ($record->zipcodes->count() > 0)
             <div class="zipcodes">
-                <div class="zipcodes-title">Postcodes:</div>
                 <ul class="zipcodes-list">
                     @foreach ($record->zipcodes as $zipcode)
                     <li>
                         <div>{{ $zipcode->code }} {{ $zipcode->name }} ({{ $zipcode->number_of_dwellings }}/{{ $zipcode->getTotalDwellings() }})</div>
-                        @php $streets = $zipcode->getStreetsWithNumbers(); @endphp
+                        @php $streets = $zipcode->getStreetsWithNumbersSummary(); @endphp
                         @if (!empty($streets['same_commune']) || !empty($streets['other_communes']))
                         <div class="streets-container">
                             <div class="streets-column">
-                                <div class="streets-column-title">{{ $record->name }}</div>
+                                <div class="streets-column-title">{{ __('commune.label.addresses_in_this_commune', ['name' => $record->name]) }}</div>
                                 @if (!empty($streets['same_commune']))
-                                    {{ implode(', ', $streets['same_commune']) }}
+                                    {{ $streets['same_commune'] }}
                                 @else
                                     <em>None</em>
                                 @endif
                             </div>
                             <div class="streets-column">
-                                <div class="streets-column-title">Other communes</div>
+                                <div class="streets-column-title">{{ __('commune.label.addresses_in_other_communes') }}</div>
                                 @if (!empty($streets['other_communes']))
-                                    {{ implode(', ', $streets['other_communes']) }}
+                                    {{ $streets['other_communes'] }}
                                 @else
                                     <em>None</em>
                                 @endif

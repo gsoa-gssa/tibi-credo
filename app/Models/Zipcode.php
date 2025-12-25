@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Cache;
 use Rupadana\ApiService\Contracts\HasAllowedFilters;
 use Rupadana\ApiService\Contracts\HasAllowedIncludes;
 use Rupadana\ApiService\Contracts\HasAllowedSorts;
@@ -163,5 +164,126 @@ class Zipcode extends Model implements HasAllowedFilters, HasAllowedIncludes, Ha
         }
 
         return $streets;
+    }
+
+    /**
+     * Get a summary of streets with numbers, abbreviated for display.
+     * Keeps the shorter list in full, abbreviates the longer list with similar street names only.
+     * Uses Levenshtein distance to find similar street names (threshold: < 3).
+     */
+    public function getStreetsWithNumbersSummary(): array
+    {
+        $cacheKey = 'zipcode:' . $this->id . ':streets_with_numbers_summary';
+        
+        return Cache::remember($cacheKey, now()->addHours(6), function () {
+            $streets = $this->getStreetsWithNumbers();
+            
+            $same_commune = $streets['same_commune'];
+            $other_communes = $streets['other_communes'];
+            
+            // Determine which is the full list and which should be abbreviated
+            $full_list = $same_commune;
+            $abbrev_list = $other_communes;
+            $is_same_commune_full = true;
+            
+            if (count($other_communes) < count($same_commune)) {
+                $full_list = $other_communes;
+                $abbrev_list = $same_commune;
+                $is_same_commune_full = false;
+            }
+            
+            // Extract street names from full list for comparison (remove the ": number" part)
+            $full_street_names = array_map(function ($street) {
+                return preg_replace('/:\\s.+$/', '', $street);
+            }, $full_list);
+            
+            // Find similar streets in abbreviated list using Levenshtein distance
+            $similar_streets = [];
+            foreach ($abbrev_list as $street) {
+                $street_name = preg_replace('/:\\s.+$/', '', $street);
+                $min_distance = PHP_INT_MAX;
+                
+                foreach ($full_street_names as $full_name) {
+                    $distance = levenshtein(
+                        $this->normalizeStreetName($street_name),
+                        $this->normalizeStreetName($full_name)
+                    );
+                    $min_distance = min($min_distance, $distance);
+                }
+                
+                if ($min_distance < 5) {
+                    $similar_streets[] = $street;
+                }
+            }
+            
+            // Build the summary
+            $summary = [];
+            
+            if ($is_same_commune_full) {
+                $summary['same_commune'] = implode(', ', $full_list);
+                $summary['other_communes'] = '';
+                
+                if (!empty($similar_streets)) {
+                    $summary['other_communes'] = __('commune.label.among_others') . implode(', ', $similar_streets);
+                } else {
+                    if (!empty($full_list)) {
+                        $summary['other_communes'] = __('commune.label.no_similar_streets_found');
+                    }
+                }
+            } else {
+                $summary['other_communes'] = implode(', ', $full_list);
+                $summary['same_commune'] = '';
+                
+                if (!empty($similar_streets)) {
+                    $summary['same_commune'] = __('commune.label.among_others') . implode(', ', $similar_streets);
+                } else {
+                    if (!empty($full_list)) {
+                        $summary['same_commune'] = __('commune.label.no_similar_streets_found');
+                    }
+                }
+            }
+            
+            return $summary;
+        });
+    }
+
+    /**
+     * Normalize a street name for comparison.
+     * Converts to lowercase, removes whitespace, and removes common street suffixes.
+     */
+    private function normalizeStreetName(string $name): string
+    {
+        // Convert to lowercase and remove all whitespace
+        $normalized = strtolower(preg_replace('/\s+/', '', $name));
+        
+        // Remove common street suffixes in German, French, and Italian
+        $suffixes = [
+            'strasse',
+            'strasse',
+            'strasse',
+            'straße',  // German ß
+            'avenue',
+            'via',
+            'platz',
+            'platz',
+            'weg',
+            'gasse',
+            'gässli',
+            'allee',
+            'boulevard',
+            'corso',
+            'viale',
+            'rue',
+            'place',
+        ];
+        
+        foreach ($suffixes as $suffix) {
+            // Remove suffix if it appears at the end
+            if (substr($normalized, -strlen($suffix)) === $suffix) {
+                $normalized = substr($normalized, 0, -strlen($suffix));
+            }
+        }
+        
+        return $normalized;
     }
 }
