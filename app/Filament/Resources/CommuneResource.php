@@ -606,6 +606,15 @@ class CommuneResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     ScrapeAddressesBulkAction::make(),
                     ExportAuthorityCandidatesBulkAction::make(),
+                    Tables\Actions\BulkAction::make('print_labels')
+                        ->label('Print Labels')
+                        ->icon('heroicon-o-printer')
+                        ->color('primary')
+                        ->action(function (\Illuminate\Support\Collection $records) {
+                            $ids = $records->pluck('id')->implode(',');
+                            return redirect()->route('labels.communes', ['ids' => $ids]);
+                        })
+                        ->requiresConfirmation(),
                     Tables\Actions\BulkAction::make('fix_canton_suffix')
                         ->label('Fix Canton Suffix')
                         ->icon('heroicon-o-exclamation-triangle')

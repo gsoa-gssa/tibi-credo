@@ -1,9 +1,27 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 Route::get('/communes/{commune}/label', [App\Filament\Resources\CommuneResource\Pages\LabelCommune::class, '__invoke'])->name('communes.label');
+
+// Combined labels view for multiple communes selected via bulk action
+Route::get('/labels/communes', function (Request $request) {
+    $idsParam = (string) $request->query('ids');
+    $ids = collect(explode(',', $idsParam))
+        ->filter()
+        ->map(fn($id) => (int) $id)
+        ->all();
+
+    $communes = App\Models\Commune::with('zipcodes')
+        ->whereIn('id', $ids)
+        ->get();
+
+    return response()->view('filament.pages.labels-communes', [
+        'communes' => $communes,
+    ]);
+})->name('labels.communes');
 
 Route::prefix("stats")->group(function () {
     Route::get('/signatures/count', [App\Http\Controllers\StatsController::class, 'viewSignatureCount']);

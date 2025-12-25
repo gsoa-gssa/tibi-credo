@@ -187,4 +187,18 @@ class Address extends Model
             'other_communes' => $ranges_other_communes,
         ];
     }
+
+    protected static function booted(): void
+    {
+        // Invalidate caches for affected zipcodes (by code+name group) when addresses change
+        $forgetForAddress = function (Address $address) {
+            $zipcode = $address->zipcode;
+            if ($zipcode) {
+                Zipcode::forgetSummaryCacheForCodeName($zipcode->code, $zipcode->name);
+            }
+        };
+
+        static::saved($forgetForAddress);
+        static::deleted($forgetForAddress);
+    }
 }

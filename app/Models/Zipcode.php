@@ -175,7 +175,7 @@ class Zipcode extends Model implements HasAllowedFilters, HasAllowedIncludes, Ha
     {
         $cacheKey = 'zipcode:' . $this->id . ':streets_with_numbers_summary';
         
-        return Cache::remember($cacheKey, now()->addHours(6), function () {
+        return Cache::rememberForever($cacheKey, function () {
             $streets = $this->getStreetsWithNumbers();
             
             $same_commune = $streets['same_commune'];
@@ -244,6 +244,48 @@ class Zipcode extends Model implements HasAllowedFilters, HasAllowedIncludes, Ha
             }
             
             return $summary;
+        });
+    }
+
+    /**
+     * Forget the cached summary for a specific zipcode id.
+     */
+    public static function forgetSummaryCacheById(int $id): void
+    {
+        Cache::forget('zipcode:' . $id . ':streets_with_numbers_summary');
+    }
+
+    /**
+     * Forget cached summaries for all zipcodes sharing the same code & name across communes.
+     */
+    public static function forgetSummaryCacheForCodeName(string $code, string $name): void
+    {
+        Zipcode::where('code', $code)
+            ->where('name', $name)
+            ->pluck('id')
+            ->each(function ($id) {
+                Cache::forget('zipcode:' . $id . ':streets_with_numbers_summary');
+            });
+    }
+
+    protected static function booted(): void
+    {
+        static::saved(function (Zipcode $zipcode) {
+            // Always forget this zipcode's cache
+            self::forgetSummaryCacheById($zipcode->id);
+
+            // If code or name changed, also forget caches of the previous group
+            $originalCode = $zipcode->getOriginal('code');
+            $originalName = $zipcode->getOriginal('name');
+            if (($originalCode && $originalCode !== $zipcode->code) || ($originalName && $originalName !== $zipcode->name)) {
+                self::forgetSummaryCacheForCodeName($originalCode ?? $zipcode->code, $originalName ?? $zipcode->name);
+                self::forgetSummaryCacheForCodeName($zipcode->code, $zipcode->name);
+            }
+        });
+
+        static::deleted(function (Zipcode $zipcode) {
+            self::forgetSummaryCacheForCodeName($zipcode->code, $zipcode->name);
+            self::forgetSummaryCacheById($zipcode->id);
         });
     }
 

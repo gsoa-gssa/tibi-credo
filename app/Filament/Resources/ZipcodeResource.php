@@ -16,9 +16,11 @@ use Filament\Notifications\Notification;
 use Filament\Tables\Actions\ExportAction;
 use Filament\Tables\Actions\ImportAction;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Arr;
 use App\Filament\Resources\ZipcodeResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\ZipcodeResource\RelationManagers;
+use App\Jobs\WarmZipcodeStreetsSummary;
 
 class ZipcodeResource extends Resource
 {
@@ -102,6 +104,22 @@ class ZipcodeResource extends Resource
                     ImportAddressesAction::make(),
                     ImportAction::make()->importer(ZipcodeImporter::class),
                     ExportAction::make()->exporter(ZipcodeExporter::class),
+                    Tables\Actions\Action::make('warm_street_cache')
+                        ->label('Warm Street Cache')
+                        ->icon('heroicon-o-bolt')
+                        ->color('success')
+                        ->action(function () {
+                            $ids = Zipcode::query()->orderBy('id')->pluck('id')->all();
+                            $chunks = array_chunk($ids, 100);
+                            foreach ($chunks as $chunk) {
+                                WarmZipcodeStreetsSummary::dispatch($chunk);
+                            }
+                            Notification::make()
+                                ->title('Queued ' . count($chunks) . ' jobs to warm zipcode street caches')
+                                ->success()
+                                ->send();
+                        })
+                        ->requiresConfirmation(),
                 ])
                     ->label(__('zipcode.headerActionGroup.management'))
                     ->icon('heroicon-o-table-cells')
