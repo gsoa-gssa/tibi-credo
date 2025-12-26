@@ -6,15 +6,12 @@ use App\Filament\Resources\MaeppliResource\Pages;
 use App\Models\Maeppli;
 use Filament\Forms;
 use Filament\Forms\Form;
-use Filament\Infolists;
 use Filament\Infolists\Components;
 use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Relations\Relation;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class MaeppliResource extends Resource
 {
@@ -112,11 +109,6 @@ class MaeppliResource extends Resource
                                 $total = $valid + $invalid;
                                 return $total > 0 ? (string)(int)($valid / $total * 100) . '%' : $valid . ' / ' . $total;
                             }),
-                        Components\TextEntry::make('signatures_on_sheets')
-                            ->label(__('maeppli.signatures_on_sheets'))
-                            ->getStateUsing(function ($record) {
-                                return $record->sheets()->sum('signatureCount');
-                            }),
                         Components\TextEntry::make('signatures_total')
                             ->label(__('maeppli.signatures_total'))
                             ->getStateUsing(function ($record) {
@@ -160,82 +152,18 @@ class MaeppliResource extends Resource
                     ->dateTime('d.m.Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('batch_created_at')
-                    ->label(__('batch.created_at'))
+                Tables\Columns\TextColumn::make('sheets_valid_ratio')
+                    ->label(__('maeppli.sheets_valid_ratio'))
                     ->getStateUsing(function ($record) {
-                        // Get an arbitrary Sheet for this Maeppli
-                        $sheet = $record->sheets()->with('batch')->first();
-                        return $sheet && $sheet->batch
-                            ? $sheet->batch->created_at?->format('d.m.Y')
-                            : __('maeppli.no_batch');
+                        $valid = (int) $record->sheets_valid_count;
+                        $invalid = (int) $record->sheets_invalid_count;
+                        $total = $valid + $invalid;
+                        return $total > 0 ? (string)(int)($valid / $total * 100 ) . '%' : $valid . ' / ' . $total;
                     })
-                    ->sortable(query: function (Builder $query, string $direction) {
-                        // Join sheets and batches to sort by batch.created_at of the first related sheet
-                        return $query->leftJoin('sheets', 'maepplis.id', '=', 'sheets.maeppli_id')
-                            ->leftJoin('batches', 'sheets.batch_id', '=', 'batches.id')
-                            ->orderBy('batches.created_at', $direction)
-                            ->select('maepplis.*')
-                            ->groupBy([
-                            'maepplis.id',
-                            'maepplis.label',
-                            'maepplis.box_id',
-                            'maepplis.commune_id',
-                            'maepplis.sheets_count',
-                            'maepplis.sheets_valid_count',
-                            'maepplis.sheets_invalid_count',
-                            'maepplis.created_at',
-                            'maepplis.updated_at',
-                            'maepplis.deleted_at',
-                        ]);
-                    })                        
-                    ->toggleable(isToggledHiddenByDefault: true),
-                    Tables\Columns\TextColumn::make('sheets_valid_ratio')
-                        ->label(__('maeppli.sheets_valid_ratio'))
-                        ->getStateUsing(function ($record) {
-                            $valid = (int) $record->sheets_valid_count;
-                            $invalid = (int) $record->sheets_invalid_count;
-                            $total = $valid + $invalid;
-                            return $total > 0 ? (string)(int)($valid / $total * 100 ) . '%' : $valid . ' / ' . $total;
-                        })
-                        ->sortable(false)
-                        ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('signature_count_difference')
-                    ->label(__('maeppli.signature_count_difference'))
-                    ->getStateUsing(function ($record) {
-                        $signaturesOnSheets = $record->sheets()->sum('signatureCount');
-                        $signaturesTotal = $record->sheets_valid_count + $record->sheets_invalid_count;
-                        return $signaturesOnSheets - $signaturesTotal;
-                    })
-                    ->sortable(query: function (Builder $query, string $direction) {
-                        return $query->leftJoin('sheets', 'maepplis.id', '=', 'sheets.maeppli_id')
-                            ->selectRaw('maepplis.*, (COALESCE(SUM(sheets.signatureCount), 0) - (maepplis.sheets_valid_count + maepplis.sheets_invalid_count)) as signature_difference')
-                            ->groupBy([
-                                'maepplis.id',
-                                'maepplis.label',
-                                'maepplis.box_id',
-                                'maepplis.commune_id',
-                                'maepplis.sheets_count',
-                                'maepplis.sheets_valid_count',
-                                'maepplis.sheets_invalid_count',
-                                'maepplis.created_at',
-                                'maepplis.updated_at',
-                                'maepplis.deleted_at',
-                            ])
-                            ->orderBy('signature_difference', $direction);
-                    })
+                    ->sortable(false)
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\Filter::make('signature_count_suspicious')
-                    ->label(__('maeppli.filters.signature_count_suspicious'))
-                    ->query(fn (Builder $query) =>
-                        $query->whereHas('sheets', function (Builder $subQuery) {
-                            $subQuery->selectRaw('SUM(signatureCount) as total_signatures')
-                                ->groupBy('maeppli_id')
-                                ->havingRaw('total_signatures > (sheets_valid_count + sheets_invalid_count)');
-                        })
-                    )
-                    ->toggle(),
                 Tables\Filters\SelectFilter::make('valid_signatures_threshold')
                     ->label(__('maeppli.filters.valid_signatures_threshold'))
                     ->options([

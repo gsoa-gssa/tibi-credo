@@ -44,7 +44,22 @@ class CountingResource extends Resource
             Forms\Components\TextInput::make('count')
                 ->label(__('counting.fields.count'))
                 ->required()
+                ->live(onBlur: true)
                 ->numeric()
+                ->extraAttributes([
+                    'data-count-input' => 'true',
+                ])
+                ->columnSpan(2),
+            Forms\Components\Checkbox::make('confirm_large_count')
+                ->label(__('counting.fields.confirmLargeCount'))
+                ->default(false)
+                ->required(fn (\Filament\Forms\Get $get) => ((int) ($get('count') ?? 0)) > 100)
+                ->hidden(fn (\Filament\Forms\Get $get) => ((int) ($get('count') ?? 0)) <= 100)
+                ->dehydrated(false)
+                ->extraAttributes([
+                    'id' => 'confirm-large-count-checkbox',
+                    'data-large-count-field' => 'true',
+                ])
                 ->columnSpan(2),
             Forms\Components\Select::make('source_id')
                 ->label(__('source.name'))

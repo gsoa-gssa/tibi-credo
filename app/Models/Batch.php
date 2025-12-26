@@ -16,10 +16,20 @@ class Batch extends Model
 {
     use HasFactory, SoftDeletes, LogsActivity, HasFilamentComments;
 
+    protected $fillable = [
+        'status',
+        'expectedDeliveryDate',
+        'commune_id',
+        'signature_count',
+        'sheets_count',
+    ];
+
     protected $casts = [
         'id' => 'integer',
         'expectedDeliveryDate' => 'date',
         'commune_id' => 'integer',
+        'signature_count' => 'integer',
+        'sheets_count' => 'integer',
     ];
 
     public function commune(): BelongsTo

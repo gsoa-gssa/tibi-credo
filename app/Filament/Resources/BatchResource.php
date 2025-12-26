@@ -48,6 +48,16 @@ class BatchResource extends Resource
     {
         return $form
             ->schema([
+                Forms\Components\TextInput::make('signature_count')
+                    ->label(__('batch.signature_count'))
+                    ->numeric()
+                    ->minValue(0)
+                    ->required(),
+                Forms\Components\TextInput::make('sheets_count')
+                    ->label(__('batch.sheets_count'))
+                    ->numeric()
+                    ->minValue(0)
+                    ->required(),
                 Forms\Components\DatePicker::make('expectedDeliveryDate'),
                 Forms\Components\Select::make('commune_id')
                     ->relationship('commune', 'name')
@@ -82,6 +92,10 @@ class BatchResource extends Resource
                         'returned' => 'Returned',
                     })
                     ->default('pending')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('sheets_count')
+                    ->label(__('batch.sheets_count'))
+                    ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('signature_count')
                     ->label(__('batch.signature_count'))
