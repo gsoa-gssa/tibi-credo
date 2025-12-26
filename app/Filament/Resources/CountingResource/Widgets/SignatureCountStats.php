@@ -44,12 +44,18 @@ class SignatureCountStats extends BaseWidget
     protected static function requiredMin($required_valid): int
     {
         $validity_total = self::validityTotal();
+        if ( $validity_total == 0 ) {
+            return -1;
+        }
         return ceil( $required_valid / $validity_total );
     }
 
     protected static function requiredValidityByWorstMaeppli($required_valid, $ratio): int
     {
         $validity_worst = self::validityByWorstMaeppli($ratio);
+        if ( $validity_worst == 0 ) {
+            return -1;
+        }
         return ceil( $required_valid / $validity_worst );
     }
     protected function getStats(): array

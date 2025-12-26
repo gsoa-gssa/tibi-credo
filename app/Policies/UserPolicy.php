@@ -29,7 +29,8 @@ class UserPolicy
      */
     public function view(User $user): bool
     {
-        return $user->can('view_user');
+        // Only allow viewing users in the same signature_collection
+        return $user->can('view_user') && $user->signature_collection_id !== null;
     }
 
     /**
@@ -40,7 +41,7 @@ class UserPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('create_user');
+        return $user->can('create_user') && $user->signature_collection_id !== null;
     }
 
     /**
@@ -51,7 +52,7 @@ class UserPolicy
      */
     public function update(User $user): bool
     {
-        return $user->can('update_user');
+        return $user->can('update_user') && $user->signature_collection_id !== null;
     }
 
     /**
@@ -62,7 +63,7 @@ class UserPolicy
      */
     public function delete(User $user): bool
     {
-        return $user->can('delete_user');
+        return $user->can('delete_user') && $user->signature_collection_id !== null;
     }
 
     /**
@@ -84,7 +85,7 @@ class UserPolicy
      */
     public function forceDelete(User $user): bool
     {
-        return $user->can('force_delete_user');
+        return $user->can('force_delete_user') && $user->signature_collection_id !== null;
     }
 
     /**
@@ -106,7 +107,7 @@ class UserPolicy
      */
     public function restore(User $user): bool
     {
-        return $user->can('restore_user');
+        return $user->can('restore_user') && $user->signature_collection_id !== null;
     }
 
     /**
@@ -128,7 +129,7 @@ class UserPolicy
      */
     public function replicate(User $user): bool
     {
-        return $user->can('replicate_user');
+        return $user->can('replicate_user') && $user->signature_collection_id !== null;
     }
 
     /**

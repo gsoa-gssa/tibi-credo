@@ -27,6 +27,8 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         'password',
         'signature_collection_id',
     ];
+
+
     /**
      * Get the signature collection associated with the user.
      */

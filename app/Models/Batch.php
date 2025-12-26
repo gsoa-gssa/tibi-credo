@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Scopes\SignatureCollectionScope;
 use Spatie\Activitylog\LogOptions;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -30,6 +31,11 @@ class Batch extends Model
         'signature_count' => 'integer',
         'sheets_count' => 'integer',
     ];
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new SignatureCollectionScope);
+    }
 
     public function commune(): BelongsTo
     {

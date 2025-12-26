@@ -23,7 +23,7 @@ class SourcePolicy
      */
     public function view(User $user, Source $source): bool
     {
-        return $user->can('view_source');
+        return $user->can('view_source') && $user->signature_collection_id === $source->signature_collection_id;
     }
 
     /**
@@ -31,7 +31,7 @@ class SourcePolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('create_source');
+        return $user->can('create_source') && $user->signature_collection_id !== null;
     }
 
     /**
@@ -39,7 +39,7 @@ class SourcePolicy
      */
     public function update(User $user, Source $source): bool
     {
-        return $user->can('update_source');
+        return $user->can('update_source') && $user->signature_collection_id === $source->signature_collection_id;
     }
 
     /**
@@ -47,7 +47,7 @@ class SourcePolicy
      */
     public function delete(User $user, Source $source): bool
     {
-        return $user->can('delete_source');
+        return $user->can('delete_source') && $user->signature_collection_id === $source->signature_collection_id;
     }
 
     /**
@@ -63,7 +63,7 @@ class SourcePolicy
      */
     public function forceDelete(User $user, Source $source): bool
     {
-        return $user->can('force_delete_source');
+        return $user->can('force_delete_source') && $user->signature_collection_id === $source->signature_collection_id;
     }
 
     /**
@@ -79,7 +79,7 @@ class SourcePolicy
      */
     public function restore(User $user, Source $source): bool
     {
-        return $user->can('restore_source');
+        return $user->can('restore_source') && $user->signature_collection_id === $source->signature_collection_id;
     }
 
     /**
@@ -95,7 +95,7 @@ class SourcePolicy
      */
     public function replicate(User $user, Source $source): bool
     {
-        return $user->can('replicate_source');
+        return $user->can('replicate_source') && $user->signature_collection_id === $source->signature_collection_id;
     }
 
     /**

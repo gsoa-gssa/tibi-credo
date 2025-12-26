@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Scopes\SignatureCollectionScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -19,6 +20,11 @@ class Counting extends Model
     /**
      * Hook into the Eloquent model's boot method.
      */
+    protected static function booted()
+    {
+        static::addGlobalScope(new SignatureCollectionScope);
+    }
+
     protected static function boot()
     {
         parent::boot();

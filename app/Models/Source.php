@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Scopes\SignatureCollectionScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -14,6 +15,11 @@ class Source extends Model implements HasAllowedFilters
     public $casts = [
         'label' => 'json',
     ];
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new SignatureCollectionScope);
+    }
 
     /**
      * Get the countings for this source.

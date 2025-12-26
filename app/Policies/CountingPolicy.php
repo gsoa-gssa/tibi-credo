@@ -23,7 +23,7 @@ class CountingPolicy
      */
     public function view(User $user, Counting $counting): bool
     {
-        return $user->can('view_counting');
+        return $user->can('view_counting') && $user->signature_collection_id === $counting->signature_collection_id;
     }
 
     /**
@@ -31,7 +31,7 @@ class CountingPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('create_counting');
+        return $user->can('create_counting') && $user->signature_collection_id !== null;
     }
 
     /**
@@ -39,7 +39,7 @@ class CountingPolicy
      */
     public function update(User $user, Counting $counting): bool
     {
-        return $user->can('update_counting');
+        return $user->can('update_counting') && $user->signature_collection_id === $counting->signature_collection_id;
     }
 
     /**
@@ -47,7 +47,7 @@ class CountingPolicy
      */
     public function delete(User $user, Counting $counting): bool
     {
-        return $user->can('delete_counting');
+        return $user->can('delete_counting') && $user->signature_collection_id === $counting->signature_collection_id;
     }
 
     /**
@@ -63,7 +63,7 @@ class CountingPolicy
      */
     public function forceDelete(User $user, Counting $counting): bool
     {
-        return $user->can('force_delete_counting');
+        return $user->can('force_delete_counting') && $user->signature_collection_id === $counting->signature_collection_id;
     }
 
     /**
@@ -79,7 +79,7 @@ class CountingPolicy
      */
     public function restore(User $user, Counting $counting): bool
     {
-        return $user->can('restore_counting');
+        return $user->can('restore_counting') && $user->signature_collection_id === $counting->signature_collection_id;
     }
 
     /**
@@ -95,7 +95,7 @@ class CountingPolicy
      */
     public function replicate(User $user, Counting $counting): bool
     {
-        return $user->can('replicate_counting');
+        return $user->can('replicate_counting') && $user->signature_collection_id === $counting->signature_collection_id;
     }
 
     /**

@@ -158,6 +158,15 @@ class UserResource extends Resource
         return $table;
     }
 
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+        if (auth()->check() && auth()->user()->signature_collection_id !== null) {
+            $query->where('signature_collection_id', auth()->user()->signature_collection_id);
+        }
+        return $query;
+    }
+
     public static function getPages(): array
     {
         return [

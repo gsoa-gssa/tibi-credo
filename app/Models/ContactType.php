@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Models;
+
+use App\Models\Scopes\SignatureCollectionScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -20,6 +22,11 @@ class ContactType extends Model
         'body_fr',
         'body_it'
     ];
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new SignatureCollectionScope);
+    }
 
     public function contacts(): HasMany
     {

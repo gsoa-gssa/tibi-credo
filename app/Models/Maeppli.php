@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Scopes\SignatureCollectionScope;
 use Spatie\Activitylog\LogOptions;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,6 +15,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class Maeppli extends Model
 {
     use SoftDeletes, LogsActivity, HasFilamentComments;
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new SignatureCollectionScope);
+    }
 
     public function commune(): BelongsTo
     {

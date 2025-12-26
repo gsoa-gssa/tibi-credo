@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Scopes\SignatureCollectionScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -16,6 +17,11 @@ class Box extends Model
         'label_final',
     ];
 
+    protected static function booted()
+    {
+        static::addGlobalScope(new SignatureCollectionScope);
+    }
+    
     /**
      * Maepplis in this box.
      */

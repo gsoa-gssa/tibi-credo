@@ -23,7 +23,7 @@ class ContactPolicy
      */
     public function view(User $user, Contact $contact): bool
     {
-        return $user->can('view_contact');
+        return $user->can('view_contact') && $user->signature_collection_id === $contact->signature_collection_id;
     }
 
     /**
@@ -31,7 +31,7 @@ class ContactPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('create_contact');
+        return $user->can('create_contact') && $user->signature_collection_id !== null;
     }
 
     /**
@@ -39,7 +39,7 @@ class ContactPolicy
      */
     public function update(User $user, Contact $contact): bool
     {
-        return $user->can('update_contact');
+        return $user->can('update_contact') && $user->signature_collection_id === $contact->signature_collection_id;
     }
 
     /**
@@ -47,7 +47,7 @@ class ContactPolicy
      */
     public function delete(User $user, Contact $contact): bool
     {
-        return $user->can('delete_contact');
+        return $user->can('delete_contact') && $user->signature_collection_id === $contact->signature_collection_id;
     }
 
     /**
@@ -63,7 +63,7 @@ class ContactPolicy
      */
     public function forceDelete(User $user, Contact $contact): bool
     {
-        return $user->can('force_delete_contact');
+        return $user->can('force_delete_contact') && $user->signature_collection_id === $contact->signature_collection_id;
     }
 
     /**
@@ -79,7 +79,7 @@ class ContactPolicy
      */
     public function restore(User $user, Contact $contact): bool
     {
-        return $user->can('restore_contact');
+        return $user->can('restore_contact') && $user->signature_collection_id === $contact->signature_collection_id;
     }
 
     /**
@@ -95,7 +95,7 @@ class ContactPolicy
      */
     public function replicate(User $user, Contact $contact): bool
     {
-        return $user->can('replicate_contact');
+        return $user->can('replicate_contact') && $user->signature_collection_id === $contact->signature_collection_id;
     }
 
     /**

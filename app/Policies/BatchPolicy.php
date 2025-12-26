@@ -23,7 +23,7 @@ class BatchPolicy
      */
     public function view(User $user, Batch $batch): bool
     {
-        return $user->can('view_batch');
+        return $user->can('view_batch') && $user->signature_collection_id === $batch->signature_collection_id;
     }
 
     /**
@@ -31,7 +31,7 @@ class BatchPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('create_batch');
+        return $user->can('create_batch') && $user->signature_collection_id !== null;
     }
 
     /**
@@ -39,7 +39,7 @@ class BatchPolicy
      */
     public function update(User $user, Batch $batch): bool
     {
-        return $user->can('update_batch');
+        return $user->can('update_batch') && $user->signature_collection_id === $batch->signature_collection_id;
     }
 
     /**
@@ -47,7 +47,7 @@ class BatchPolicy
      */
     public function delete(User $user, Batch $batch): bool
     {
-        return $user->can('delete_batch');
+        return $user->can('delete_batch') && $user->signature_collection_id === $batch->signature_collection_id;
     }
 
     /**
@@ -63,7 +63,7 @@ class BatchPolicy
      */
     public function forceDelete(User $user, Batch $batch): bool
     {
-        return $user->can('force_delete_batch');
+        return $user->can('force_delete_batch') && $user->signature_collection_id === $batch->signature_collection_id;
     }
 
     /**
@@ -79,7 +79,7 @@ class BatchPolicy
      */
     public function restore(User $user, Batch $batch): bool
     {
-        return $user->can('restore_batch');
+        return $user->can('restore_batch') && $user->signature_collection_id === $batch->signature_collection_id;
     }
 
     /**
@@ -95,7 +95,7 @@ class BatchPolicy
      */
     public function replicate(User $user, Batch $batch): bool
     {
-        return $user->can('replicate_batch');
+        return $user->can('replicate_batch') && $user->signature_collection_id === $batch->signature_collection_id;
     }
 
     /**

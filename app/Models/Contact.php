@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Scopes\SignatureCollectionScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Model;
@@ -23,6 +24,11 @@ class Contact extends Model
         'birthdate' => 'date',
         'letter_sent' => 'datetime',
     ];
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new SignatureCollectionScope);
+    }
 
     /**
      * Get Zipcode
