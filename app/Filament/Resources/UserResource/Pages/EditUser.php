@@ -18,6 +18,10 @@ class EditUser extends EditRecord
             if (empty($data['password'])) {
                 $data['password'] = $getUser->password;
             }
+            // Prevent non-super-admins from changing signature_collection_id
+            if (!auth()->user()?->hasRole('super_admin')) {
+                $data['signature_collection_id'] = $getUser->signature_collection_id;
+            }
         }
         return $data;
     }

@@ -65,6 +65,12 @@ class UserResource extends Resource
                 ->email()
                 ->required()
                 ->label(trans('filament-users::user.resource.email')),
+            Forms\Components\Select::make('signature_collection_id')
+                ->label(__('signature_collection.name'))
+                ->relationship('signatureCollection', 'short_name')
+                ->preload()
+                ->required()
+                ->disabled(fn () => !auth()->user()?->hasRole('super_admin')),
             TextInput::make('password')
                 ->label(trans('filament-users::user.resource.password'))
                 ->password()

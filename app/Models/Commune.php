@@ -24,6 +24,7 @@ class Commune extends Model
         'address_checked',
         'checked_on',
         'name_with_canton',
+        'name_with_canton_and_zipcode',
     ];
 
     protected $casts = [
@@ -78,29 +79,6 @@ class Commune extends Model
         6644,
         6645,
     ];
-    /**
-     * Return the formatted authority address as HTML.
-     */
-    public function address_html(): string
-    {
-        $lines = [];
-        if ($this->authority_address_name) {
-            $lines[] = e($this->authority_address_name);
-        }
-        $street = trim(($this->authority_address_street ?? '') . ' ' . ($this->authority_address_house_number ?? ''));
-        if ($street) {
-            $lines[] = e($street);
-        }
-        if ($this->authority_address_extra) {
-            $lines[] = e($this->authority_address_extra);
-        }
-        $cityLine = trim(($this->authority_address_postcode ?? '') . ' ' . ($this->authority_address_place ?? ''));
-        if ($cityLine) {
-            $lines[] = e($cityLine);
-        }
-        return implode('<br>', $lines);
-    }
-
 
     public function zipcodes(): HasMany
     {
@@ -136,6 +114,53 @@ class Commune extends Model
             ->logAll();
     }
 
+    /**
+     * Return the formatted authority address as HTML.
+     */
+    public function address_html(): string
+    {
+        $lines = [];
+        if ($this->authority_address_name) {
+            $lines[] = e($this->authority_address_name);
+        }
+        $street = trim(($this->authority_address_street ?? '') . ' ' . ($this->authority_address_house_number ?? ''));
+        if ($street) {
+            $lines[] = e($street);
+        }
+        if ($this->authority_address_extra) {
+            $lines[] = e($this->authority_address_extra);
+        }
+        $cityLine = trim(($this->authority_address_postcode ?? '') . ' ' . ($this->authority_address_place ?? ''));
+        if ($cityLine) {
+            $lines[] = e($cityLine);
+        }
+        return implode('<br>', $lines);
+    }
+
+    /**
+     * Search communes
+     * Returns top 10 results.
+     */
+    public static function searchByNameOrZip(string $query)
+    {
+        $safe = str_replace(['%', '_', '[', ']'], '', $query);
+        if (is_numeric($safe)) {
+            return self::whereHas('zipcodes', function($q) use ($safe) {
+                        $q->where('code', 'like', $safe . '%');
+                })
+                ->limit(10)
+                ->get();
+        } else {
+            $safe = trim($safe);
+            return self::where(function($q) use ($safe) {
+                        $q->where('name_with_canton', 'like', $safe . '%');
+                })
+                ->limit(10)
+                ->get();
+        }
+        
+    }
+
     public function nameWithCanton(): string
     {
         if ($this->canton && $this->canton->label) {
@@ -143,6 +168,35 @@ class Commune extends Model
         }
 
         return $this->name;
+    }
+
+    public function zipcode_4(): int|null
+    {
+        $zipcodes = $this->zipcodes()->orderBy('code')->get();
+        if ($zipcodes->isEmpty()) {
+            return null;
+        }
+        // Try to find a zipcode where the name matches the commune name (ignoring canton suffix)
+        foreach ($zipcodes as $zipcode) {
+            // remove digits from $zipcode->name
+            $zip_name = preg_replace('/\d+/', '', $zipcode->name);
+            $zip_name = strtolower(trim($this->withoutCantonSuffix($zip_name)));
+            $commune_name = strtolower(trim($this->name));
+            if ($zip_name === $commune_name) {
+                return (int)$zipcode->code;
+            }
+        }
+        // Otherwise, return the lowest code
+        return (int)$zipcodes->first()->code;
+    }
+
+    public function nameWithCantonAndZipcode(): string
+    {
+        $zipcode = $this->zipcode_4();
+        if ($zipcode) {
+            return sprintf("%04d %s", $zipcode, $this->nameWithCanton());
+        }
+        return $this->nameWithCanton();
     }
 
     public function withoutCantonSuffix($name_candidate): string
@@ -175,6 +229,14 @@ class Commune extends Model
     public function saveNameWithCanton(): void
     {
         $this->name_with_canton = $this->nameWithCanton();
+    }
+
+    /**
+     * Save the nameWithCantonAndZipcode value to the DB field.
+     */
+    public function saveNameWithCantonAndZipcode(): void
+    {
+        $this->name_with_canton_and_zipcode = $this->nameWithCantonAndZipcode();
     }
 
     public function fixCantonSuffix(): void
@@ -225,6 +287,7 @@ class Commune extends Model
         static::saving(function (Commune $commune) {
             $commune->fixCantonSuffix();
             $commune->saveNameWithCanton();
+            $commune->saveNameWithCantonAndZipcode();
         });
     }
 }

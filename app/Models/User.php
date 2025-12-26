@@ -9,6 +9,7 @@ use Illuminate\Notifications\Notifiable;
 use Filament\Models\Contracts\FilamentUser;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 
 class User extends Authenticatable implements FilamentUser, MustVerifyEmail
@@ -24,7 +25,15 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         'name',
         'email',
         'password',
+        'signature_collection_id',
     ];
+    /**
+     * Get the signature collection associated with the user.
+     */
+    public function signatureCollection() : BelongsTo
+    {
+        return $this->belongsTo(\App\Models\SignatureCollection::class);
+    }
 
     /**
      * The attributes that should be hidden for serialization.

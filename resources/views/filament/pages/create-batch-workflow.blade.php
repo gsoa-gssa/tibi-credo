@@ -1,12 +1,16 @@
 <x-filament-panels::page>
-    <x-filament-panels::form wire:submit="createBatch">
-        {{ $this->createBatchWizard }}
-    </x-filament-panels::form>
-    <style>
-        div[wire\:key*="data.sheets"]:focus-within {
-            border:2px solid rgb(71, 71, 71) !important;
-            border-radius: 3px;
-            transition: background 0.2s;
-        }
-    </style>
+    <form wire:submit="create">
+        {{ $this->form }}
+        
+        <div class="flex justify-end mt-6">
+            <x-filament::button type="submit">
+                {{ __('filament-panels::resources/pages/create-record.form.actions.create.label') }}
+            </x-filament::button>
+        </div>
+    </form>
+
+    <div class="mt-12">
+        <h3 class="text-lg font-semibold mb-4">{{ __('pages.createBatchWorkflow.recentLabel') }}</h3>
+        {{ $this->table }}
+    </div>
 </x-filament-panels::page>

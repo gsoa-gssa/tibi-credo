@@ -37,13 +37,17 @@ class AppPanelProvider extends PanelProvider
     {
         return $panel
             ->default()
+            ->brandName(function () {
+                $user = auth()->user();
+                return 'Certimi - ' . ($user && $user->signatureCollection ? $user->signatureCollection->short_name : 'Admin');
+            })
             ->id('app')
             ->path('')
             ->login()
-            ->colors([
-                'primary' => "#b40e44",
-                'gray' => Color::Slate,
-            ])
+            // ->colors([
+            //     'primary' => "#b40e44",
+            //     'gray' => Color::Slate,
+            // ])
             ->databaseNotifications()
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
@@ -97,6 +101,10 @@ class AppPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-            ]);
+            ])
+            ->renderHook(
+                \Filament\View\PanelsRenderHook::USER_MENU_BEFORE,
+                fn (): string => \Illuminate\Support\Facades\Blade::render("@livewire('signature-collection-selector')")
+            );
     }
 }

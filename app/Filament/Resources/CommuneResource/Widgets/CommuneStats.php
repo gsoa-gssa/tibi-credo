@@ -16,7 +16,7 @@ class CommuneStats extends BaseWidget
         return [
             Stat::make(
                 __("widgets.communeStats.signatures"), 
-                $this->record->sheets()->sum('signatureCount')
+                $this->record->batches()->sum('signature_count')
             ),
             Stat::make(
                 __("widgets.communeStats.valid"),
@@ -28,7 +28,7 @@ class CommuneStats extends BaseWidget
             ),
             Stat::make(
                 __("widgets.communeStats.sheets"),
-                $this->record->sheets()->count()
+                $this->record->batches()->sum('sheets_count')
             ),
         ];
     }

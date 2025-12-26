@@ -68,8 +68,7 @@ class CreateCounting extends Page implements HasForms, HasTable
                 Tables\Columns\TextColumn::make('date')
                     ->date()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('name')
-                    ->searchable(),
+                Tables\Columns\TextColumn::make('name'),
                 Tables\Columns\TextColumn::make('count')
                     ->numeric()
                     ->sortable(),

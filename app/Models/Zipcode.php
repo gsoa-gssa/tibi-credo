@@ -7,11 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Cache;
-use Rupadana\ApiService\Contracts\HasAllowedFilters;
-use Rupadana\ApiService\Contracts\HasAllowedIncludes;
-use Rupadana\ApiService\Contracts\HasAllowedSorts;
 
-class Zipcode extends Model implements HasAllowedFilters, HasAllowedIncludes, HasAllowedSorts
+class Zipcode extends Model
 {
     use HasFactory;
 
@@ -28,39 +25,6 @@ class Zipcode extends Model implements HasAllowedFilters, HasAllowedIncludes, Ha
     public function addresses(): HasMany
     {
         return $this->hasMany(Address::class);
-    }
-
-    /**
-     * Define which fields can be filtered for this model.
-     */
-    public static function getAllowedFilters(): array
-    {
-        return [
-            "code",
-            "name"
-        ];
-    }
-
-    /**
-     * Define which relations can be included for this model.
-     */
-    public static function getAllowedIncludes(): array
-    {
-        $includes = [
-            "commune"
-        ];
-        return $includes;
-    }
-
-    /**
-     * Define which fields can be sorted for this model.
-     */
-    public static function getAllowedSorts(): array
-    {
-        $sorts = [
-            "number_of_dwellings",
-        ];
-        return $sorts;
     }
 
     public function nameWithCanton(): string
@@ -245,6 +209,38 @@ class Zipcode extends Model implements HasAllowedFilters, HasAllowedIncludes, Ha
             
             return $summary;
         });
+    }
+
+    /**
+     * Some zipcodes which are commonly used to represent communes
+     * like 8000 don't actually exist.
+     * Add them.
+     */
+    public static function addRoundZips(): void
+    {
+        $additional_zipcodes = [
+            'Geneva' => '1200',
+            'Bern' => '3000',
+            'Basel' => '4000',
+            'Luzern' => '6000',
+            'Zurich' => '8000',
+        ];
+        foreach ($additional_zipcodes as $communeName => $zipCode) {
+            $commune = Commune::where('name', $communeName)->first();
+            if ($commune) {
+                $existing = Zipcode::where('commune_id', $commune->id)
+                    ->where('code', $zipCode)
+                    ->first();
+                if (!$existing) {
+                    Zipcode::create([
+                        'commune_id' => $commune->id,
+                        'code' => $zipCode,
+                        'name' => $commune->nameWithCanton(),
+                        'number_of_dwellings' => 0,
+                    ]);
+                }
+            }
+        }
     }
 
     /**

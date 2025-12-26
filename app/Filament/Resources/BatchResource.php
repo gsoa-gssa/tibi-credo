@@ -18,7 +18,7 @@ use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\BatchResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\BatchResource\RelationManagers;
-use App\Filament\Actions\BulkActions\ExportBatchesPdfBulkAction;
+use App\Filament\Actions\BulkActions\ExportBatchesBulkActionGroup;
 
 class BatchResource extends Resource
 {
@@ -44,41 +44,79 @@ class BatchResource extends Resource
 
     protected static ?int $navigationSort = 2;
 
+    public static function getFormSchema(): array
+    {
+        return [
+                Forms\Components\Select::make('commune_id')
+                    ->label(__('commune.name'))
+                    ->columnSpan(2)
+                    ->searchable()
+                    ->getSearchResultsUsing(fn (string $search): array => Commune::searchByNameOrZip($search)->mapWithKeys(function ($commune) {
+                        return [$commune->id => $commune->name_with_canton_and_zipcode];
+                    })->toArray())
+                    ->required(),
+                Forms\Components\TextInput::make('signature_count')
+                    ->label(__('batch.fields.signature_count'))
+                    ->numeric()
+                    ->minValue(1)
+                    ->live(onBlur: true)
+                    ->required(),
+                Forms\Components\TextInput::make('sheets_count')
+                    ->label(__('batch.fields.sheets_count'))
+                    ->numeric()
+                    ->minValue(1)
+                    ->live(onBlur: true)
+                    ->required(),
+                Forms\Components\TextInput::make('weight_grams')
+                    ->label(__('batch.fields.weight_grams'))
+                    ->columnSpan(2)
+                    ->numeric()
+                    ->minValue(1)
+                    ->live(onBlur: true)
+                    ->hidden(function (Get $get) {
+                        $sheets = $get('sheets_count');
+                        if (!is_numeric($sheets)) {
+                            return true;
+                        }
+                        return ((int) $sheets) < 100;
+                    })
+                    ->required(),
+                Forms\Components\Checkbox::make('confirm')
+                    ->label(__('batch.fields.confirm_creation'))
+                    ->columnSpan(2)
+                    ->required()
+                    ->dehydrated(false)
+                    ->hidden(function (Get $get) {
+                        $sig = $get('signature_count');
+                        $sheets = $get('sheets_count');
+                        if (!is_numeric($sig) || !is_numeric($sheets)) {
+                            return true;
+                        }
+                        $sig = (int) $sig;
+                        $sheets = (int) $sheets;
+                        $manySigs = $sig > 500;
+                        $sigSheetRelationBig = $sig > 5 && $sheets > 0 && ($sig / $sheets) > 3;
+                        $sigSheetRelationSmall = $sig > 5 && $sheets > 0 && ($sig / $sheets) < 1.5;
+                        return !($manySigs || $sigSheetRelationBig || $sigSheetRelationSmall);
+                    }),
+                Forms\Components\DatePicker::make('expectedDeliveryDate')
+                    ->label(__('batch.fields.expected_delivery_date'))
+                    ->hidden(fn ($record) => $record === null),
+            ];
+    }
+
     public static function form(Form $form): Form
     {
         return $form
-            ->schema([
-                Forms\Components\TextInput::make('signature_count')
-                    ->label(__('batch.signature_count'))
-                    ->numeric()
-                    ->minValue(0)
-                    ->required(),
-                Forms\Components\TextInput::make('sheets_count')
-                    ->label(__('batch.sheets_count'))
-                    ->numeric()
-                    ->minValue(0)
-                    ->required(),
-                Forms\Components\DatePicker::make('expectedDeliveryDate'),
-                Forms\Components\Select::make('commune_id')
-                    ->relationship('commune', 'name')
-                    ->searchable()
-                    ->getSearchResultsUsing(fn (string $search): array => Commune::where(function (Builder $query) use ($search) {
-                        $query->where('name', 'like', "%$search%")
-                              ->orWhereHas('zipcodes', fn (Builder $q) => $q->where('code', 'like', "%$search%"));
-                    })->limit(10)->get()->mapWithKeys(function ($commune) {
-                        return [$commune->id => $commune->nameWithCanton()];
-                    })->toArray())
-                    ->required()
-            ]);
+            ->schema(self::getFormSchema());
     }
 
-    public static function table(Table $table): Table
+    public static function getTableSchema(): array
     {
-        return $table
-            ->columns([
-                Tables\Columns\TextColumn::make('commune.name')
-                    ->formatStateUsing(fn ($record) => $record->commune->nameWithCanton())
-                    ->numeric()
+        return [
+                Tables\Columns\TextColumn::make('commune.name_with_canton_and_zipcode')
+                    ->label(__('commune.name'))
+                    ->url(fn (Batch $record) => static::getUrl('view', ['record' => $record]))
                     ->sortable(),
                 Tables\Columns\IconColumn::make('status')
                     ->icon(fn (Batch $batch) => match ($batch->status) {
@@ -94,11 +132,11 @@ class BatchResource extends Resource
                     ->default('pending')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('sheets_count')
-                    ->label(__('batch.sheets_count'))
+                    ->label(__('batch.fields.sheets_count'))
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('signature_count')
-                    ->label(__('batch.signature_count'))
+                    ->label(__('batch.fields.signature_count'))
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\IconColumn::make("deleted_at")
@@ -111,12 +149,19 @@ class BatchResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-            ])
+        ];
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns(self::getTableSchema())
             ->defaultSort('created_at', 'desc')
             ->filters([
                 SelectFilter::make('commune')
@@ -209,34 +254,7 @@ class BatchResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
-                Tables\Actions\BulkActionGroup::make([
-                    ExportBatchesPdfBulkAction::make('letters_left')
-                        ->addressPosition('left')
-                        ->priorityMail(false)
-                        ->label(__('batch.action.exportLetterLeftA4')),
-                    ExportBatchesPdfBulkAction::make('letters_left_mass_delivery')
-                        ->addressPosition('left')
-                        ->massDelivery(true)
-                        ->label(__('batch.action.exportLetterLeftA4MassDelivery')),
-                    ExportBatchesPdfBulkAction::make('letters_left_priority')
-                        ->addressPosition('left')
-                        ->priorityMail(true)
-                        ->label(__('batch.action.exportLetterLeftA4Priority')),
-                    ExportBatchesPdfBulkAction::make('letters_right')
-                        ->addressPosition('right')
-                        ->priorityMail(false)
-                        ->label(__('batch.action.exportLetterRightA4')),
-                    ExportBatchesPdfBulkAction::make('letters_right_mass_delivery')
-                        ->addressPosition('right')
-                        ->massDelivery(true)
-                        ->label(__('batch.action.exportLetterRightA4MassDelivery')),
-                    ExportBatchesPdfBulkAction::make('letters_right_priority')
-                        ->addressPosition('right')
-                        ->priorityMail(true)
-                        ->label(__('batch.action.exportLetterRightA4Priority')),
-                ])
-                    ->label(__('batch.action.exportLetter'))
-                    ->icon('heroicon-o-envelope'),
+                ExportBatchesBulkActionGroup::make(),
             ]);
     }
 

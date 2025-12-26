@@ -43,11 +43,6 @@ class BatchesRelationManager extends RelationManager
                     ->sortable(),
                 Tables\Columns\TextColumn::make('sheets_count')
                     ->label(__('batch.fields.sheets'))
-                    ->counts('sheets')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('sheets_without_maeppli_count')
-                    ->label(__('batch.fields.sheets_not_in_maeppli'))
-                    ->counts(['sheets as sheets_without_maeppli_count' => fn ($q) => $q->whereNull('maeppli_id')])
                     ->sortable(),
             ])
             ->filters([
