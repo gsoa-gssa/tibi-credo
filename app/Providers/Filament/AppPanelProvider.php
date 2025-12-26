@@ -81,13 +81,17 @@ class AppPanelProvider extends PanelProvider
                 \Filament\Navigation\NavigationGroup::make()
                     ->label(fn (): string => __('navigation.group.workflows')),
                 \Filament\Navigation\NavigationGroup::make()
-                    ->label(fn (): string => __('navigation.group.projectDataManagement')),
+                    ->label(fn (): string => __('navigation.group.projectDataManagement'))
+                    ->collapsed(true),
                 \Filament\Navigation\NavigationGroup::make()
-                    ->label(fn (): string => __('navigation.group.geoData')),
+                    ->label(fn (): string => __('navigation.group.geoData'))
+                    ->collapsed(true),
                 \Filament\Navigation\NavigationGroup::make()
-                    ->label(fn (): string => __('navigation.group.control')),
+                    ->label(fn (): string => __('navigation.group.control'))
+                    ->collapsed(true),
                 \Filament\Navigation\NavigationGroup::make()
-                    ->label(fn (): string => __('navigation.group.systemSettings')),
+                    ->label(fn (): string => __('navigation.group.systemSettings'))
+                    ->collapsed(true),
                 \Filament\Navigation\NavigationGroup::make()
                     ->label('System Settings'),
             ])

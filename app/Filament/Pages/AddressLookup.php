@@ -48,6 +48,29 @@ class AddressLookup extends Page implements HasForms
 
     protected $maxRows = 10;
 
+    /**
+     * Override addError to concatenate multiple errors for the same field
+     * instead of replacing them.
+     */
+    public function addError($key, $message)
+    {
+        $errorBag = $this->getErrorBag();
+        $currentErrors = $errorBag->get($key);
+        
+        if (!empty($currentErrors)) {
+            // If there are existing errors, merge them with the new one
+            if (is_array($currentErrors)) {
+                $message = implode(' / ', array_merge($currentErrors, [$message]));
+            } else {
+                $message = $currentErrors . ' / ' . $message;
+            }
+            // Remove the old errors before adding the concatenated one
+            $this->resetErrorBag(collect([$key]));
+        }
+        
+        parent::addError($key, $message);
+    }
+
     public function mount()
     {
         $this->maxRows = config('address-lookup.max_rows', 10);
@@ -72,7 +95,7 @@ class AddressLookup extends Page implements HasForms
         $components = [
             Forms\Components\Group::make([
                 Forms\Components\TextInput::make('zipcode')
-                    ->label(__('Zipcode'))
+                    ->label(__('zipcode.name'))
                     ->numeric()
                     ->minValue(1000)
                     ->maxValue(9999)
@@ -81,14 +104,14 @@ class AddressLookup extends Page implements HasForms
                         $this->performLookup();
                     }),
                 Forms\Components\TextInput::make('canton')
-                    ->label(__('Canton code'))
+                    ->label(__('canton.name'))
                     ->maxLength(2)
                     ->live(onBlur: true)
                     ->afterStateUpdated(function () {
                         $this->performLookup();
                     }),
                 Forms\Components\TextInput::make('place')
-                    ->label(__('Place/Commune'))
+                    ->label(__('pages.addressLookup.placeLabel'))
                     ->live(onBlur: true)
                     ->afterStateUpdated(function () {
                         $this->performLookup();
@@ -100,23 +123,23 @@ class AddressLookup extends Page implements HasForms
         for ($i = 0; $i < $this->maxRows; $i++) {
             $components[] = Forms\Components\Group::make([
                 Forms\Components\TextInput::make("addressRows.{$i}.street_name")
-                    ->label(__("Street") . " " . ($i + 1))
+                    ->label(__("pages.addressLookup.streetN", ['number' => $i + 1]))
                     ->live(onBlur: true)
                     ->afterStateUpdated(function () {
                         $this->performLookup();
                     })
                     ->suffix(fn () => $this->addressRows[$i]['ignored'] ? '⚠️' : '')
-                    ->helperText(fn () => $this->addressRows[$i]['ignored'] ? __("Row ignored") : '')
+                    ->helperText(fn () => $this->addressRows[$i]['ignored'] ? __("pages.addressLookup.rowIgnored") : '')
                     ->extraAttributes(['data-row-field' => 'street_name'])
                     ->columnSpan(2),
                 Forms\Components\TextInput::make("addressRows.{$i}.street_number")
-                    ->label(__("Number"))
+                    ->label(__("address.fields.street_number"))
                     ->live(onBlur: true)
                     ->afterStateUpdated(function () {
                         $this->performLookup();
                     })
                     ->suffix(fn () => $this->addressRows[$i]['ignored'] ? '⚠️' : '')
-                    ->helperText(fn () => $this->addressRows[$i]['ignored'] ? __("Row ignored") : '')
+                    ->helperText(fn () => $this->addressRows[$i]['ignored'] ? __("pages.addressLookup.rowIgnored") : '')
                     ->extraAttributes(['data-row-field' => 'street_number']),
             ])
             ->columns(3)
@@ -226,7 +249,7 @@ class AddressLookup extends Page implements HasForms
         if (!empty($this->zipcode)) {
           $zipcodeRecord = Zipcode::where('code', $this->zipcode)->first();
           if (!$zipcodeRecord) {
-            $this->addError('zipcode', __('The specified zipcode does not exist.'));
+            $this->addError('zipcode', __('pages.addressLookup.zipcodeDoesNotExist'));
           }
         }
 
@@ -236,7 +259,7 @@ class AddressLookup extends Page implements HasForms
           if (in_array($cantonCandidate, \App\Models\Canton::labels())) {
               $this->canton = $cantonCandidate;
           } else {
-              $this->addError('canton', __('The specified canton code does not exist.'));
+              $this->addError('canton', __('pages.addressLookup.cantonDoesNotExist'));
           }
         }
 
@@ -256,7 +279,7 @@ class AddressLookup extends Page implements HasForms
               // no unique match found, keep original
               $this->place = trim($this->place);
               if($matchingCommunes->isEmpty() && $matchingZipcodes->isEmpty()) {
-                $this->addError('place', __('The specified place/commune does not exist.'));
+                $this->addError('place', __('pages.addressLookup.placeDoesNotExist'));
               }
             }
           }
@@ -282,36 +305,36 @@ class AddressLookup extends Page implements HasForms
       $this->possibleCommuneNamesWithCanton = Commune::whereIn('id', $this->possibleCommuneIDs->take(3))->pluck('name_with_canton')->toArray();
 
       if ($this->possibleCommuneIDs->isEmpty()) {
-        $this->helperText = __('No matching communes found with the given inputs.');
+        $this->helperText = __('pages.addressLookup.noMatchingCommunes');
       } elseif (count($this->possibleCommuneIDs) === 1) {
         if ($this->haveIgnoredAddressRows()) {
-          $this->helperText = __('One address row was ignored to find a match.');
+          $this->helperText = __('pages.addressLookup.oneRowIgnored');
         } elseif ($this->placeIgnored) {
-          $this->helperText = __('Place was ignored to find a match.');
+          $this->helperText = __('pages.addressLookup.placeIgnored');
         } else {
-          $this->helperText = __('One matching commune found, the values are unambiguous.');
+          $this->helperText = __('pages.addressLookup.oneMatchingCommune');
         }
       } else {
-        $this->helperText = __('Multiple matching communes found.');
+        $this->helperText = __('pages.addressLookup.multipleCommunes');
       }
 
       if ($this->haveIgnoredAddressRows()) {
         foreach ($this->addressRows as $key => $row) {
           if ($row['ignored'] === true) {
-            $this->addressRows[$key]['error'] = __('This row was ignored to find matches.');
+            $this->addressRows[$key]['error'] = __('pages.addressLookup.rowWasIgnored');
           }
         }
       }
 
       if ($this->placeIgnored) {
         if (!empty($this->zipcode)) {
-          $this->addError('zipcode', __('Zipcode was ignored to find matches.'));
+          $this->addError('zipcode', __('pages.addressLookup.zipcodeIgnored'));
         }
         if (!empty($this->canton)) {
-          $this->addError('canton', __('Canton was ignored to find matches.'));
+          $this->addError('canton', __('pages.addressLookup.cantonIgnored'));
         }
         if (!empty($this->place)) {
-          $this->addError('place', __('Place was ignored to find matches.'));
+          $this->addError('place', __('pages.addressLookup.placeIgnoredError'));
         }
       }
     }

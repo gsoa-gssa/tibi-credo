@@ -6,14 +6,20 @@ use App\Models\Counting;
 use App\Filament\Resources\CountingResource;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Tables;
+use Filament\Tables\Table;
 use Filament\Pages\Page;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Notifications\Notification;
+use Illuminate\Database\Eloquent\Builder;
 
-class CreateCounting extends Page implements HasForms
+class CreateCounting extends Page implements HasForms, HasTable
 {
     use InteractsWithForms;
+    use InteractsWithTable;
 
     protected static ?string $navigationIcon = 'heroicon-o-calculator';
 
@@ -49,8 +55,27 @@ class CreateCounting extends Page implements HasForms
     {
         return $form
             ->schema(CountingResource::getFormSchema())
+            ->columns(2)
             ->statePath('data')
             ->model(Counting::class);
+    }
+
+    public function table(Table $table): Table
+    {
+        return $table
+            ->query(Counting::query()->latest('created_at')->limit(10))
+            ->columns([
+                Tables\Columns\TextColumn::make('date')
+                    ->date()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('name')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('count')
+                    ->numeric()
+                    ->sortable(),
+            ])
+            ->defaultSort('created_at', 'desc')
+            ->paginated(false);
     }
 
     public function create(): void
@@ -58,20 +83,22 @@ class CreateCounting extends Page implements HasForms
         $data = $this->form->getState();
 
         try {
-            $counting = Counting::create($data);
+            Counting::create($data);
 
             Notification::make()
                 ->success()
-                ->title(__('notification.success'))
+                ->title(__('pages.createCounting.save.success'))
                 ->send();
 
-            $this->redirect(route('filament.app.resources.countings.view', ['record' => $counting]));
+            $this->form->fill();
+            $this->dispatch('table-reloaded');
         } catch (\Exception $e) {
             Notification::make()
                 ->danger()
-                ->title(__('notification.error'))
+                ->title(__('pages.createCounting.save.error'))
                 ->body($e->getMessage())
                 ->send();
         }
     }
 }
+

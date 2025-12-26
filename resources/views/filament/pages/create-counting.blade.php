@@ -8,4 +8,9 @@
             </x-filament::button>
         </div>
     </form>
+
+    <div class="mt-12">
+        <h3 class="text-lg font-semibold mb-4">{{ __('pages.createCounting.recentLabel') }}</h3>
+        {{ $this->table }}
+    </div>
 </x-filament-panels::page>

@@ -41,44 +41,34 @@ class CountingResource extends Resource
     public static function getFormSchema(): array
     {
         return [
-            Forms\Components\Radio::make('source')
-                ->options([
-                    'postal' => __("resources.countings.form.source.labels.postal"),
-                    'street' => __("resources.countings.form.source.labels.street"),
-                    "other" => __("resources.countings.form.source.labels.other"),
-                    "unknown" => __("resources.countings.form.source.labels.unknown"),
-                ])
-                ->default('postal')
-                ->required(),
-            Forms\Components\Select::make('region')
-                ->options([
-                    'bern' => __("resources.countings.form.region.labels.bern"),
-                    'zurich' => __("resources.countings.form.region.labels.zurich"),
-                    'central' => __("resources.countings.form.region.labels.central"),
-                    'basel' => __("resources.countings.form.region.labels.basel"),
-                    'romandie' => __("resources.countings.form.region.labels.romandie"),
-                    "ticino" => __("resources.countings.form.region.labels.ticino"),
-                    "diverse" => __("resources.countings.form.region.labels.diverse"),
-                ])
-                ->native(false),
-            Forms\Components\ViewField::make('sources_warning')
-                ->view('filament.forms.components.countings.sources-warning')
-                ->dehydrated(false)
+            Forms\Components\TextInput::make('count')
+                ->label(__('counting.fields.count'))
+                ->required()
+                ->numeric()
                 ->columnSpan(2),
-            Forms\Components\DateTimePicker::make('date')
+            Forms\Components\Select::make('source_id')
+                ->label(__('source.name'))
+                ->relationship('source', 'code')
+                ->required()
+                ->searchable()
+                ->preload(),
+            Forms\Components\ToggleButtons::make('paper_format')
+                ->label(__('counting.fields.paper_format'))
+                ->options([
+                    false => 'A4',
+                    true => 'A5',
+                ])
+                ->default(false)
+                ->inline(),
+            Forms\Components\DatePicker::make('date')
+                ->label(__('counting.fields.date'))
                 ->default(now())
                 ->required(),
             Forms\Components\TextInput::make('name')
+                ->label(__('counting.fields.name'))
                 ->required()
                 ->maxLength(255),
-            Forms\Components\TextInput::make('count')
-                ->required()
-                ->numeric(),
-            Forms\Components\RichEditor::make('description')
-                ->maxLength(255)
-                ->columnSpanFull()
-                ->nullable()
-                ->default(null),
+
         ];
     }
 
@@ -105,7 +95,7 @@ class CountingResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('date')
-                    ->dateTime()
+                    ->date()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),

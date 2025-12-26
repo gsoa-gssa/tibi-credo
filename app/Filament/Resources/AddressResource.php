@@ -61,23 +61,28 @@ class AddressResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('id')
+                    ->label('PK')
                     ->sortable()
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('commune.name')
+                    ->label(__('commune.name'))
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('zipcode.code')
-                    ->label('Zipcode')
+                    ->label(__('zipcode.fields.code'))
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('zipcode.name')
-                    ->label('Place')
+                    ->label(__('zipcode.fields.name'))
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('street_name')
+                    ->label(__('address.fields.street_name'))
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('street_number')
+                    ->label(__('address.fields.street_number'))
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('created_at')

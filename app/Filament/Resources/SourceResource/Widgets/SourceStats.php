@@ -13,8 +13,8 @@ class SourceStats extends BaseWidget
     protected function getStats(): array
     {
         return [
-            Stat::make(__("widgets.sourceStats.signatures"), $this->record->sheets()->sum('signatureCount')),
-            Stat::make(__("widgets.sourceStats.sheets"), $this->record->sheets()->count()),
+            Stat::make(__("widgets.sourceStats.signatures"), $this->record->countings()->sum('count')),
+            Stat::make(__("widgets.sourceStats.countings"), $this->record->countings()->count()),
         ];
     }
 }
