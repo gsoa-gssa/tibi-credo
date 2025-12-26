@@ -29,7 +29,7 @@ class ContactResource extends Resource
 
     public static function getNavigationGroup(): ?string
     {
-        return __('navigation.group.sheetManagement');
+        return __('navigation.group.projectDataManagement');
     }
 
     protected static ?int $navigationSort = 4;

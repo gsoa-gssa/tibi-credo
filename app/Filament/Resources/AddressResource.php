@@ -20,9 +20,22 @@ class AddressResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-map-pin';
 
-    protected static ?string $navigationGroup = 'Data Management';
+    protected static ?int $navigationSort = 4;
 
-    protected static ?int $navigationSort = 3;
+    public static function getNavigationGroup(): ?string
+    {
+        return __('navigation.group.geoData');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('address.name');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('address.namePlural');
+    }
 
     public static function form(Form $form): Form
     {
@@ -105,15 +118,5 @@ class AddressResource extends Resource
             'index' => Pages\ListAddresses::route('/'),
             'view' => Pages\ViewAddress::route('/{record}'),
         ];
-    }
-
-    public static function getModelLabel(): string
-    {
-        return __('Address');
-    }
-
-    public static function getPluralModelLabel(): string
-    {
-        return __('Addresses');
     }
 }

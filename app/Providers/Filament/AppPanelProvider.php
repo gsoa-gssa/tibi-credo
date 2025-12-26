@@ -74,13 +74,16 @@ class AppPanelProvider extends PanelProvider
                 \TomatoPHP\FilamentUsers\FilamentUsersPlugin::make(),
                 \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make(),
                 \Rupadana\ApiService\ApiServicePlugin::make(),
-                ActivitylogPlugin::make()->navigationGroup(__('navigation.group.control')),
+                ActivitylogPlugin::make()
+                    ->navigationGroup(__('navigation.group.control')),
             ])
             ->navigationGroups([
                 \Filament\Navigation\NavigationGroup::make()
-                    ->label(fn (): string => __('pages.sheetWorkflow.navigationGroup')),
+                    ->label(fn (): string => __('navigation.group.workflows')),
                 \Filament\Navigation\NavigationGroup::make()
-                    ->label(fn (): string => __('navigation.group.sheetManagement')),
+                    ->label(fn (): string => __('navigation.group.projectDataManagement')),
+                \Filament\Navigation\NavigationGroup::make()
+                    ->label(fn (): string => __('navigation.group.geoData')),
                 \Filament\Navigation\NavigationGroup::make()
                     ->label(fn (): string => __('navigation.group.control')),
                 \Filament\Navigation\NavigationGroup::make()

@@ -142,7 +142,7 @@
     "maeppli.sheets_valid_count": "Numero di firme valide",
     "maeppli.sheets_valid_ratio": "Quota di validità",
     "navigation.group.control": "Controllo",
-    "navigation.group.sheetManagement": "Gestione fogli",
+    "navigation.group.projectDataManagement": "Gestione",
     "navigation.group.systemSettings": "Impostazioni di sistema",
     "notifications.sheetWorkflow.labelExists": "Un foglio con questo numero esiste già.",
     "notifications.sheetWorkflow.labelExistsBody": "Verifica il numero e riprova. Se non funziona, metti da parte il foglio.",

@@ -145,7 +145,7 @@
     "maeppli.sections.statistics": "Statistics",
     "maeppli.total_signatures": "Total Signatures",
     "navigation.group.control": "Control",
-    "navigation.group.sheetManagement": "Sheet Management",
+    "navigation.group.projectDataManagement": "Management",
     "navigation.group.systemSettings": "System Settings",
     "notifications.sheetWorkflow.labelExists": "A sheet with this number already exists.",
     "notifications.sheetWorkflow.labelExistsBody": "Please check the number and try again. If it doesn't work, set the sheet aside.",

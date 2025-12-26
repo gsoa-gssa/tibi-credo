@@ -26,7 +26,7 @@ class MaeppliResource extends Resource
 
     public static function getNavigationGroup(): ?string
     {
-        return __('navigation.group.sheetManagement');
+        return __('navigation.group.projectDataManagement');
     }
 
     // Add model label

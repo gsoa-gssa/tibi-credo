@@ -22,17 +22,17 @@ class AddressLookup extends Page implements HasForms
 
     public function getTitle(): string | Htmlable
     {
-        return __('Address Lookup');
+        return __('pages.addressLookup.name');
     }
 
     public static function getNavigationLabel(): string
     {
-        return __('Address Lookup');
+        return __('pages.addressLookup.name');
     }
 
     public static function getNavigationGroup(): ?string
     {
-        return __('Tools');
+        return __('navigation.group.workflows');
     }
 
     public $zipcode = '';

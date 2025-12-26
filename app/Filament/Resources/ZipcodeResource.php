@@ -32,7 +32,7 @@ class ZipcodeResource extends Resource
 
     public static function getNavigationGroup(): ?string
     {
-        return __('navigation.group.systemSettings');
+        return __('navigation.group.geoData');
     }
 
     public static function getModelLabel(): string

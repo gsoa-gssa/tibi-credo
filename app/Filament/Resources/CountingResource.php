@@ -21,7 +21,7 @@ class CountingResource extends Resource
 
     public static function getNavigationGroup(): ?string
     {
-        return __('navigation.group.sheetManagement');
+        return __('navigation.group.projectDataManagement');
     }
 
     // Add model label
@@ -36,51 +36,56 @@ class CountingResource extends Resource
         return __('counting.namePlural');
     }
     
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 0;
+
+    public static function getFormSchema(): array
+    {
+        return [
+            Forms\Components\Radio::make('source')
+                ->options([
+                    'postal' => __("resources.countings.form.source.labels.postal"),
+                    'street' => __("resources.countings.form.source.labels.street"),
+                    "other" => __("resources.countings.form.source.labels.other"),
+                    "unknown" => __("resources.countings.form.source.labels.unknown"),
+                ])
+                ->default('postal')
+                ->required(),
+            Forms\Components\Select::make('region')
+                ->options([
+                    'bern' => __("resources.countings.form.region.labels.bern"),
+                    'zurich' => __("resources.countings.form.region.labels.zurich"),
+                    'central' => __("resources.countings.form.region.labels.central"),
+                    'basel' => __("resources.countings.form.region.labels.basel"),
+                    'romandie' => __("resources.countings.form.region.labels.romandie"),
+                    "ticino" => __("resources.countings.form.region.labels.ticino"),
+                    "diverse" => __("resources.countings.form.region.labels.diverse"),
+                ])
+                ->native(false),
+            Forms\Components\ViewField::make('sources_warning')
+                ->view('filament.forms.components.countings.sources-warning')
+                ->dehydrated(false)
+                ->columnSpan(2),
+            Forms\Components\DateTimePicker::make('date')
+                ->default(now())
+                ->required(),
+            Forms\Components\TextInput::make('name')
+                ->required()
+                ->maxLength(255),
+            Forms\Components\TextInput::make('count')
+                ->required()
+                ->numeric(),
+            Forms\Components\RichEditor::make('description')
+                ->maxLength(255)
+                ->columnSpanFull()
+                ->nullable()
+                ->default(null),
+        ];
+    }
 
     public static function form(Form $form): Form
     {
         return $form
-            ->schema([
-                Forms\Components\Radio::make('source')
-                    ->options([
-                        'postal' => __("resources.countings.form.source.labels.postal"),
-                        'street' => __("resources.countings.form.source.labels.street"),
-                        "other" => __("resources.countings.form.source.labels.other"),
-                        "unknown" => __("resources.countings.form.source.labels.unknown"),
-                    ])
-                    ->default('postal')
-                    ->required(),
-                Forms\Components\Select::make('region')
-                    ->options([
-                        'bern' => __("resources.countings.form.region.labels.bern"),
-                        'zurich' => __("resources.countings.form.region.labels.zurich"),
-                        'central' => __("resources.countings.form.region.labels.central"),
-                        'basel' => __("resources.countings.form.region.labels.basel"),
-                        'romandie' => __("resources.countings.form.region.labels.romandie"),
-                        "ticino" => __("resources.countings.form.region.labels.ticino"),
-                        "diverse" => __("resources.countings.form.region.labels.diverse"),
-                    ])
-                    ->native(false),
-                Forms\Components\ViewField::make('sources_warning')
-                    ->view('filament.forms.components.countings.sources-warning')
-                    ->dehydrated(false)
-                    ->columnSpan(2),
-                Forms\Components\DateTimePicker::make('date')
-                    ->default(now())
-                    ->required(),
-                Forms\Components\TextInput::make('name')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('count')
-                    ->required()
-                    ->numeric(),
-                Forms\Components\RichEditor::make('description')
-                    ->maxLength(255)
-                    ->columnSpanFull()
-                    ->nullable()
-                    ->default(null),
-            ]);
+            ->schema(self::getFormSchema());
     }
 
     public static function table(Table $table): Table
@@ -148,6 +153,7 @@ class CountingResource extends Resource
         return [
             'index' => Pages\ListCountings::route('/'),
             'create' => Pages\CreateCounting::route('/create'),
+            'view' => Pages\ViewCounting::route('/{record}'),
             'edit' => Pages\EditCounting::route('/{record}/edit'),
         ];
     }

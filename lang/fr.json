@@ -134,7 +134,7 @@
     "maeppli.sections.basic_info": "Informations de base",
     "maeppli.sections.statistics": "Statistiques",
     "navigation.group.control": "Contrôle",
-    "navigation.group.sheetManagement": "Gestion des feuilles",
+    "navigation.group.projectDataManagement": "Gestion",
     "navigation.group.systemSettings": "Paramètres système",
     "commune.computed.last_batch_created_at": "Dernier envoi créé",
     "batch.filters.age": "Âge",
