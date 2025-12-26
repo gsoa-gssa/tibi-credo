@@ -16,7 +16,6 @@ class Contact extends Model
         'street_no',
         'zipcode_id',
         'birthdate',
-        'sheet_id',
         'contact_type_id'
     ];
 
@@ -24,14 +23,6 @@ class Contact extends Model
         'birthdate' => 'date',
         'letter_sent' => 'datetime',
     ];
-
-    /**
-     * Get Sheet
-     */
-    public function sheet(): BelongsTo
-    {
-        return $this->belongsTo(Sheet::class);
-    }
 
     /**
      * Get Zipcode

@@ -50,36 +50,6 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         ];
     }
 
-    public function sheets()
-    {
-        return $this->hasMany(Sheet::class);
-    }
-
-    /**
-     * Get last Sheet label and add 1, determining the next Sheet Label
-     */
-    public function getNextSheetLabel()
-    {
-        $lastSheet = $this->sheets()->latest()->first();
-        if ($lastSheet && $lastSheet->created_at->gt(now()->subMinutes(120))) {
-            $label = $lastSheet->label;
-            if (is_numeric($label)) {
-                return sprintf('%06d', (int) $label + 1);
-            } else {
-                return null;
-            }
-        }
-    }
-
-    /**
-     * Determine if the user has submitted a sheet in the last 30 minutes and if so, return the commune id
-     */
-    public function getCommuneId()
-    {
-        $lastSheet = $this->sheets()->latest()->first();
-        return $lastSheet && $lastSheet->created_at->gt(now()->subMinutes(30)) ? $lastSheet->commune_id : null;
-    }
-
     /**
      * Determine if user is approved
      */

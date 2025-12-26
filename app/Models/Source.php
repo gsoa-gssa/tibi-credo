@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Rupadana\ApiService\Contracts\HasAllowedFilters;
 
 class Source extends Model implements HasAllowedFilters
@@ -15,11 +16,11 @@ class Source extends Model implements HasAllowedFilters
     ];
 
     /**
-     * Get the sheets for the source.
+     * Get the countings for this source.
      */
-    public function sheets()
+    public function countings(): HasMany
     {
-        return $this->hasMany(Sheet::class);
+        return $this->hasMany(Counting::class);
     }
 
     /**

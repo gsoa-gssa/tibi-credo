@@ -53,7 +53,6 @@ class AppPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
                 \App\Filament\Resources\CountingResource\Widgets\SignatureCountStats::class,
-                \App\Filament\Resources\SheetResource\Widgets\SignatureCountStats::class,
                 \App\Filament\Resources\MaeppliResource\Widgets\SignatureCountStats::class,
                 \App\Filament\Resources\BoxResource\Widgets\BoxStats::class,
             ])

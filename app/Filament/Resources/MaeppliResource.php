@@ -3,9 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\MaeppliResource\Pages;
-use App\Filament\Resources\MaeppliResource\RelationManagers;
 use App\Models\Maeppli;
-use App\Models\Sheet;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Infolists;
@@ -273,7 +271,6 @@ class MaeppliResource extends Resource
     public static function getRelations(): array
     {
         return [
-            RelationManagers\SheetsRelationManager::class,
         ];
     }
 

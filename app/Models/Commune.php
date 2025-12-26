@@ -101,10 +101,6 @@ class Commune extends Model
         return implode('<br>', $lines);
     }
 
-    public function sheets(): HasMany
-    {
-        return $this->hasMany(Sheet::class);
-    }
 
     public function zipcodes(): HasMany
     {

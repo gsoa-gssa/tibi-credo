@@ -22,11 +22,6 @@ class Batch extends Model
         'commune_id' => 'integer',
     ];
 
-    public function sheets(): HasMany
-    {
-        return $this->hasMany(Sheet::class);
-    }
-
     public function commune(): BelongsTo
     {
         return $this->belongsTo(Commune::class);
@@ -34,12 +29,7 @@ class Batch extends Model
 
     public function countSignatures(): int
     {
-        return $this->sheets()->sum('signatureCount');
-    }
-
-    public function countNotReturnedSignatures(): int
-    {
-        return $this->sheets()->whereNull('maeppli_id')->sum('signatureCount');
+        return $this->signature_count ?? 0;
     }
 
     /**
@@ -49,10 +39,15 @@ class Batch extends Model
      */
     public function sheetsString(): string
     {
-        if($this->sheets()->count() == 0) {
+        try {
+            if($this->sheets()->count() == 0) {
+                return '';
+            }
+            $labels = $this->sheets()->orderBy('label')->pluck('label')->toArray();
+        } catch (\Exception $e) {
+            // sheets relationship no longer exists
             return '';
         }
-        $labels = $this->sheets()->orderBy('label')->pluck('label')->toArray();
         // if possible cast labels to integers
         $labels = array_map(function ($label) {
             return is_numeric($label) ? (int) $label : $label;
@@ -102,20 +97,6 @@ class Batch extends Model
     {
         $string = $this->sheetsString();
         return preg_replace('/([0-9]) ([0-9])/', '$1&nbsp;$2', $string);
-    }
-
-    /**
-     * Update the status of the batch: If at least 90% of the sheets have been returned, mark the batch as 'returned'.
-     */
-    public function updateStatus(): void
-    {
-        $returnedSheetsCount = $this->sheets()->whereNotNull('maeppli_id')->count();
-        $totalSheetsCount = $this->sheets()->count();
-
-        if ($totalSheetsCount > 0 && $returnedSheetsCount / $totalSheetsCount >= 0.9) {
-            $this->status = 'returned';
-            $this->save();
-        }
     }
 
     /**
@@ -185,24 +166,6 @@ class Batch extends Model
     protected static function boot()
     {
         parent::boot();
-
-        // static::created(function ($batch) {
-        //     $sheets = \App\Models\Sheet::where("commune_id", $batch->commune_id)->where("status", "recorded")->get();
-        //     $sheets->each(function ($sheet) use ($batch) {
-        //         $sheet->batch_id = $batch->id;
-        //         $sheet->status = 'added2batch';
-        //         $sheet->save();
-        //     });
-        // });
-
-        static::deleting(function ($batch) {
-            $sheets = \App\Models\Sheet::where("batch_id", $batch->id)->get();
-            $sheets->each(function ($sheet) {
-                $sheet->batch_id = null;
-                $sheet->status = 'recorded';
-                $sheet->save();
-            });
-        });
     }
 
     public function getActivitylogOptions(): LogOptions

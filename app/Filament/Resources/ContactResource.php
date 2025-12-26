@@ -46,127 +46,66 @@ class ContactResource extends Resource
         return __('contact.namePlural');
     }
 
-    public static function getFormSchema($attachedToSheet = false): array
+    public static function getFormSchema($newObject = false): array
     {
         $schema = [
-                Forms\Components\TextInput::make('firstname')
-                    ->label(__('contact.fields.firstname'))
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('lastname')
-                    ->label(__('contact.fields.lastname'))
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('street_no')
-                    ->label(__('contact.fields.street_no'))
-                    ->required()
-                    ->maxLength(255),
-        ];
-        $schema[] = Forms\Components\Select::make('zipcode_id')
-                    ->label(__('zipcode.name'))
-                    ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->code} {$record->nameWithCanton()}")
-                    ->relationship('zipcode', 'name')
-                    ->required()
-                    ->searchable(['code', 'name'])
-                    ->preload()
-                    ->live()
-                    ->afterStateUpdated(function ($state, Forms\Set $set) {
-                        if ($state) {
-                            $zipcode = \App\Models\Zipcode::find($state);
-                            if ($zipcode && $zipcode->commune) {
-                                $set('lang', $zipcode->commune->lang);
-                            }
-                        }
-                    });
-        $schema[] = Forms\Components\DatePicker::make('birthdate')
-                    ->label(__('contact.fields.birthdate'))
-                    ->required();
-        $schema[] = Forms\Components\ToggleButtons::make('lang')
-                    ->label(__('commune.fields.lang'))
-                    ->options([
-                        'de' => 'German',
-                        'fr' => 'French',
-                        'it' => 'Italian',
-                    ])
-                    ->required()
-                    ->inline()
-                    ->afterStateHydrated(function (Forms\Components\ToggleButtons $component, $state, $record) {
-                        if ($record && $record->lang) {
-                            return;
-                        }
-        
-                        if ($record && $record->zipcode && $record->zipcode->commune) {
-                            $component->state($record->zipcode->commune->lang);
-                        }
-                    });
-        if ( !$attachedToSheet ) {
-            $schema[] = Forms\Components\TextInput::make('sheet_label')
-                ->label(__('sheet.name'))
-                ->helperText(__('pages.registerInvalid.sheet_id_helper'))
+            Forms\Components\TextInput::make('firstname')
+                ->label(__('contact.fields.firstname'))
+                ->required()
+                ->maxLength(255),
+            Forms\Components\TextInput::make('lastname')
+                ->label(__('contact.fields.lastname'))
+                ->helperText(__('pages.registerInvalid.lastname_helper'))
+                ->maxLength(255),
+            Forms\Components\TextInput::make('street_no')
+                ->label(__('contact.fields.street_no'))
+                ->helperText(__('pages.registerInvalid.street_no_helper'))
+                ->maxLength(255),
+            Forms\Components\DatePicker::make('birthdate')
+                ->label(__('contact.fields.birthdate'))
+                ->helperText(__('pages.registerInvalid.birthdate_helper')),
+            Forms\Components\Select::make('zipcode_id')
+                ->label(__('zipcode.name'))
+                ->helperText(__('pages.registerInvalid.zipcode_id_helper'))
+                ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->code} {$record->name}")
+                ->relationship('zipcode', 'name')
+                ->searchable(['code', 'name'])
+                ->preload()
                 ->live()
-                ->rules([
-                    function () {
-                        return function (string $attribute, $value, \Closure $fail) {
-                            if ($value) {
-                                $sheets = \App\Models\Sheet::where('label', $value)->get();
-                                if ($sheets->isEmpty()) {
-                                    $fail('The sheet with this label does not exist.');
-                                } elseif ($sheets->count() > 1) {
-                                    $fail('Multiple sheets found with this label. Please contact support.');
-                                }
-                            }
-                        };
-                    },
-                ])
-                ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
+                ->afterStateUpdated(function ($state, Forms\Set $set) {
                     if ($state) {
-                        $sheet = \App\Models\Sheet::where('label', $state)->first();
-                        if($sheet) {
-                        $set('sheet_id', $sheet->id);
-                        $zipcode = $sheet->commune->zipcodes()->first();
-                        if ($zipcode) {
-                            $set('zipcode_id', $zipcode->id);
+                        $zipcode = \App\Models\Zipcode::find($state);
+                        if ($zipcode && $zipcode->commune) {
                             $set('lang', $zipcode->commune->lang);
                         }
-                        } else {
-                        $set('sheet_id', null);
-                        }
                     }
-                })
-                ->suffixIcon(function (Forms\Get $get) {
-                    if ($get('sheet_label') == null) {
-                    return null;
+                }),
+            Forms\Components\ToggleButtons::make('lang')
+                ->label(__('commune.fields.lang'))
+                ->options([
+                    'de' => 'German',
+                    'fr' => 'French',
+                    'it' => 'Italian',
+                ])
+                ->required()
+                ->inline()
+                ->afterStateHydrated(function (Forms\Components\ToggleButtons $component, $state, $record) {
+                    if ($record && $record->lang) {
+                        return;
                     }
-                    $id = $get('sheet_id');
-                    return $id ? 'heroicon-o-check-circle' : 'heroicon-o-exclamation-triangle';
-                })
-                ->suffixIconColor(function (Forms\Get $get) {
-                    if ($get('sheet_label') == null) {
-                    return null;
+
+                    if ($record && $record->zipcode && $record->zipcode->commune) {
+                        $component->state($record->zipcode->commune->lang);
                     }
-                    $id = $get('sheet_id');
-                    return $id ? 'success' : 'danger';
-                });
-            $schema[] = Forms\Components\Hidden::make('sheet_id');
-        }
-        if ( $attachedToSheet ){
-            $schema[] = Forms\Components\Select::make('contact_type_id')
-                    ->label(__('contact.fields.contact_type'))
-                    ->relationship('contactType', 'name')
-                    ->required()
-                    ->default(1)
-                    ->searchable()
-                    ->preload();
-        } else {
-            $schema[] = Forms\Components\Select::make('contact_type_id')
+                }),
+            Forms\Components\Select::make('contact_type_id')
                 ->label(__('contact.fields.contact_type'))
                 ->relationship('contactType', 'name')
                 ->required()
                 ->searchable()
-                ->preload();
-        }
-        
-        if ( !$attachedToSheet ){
+                ->preload(),
+        ];
+        if ( !$newObject ){
             $schema[] = Forms\Components\DateTimePicker::make('letter_sent')
                     ->label(__('contact.fields.letter_sent'));
             $schema[] = Forms\Components\Checkbox::make('address_corrected')

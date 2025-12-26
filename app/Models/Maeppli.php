@@ -15,11 +15,6 @@ class Maeppli extends Model
 {
     use SoftDeletes, LogsActivity, HasFilamentComments;
 
-    public function sheets(): HasMany
-    {
-        return $this->hasMany(Sheet::class);
-    }
-
     public function commune(): BelongsTo
     {
         return $this->belongsTo(Commune::class);
@@ -39,13 +34,6 @@ class Maeppli extends Model
     public static function boot ()
     {
         parent::boot();
-
-        static::deleting(function ($maeppli) {
-            foreach ($maeppli->sheets as $sheet) {
-                $sheet->maeppli_id = null;
-                $sheet->save();
-            }
-        });
 
         // Enforce same canton for all Maepplis inside a Box when assigning box_id
         static::saving(function ($maeppli) {

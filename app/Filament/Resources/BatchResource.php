@@ -5,7 +5,6 @@ namespace App\Filament\Resources;
 use Filament\Forms;
 use Filament\Tables;
 use App\Models\Batch;
-use App\Models\Sheet;
 use App\Models\Commune;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
@@ -19,7 +18,6 @@ use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\BatchResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\BatchResource\RelationManagers;
-use App\Filament\Resources\BatchResource\RelationManagers\SheetsRelationManager;
 use App\Filament\Actions\BulkActions\ExportBatchesPdfBulkAction;
 
 class BatchResource extends Resource
@@ -85,17 +83,10 @@ class BatchResource extends Resource
                     })
                     ->default('pending')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('number_of_sheets')
-                    ->label(__('batch.sheets_count'))
+                Tables\Columns\TextColumn::make('signature_count')
+                    ->label(__('batch.signature_count'))
                     ->numeric()
-                    ->getStateUsing(fn (Batch $batch) => $batch->sheets->count())
-                    ->sortable(query: function (Builder $query, $direction) {
-                        return $query->withCount('sheets')->orderBy('sheets_count', $direction);
-                    }),
-                Tables\Columns\TextColumn::make('returned_sheets_count')
-                    ->label(__('batch.sheets_returned_count'))
-                    ->numeric()
-                    ->getStateUsing(fn (Batch $batch) => $batch->sheets->whereNotNull('maeppli_id')->count()),
+                    ->sortable(),
                 Tables\Columns\IconColumn::make("deleted_at")
                     ->icon(fn ($record) => $record->trashed() ? 'heroicon-o-trash' : null)
                     ->tooltip(fn ($record) => $record->trashed() ? 'Deleted' : null)
@@ -139,18 +130,6 @@ class BatchResource extends Resource
                     ->default('pending')
                     ->label(__('batch.filters.status'))
                     ->multiple(),
-                Filter::make('partially_returned')
-                    ->label(__('batch.filters.partially_returned'))
-                    ->toggle()
-                    ->query(function (Builder $query) {
-                        $query 
-                            ->whereHas('sheets', function (Builder $query) {
-                                $query->whereNotNull('maeppli_id');
-                            })
-                            ->whereHas('sheets', function (Builder $query) {
-                                $query->whereNull('maeppli_id');
-                            });
-                    }),
                 SelectFilter::make('age')
                     ->label(__('batch.filters.age'))
                     ->options([
@@ -215,10 +194,6 @@ class BatchResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\BulkAction::make('updateStatus')
-                        ->label('Update Status')
-                        ->action(fn (\Illuminate\Support\Collection $batches) => $batches->each(fn (Batch $batch) => $batch->updateStatus()))
-                        ->icon('heroicon-o-arrow-path'),
                 ]),
                 Tables\Actions\BulkActionGroup::make([
                     ExportBatchesPdfBulkAction::make('letters_left')
@@ -254,7 +229,6 @@ class BatchResource extends Resource
     public static function getRelations(): array
     {
         return [
-            SheetsRelationManager::class,
             RelationManagers\BatchActivitylogRelationManager::class,
         ];
     }
