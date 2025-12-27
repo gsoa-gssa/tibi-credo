@@ -25,9 +25,6 @@ class CommuneImporter extends Importer
                 ->requiredMapping()
                 ->numeric()
                 ->rules(['required', 'integer']),
-            ImportColumn::make('address')
-                ->requiredMapping()
-                ->rules(['max:255']),
             ImportColumn::make('email')
                 ->requiredMapping(),
             ImportColumn::make('website')
@@ -36,8 +33,14 @@ class CommuneImporter extends Importer
             ImportColumn::make('phone')
                 ->requiredMapping()
                 ->rules(['max:255']),
-            ImportColumn::make('lang')
-                ->requiredMapping()
+            ImportColumn::make('authority_address_name')->requiredMapping(),
+            ImportColumn::make('authority_address_street')->requiredMapping(),
+            ImportColumn::make('authority_address_house_number')->requiredMapping(),
+            ImportColumn::make('authority_address_extra')->requiredMapping(),
+            ImportColumn::make('authority_address_postcode')->requiredMapping(),
+            ImportColumn::make('authority_address_place')->requiredMapping(),
+            ImportColumn::make('address_checked')->requiredMapping(),
+            ImportColumn::make('lang')->requiredMapping(),
         ];
     }
 

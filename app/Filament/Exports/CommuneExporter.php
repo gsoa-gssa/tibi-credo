@@ -14,15 +14,19 @@ class CommuneExporter extends Exporter
     public static function getColumns(): array
     {
         return [
-            ExportColumn::make('id')
-                ->label('ID'),
+            ExportColumn::make('id')->label('ID'),
             ExportColumn::make('name'),
             ExportColumn::make('officialId'),
-            ExportColumn::make('address'),
             ExportColumn::make('email'),
             ExportColumn::make('website'),
             ExportColumn::make('phone'),
-            ExportColumn::make("lang"),
+            ExportColumn::make('authority_address_name')->label('Name of Authority'),
+            ExportColumn::make('authority_address_street')->label('Street Name'),
+            ExportColumn::make('authority_address_house_number')->label('House Number'),
+            ExportColumn::make('authority_address_extra')->label('Extra Address Line'),
+            ExportColumn::make('authority_address_postcode')->label('Postcode'),
+            ExportColumn::make('authority_address_place')->label('Place'),
+            ExportColumn::make('address_checked')->label('Address Checked'),
             ExportColumn::make('created_at')->enabledByDefault(false),
             ExportColumn::make('updated_at')->enabledByDefault(false),
         ];
