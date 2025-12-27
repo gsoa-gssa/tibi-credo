@@ -34,6 +34,38 @@ class Address extends Model
     }
 
     /**
+     * Disable indexes for bulk insert performance
+     */
+    public static function disableIndexes(): void
+    {
+        $driver = \DB::getDriverName();
+        if ($driver === 'mysql') {
+            \DB::statement('ALTER TABLE addresses DISABLE KEYS');
+        } elseif ($driver === 'pgsql') {
+            \DB::statement('DROP INDEX IF EXISTS idx_zipcode');
+            \DB::statement('DROP INDEX IF EXISTS idx_commune');
+            \DB::statement('DROP INDEX IF EXISTS idx_zip_street');
+            \DB::statement('DROP INDEX IF EXISTS idx_commune_street');
+        }
+    }
+
+    /**
+     * Re-enable indexes after bulk insert
+     */
+    public static function enableIndexes(): void
+    {
+        $driver = \DB::getDriverName();
+        if ($driver === 'mysql') {
+            \DB::statement('ALTER TABLE addresses ENABLE KEYS');
+        } elseif ($driver === 'pgsql') {
+            \DB::statement('CREATE INDEX idx_zipcode ON addresses(zipcode_id)');
+            \DB::statement('CREATE INDEX idx_commune ON addresses(commune_id)');
+            \DB::statement('CREATE INDEX idx_zip_street ON addresses(zipcode_id, street_name)');
+            \DB::statement('CREATE INDEX idx_commune_street ON addresses(commune_id, street_name)');
+        }
+    }
+
+    /**
      * Get all addresses sharing this street name (including the current address).
      */
     public function getSameStreetAddresses()

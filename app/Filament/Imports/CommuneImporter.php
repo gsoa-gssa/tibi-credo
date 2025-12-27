@@ -14,7 +14,7 @@ class CommuneImporter extends Importer
     public static function getColumns(): array
     {
         return [
-            ImportColumn::make('ID')
+            ImportColumn::make('id')
                 ->requiredMapping()
                 ->numeric()
                 ->rules(['required', 'integer']),
@@ -40,14 +40,14 @@ class CommuneImporter extends Importer
             ImportColumn::make('authority_address_postcode')->requiredMapping(),
             ImportColumn::make('authority_address_place')->requiredMapping(),
             ImportColumn::make('address_checked')->requiredMapping(),
-            ImportColumn::make('lang')->requiredMapping(),
+            ImportColumn::make('lang'),
         ];
     }
 
     public function resolveRecord(): ?Commune
     {
         return Commune::firstOrNew([
-            'id' => $this->data['ID'],
+            'id' => $this->data['id'],
         ]);
 
         // return new Commune();

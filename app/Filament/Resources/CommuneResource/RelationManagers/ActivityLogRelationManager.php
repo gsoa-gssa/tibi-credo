@@ -18,6 +18,27 @@ class CommuneActivitylogRelationManager extends ActivitylogRelationManager
         return $form;
     }
 
+    public function getTableQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = parent::getTableQuery();
+        if (!$query) {
+            $query = \Spatie\Activitylog\Models\Activity::query();
+            $owner = $this->getOwnerRecord();
+            $query->where('subject_type', $owner::class)
+                  ->where('subject_id', $owner->id);
+        }
+
+        $signatureCollectionId = auth()->user()->signature_collection_id;
+        if ($signatureCollectionId) {
+            $query->where(function ($q) use ($signatureCollectionId) {
+                $q->where('properties->signature_collection_id', $signatureCollectionId)
+                ->orWhereNull('properties->signature_collection_id');
+            });
+        }
+
+        return $query;
+    }
+
     public function table(\Filament\Tables\Table $table): \Filament\Tables\Table
     {
         $table = parent::table($table);
@@ -59,9 +80,11 @@ class CommuneActivitylogRelationManager extends ActivitylogRelationManager
 
     private function addActivityLogEntry(string $message): void
     {
+        $signatureCollectionId = auth()->user()->signature_collection_id ?? null;
         activity()
           ->on($this->getOwnerRecord())
           ->event('comment')
+          ->withProperties(['signature_collection_id' => $signatureCollectionId])
           ->log($message);
     }
 

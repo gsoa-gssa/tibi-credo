@@ -18,3 +18,4 @@ yarn-error.log
 /.idea
 /.vscode
 *.sql
+backup-20251227_163035.sql.gz

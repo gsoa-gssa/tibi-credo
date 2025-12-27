@@ -29,6 +29,7 @@ class CommuneExporter extends Exporter
             ExportColumn::make('address_checked')->label('Address Checked'),
             ExportColumn::make('created_at')->enabledByDefault(false),
             ExportColumn::make('updated_at')->enabledByDefault(false),
+            ExportColumn::make('lang'),
         ];
     }
 

@@ -8,10 +8,12 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->unsignedBigInteger('signature_collection_id')->default(2)->after('id');
-            $table->foreign('signature_collection_id')->references('id')->on('signature_collections');
-        });
+        if (!Schema::hasColumn('users', 'signature_collection_id')) {
+            Schema::table('users', function (Blueprint $table) {
+                $table->unsignedBigInteger('signature_collection_id')->default(2)->after('id');
+                $table->foreign('signature_collection_id')->references('id')->on('signature_collections');
+            });
+        }
     }
 
     public function down(): void
