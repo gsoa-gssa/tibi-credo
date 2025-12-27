@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Http\Controllers\Auth\CodeLoginController;
 
 Route::get('/communes/{commune}/label', [App\Filament\Resources\CommuneResource\Pages\LabelCommune::class, '__invoke'])->name('communes.label');
 
@@ -42,3 +43,9 @@ if (env('APP_ENV') === 'local') {
         return $pdf->stream();
     });
 }
+
+// Code login routes (guest accessible)
+Route::middleware('web')->group(function () {
+    Route::get('/code-login', [CodeLoginController::class, 'show'])->name('code-login.show');
+    Route::post('/code-login', [CodeLoginController::class, 'login'])->name('code-login.login');
+});

@@ -79,6 +79,7 @@ class AppPanelProvider extends PanelProvider
                 \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make(),
                 \Rupadana\ApiService\ApiServicePlugin::make(),
                 ActivitylogPlugin::make()
+                    ->navigationItem(false)
                     ->navigationGroup(__('navigation.group.control')),
             ])
             ->navigationGroups([

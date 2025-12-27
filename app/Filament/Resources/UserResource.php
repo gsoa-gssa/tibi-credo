@@ -14,6 +14,7 @@ use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\Action;
@@ -60,26 +61,25 @@ class UserResource extends Resource
         $rows = [
             TextInput::make('name')
                 ->required()
-                ->label(trans('filament-users::user.resource.name')),
+                ->label(__('filament-users::user.resource.name')),
             TextInput::make('email')
                 ->email()
-                ->required()
-                ->label(trans('filament-users::user.resource.email')),
+                ->label(__('filament-users::user.resource.email')),
+            Toggle::make('approved')
+                ->label(__('user.fields.approved')),
             Forms\Components\Select::make('signature_collection_id')
                 ->label(__('signature_collection.name'))
                 ->relationship('signatureCollection', 'short_name')
+                ->default(fn () => auth()->user()?->signature_collection_id)
                 ->preload()
                 ->required()
-                ->disabled(fn () => !auth()->user()?->hasRole('super_admin')),
+                ->hidden(fn () => !auth()->user()?->hasRole('super_admin')),
             TextInput::make('password')
-                ->label(trans('filament-users::user.resource.password'))
+                ->label(__('filament-users::user.resource.password'))
                 ->password()
                 ->maxLength(255)
-                ->dehydrateStateUsing(static function ($state) use ($form) {
-                    return !empty($state)
-                            ? Hash::make($state)
-                            : User::find($form->getColumns())?->password;
-                }),
+                ->dehydrateStateUsing(fn ($state) => filled($state) ? Hash::make($state) : null)
+                ->dehydrated(fn ($state) => filled($state)),
         ];
 
 
@@ -103,6 +103,15 @@ class UserResource extends Resource
                 TextColumn::make('id')
                     ->sortable()
                     ->label(trans('filament-users::user.resource.id')),
+                IconColumn::make('is_admin')
+                    ->label(__('user.fields.is_admin'))
+                    ->boolean()
+                    ->state(fn (User $record) => $record->hasAnyRole(['admin', 'super_admin']))
+                    ->sortable(),
+                IconColumn::make('approved')
+                    ->label(__('user.fields.approved'))
+                    ->boolean()
+                    ->sortable(),
                 TextColumn::make('name')
                     ->sortable()
                     ->searchable()
@@ -114,7 +123,7 @@ class UserResource extends Resource
                 IconColumn::make('email_verified_at')
                     ->boolean()
                     ->sortable()
-                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->label(trans('filament-users::user.resource.email_verified_at')),
                 TextColumn::make('created_at')
                     ->label(trans('filament-users::user.resource.created_at'))
@@ -135,6 +144,7 @@ class UserResource extends Resource
                     ->label(trans('filament-users::user.resource.unverified'))
                     ->query(fn(Builder $query): Builder => $query->whereNull('email_verified_at')),
             ])
+            ->recordUrl(fn ($record) => UserResource::getUrl('view', ['record' => $record]))
             ->actions([
                 ViewAction::make()
                     ->iconButton(),
@@ -144,13 +154,13 @@ class UserResource extends Resource
                     ->iconButton(),
                 Action::make("approve")
                     ->icon('heroicon-o-check-circle')
-                    ->label(__("filament-users::user.resource.approve"))
+                    ->label(__("user.actions.approve"))
                     ->iconButton()
                     ->action(fn ($record) => $record->update(['approved' => true]))
                     ->visible(fn ($record) => !$record->isApproved()),
                 Action::make("disapprove")
                     ->icon('heroicon-o-minus-circle')
-                    ->label(__("filament-users::user.resource.disapprove"))
+                    ->label(__("user.actions.disapprove"))
                     ->iconButton()
                     ->action(fn ($record) => $record->update(['approved' => false]))
                     ->visible(fn ($record) => $record->isApproved()),
@@ -172,6 +182,7 @@ class UserResource extends Resource
         return [
             'index' => Pages\ListUsers::route('/'),
             'create' => Pages\CreateUser::route('/create'),
+            'view' => Pages\ViewUser::route('/{record}'),
             'edit' => Pages\EditUser::route('/{record}/edit'),
         ];
     }

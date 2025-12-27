@@ -26,6 +26,9 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         'email',
         'password',
         'signature_collection_id',
+        'login_code',
+        'login_code_expiration',
+        'login_code_valid_ip',
     ];
 
 
@@ -57,8 +60,24 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'approved' => 'boolean'
+            'approved' => 'boolean',
+            'login_code_expiration' => 'datetime',
         ];
+    }
+
+    public function generateLoginCodeForAdminIP(string $ip): string
+    {
+        // 6-char alphanumeric, uppercase; valid 30 seconds
+        $alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        $code = '';
+        for ($i = 0; $i < 6; $i++) {
+            $code .= $alphabet[random_int(0, strlen($alphabet) - 1)];
+        }
+        $this->login_code = $code;
+        $this->login_code_expiration = now()->addSeconds(30);
+        $this->login_code_valid_ip = $ip;
+        $this->save();
+        return $code;
     }
 
     /**

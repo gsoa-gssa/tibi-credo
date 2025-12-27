@@ -13,14 +13,14 @@ class EditUser extends EditRecord
 
     public function mutateFormDataBeforeSave(array $data): array
     {
-        $getUser = User::where('email', $data['email'])->first();
-        if ($getUser) {
-            if (empty($data['password'])) {
-                $data['password'] = $getUser->password;
+        $user = $this->record;
+        if ($user) {
+            if (!array_key_exists('password', $data) || empty($data['password'])) {
+                $data['password'] = $user->password;
             }
             // Prevent non-super-admins from changing signature_collection_id
             if (!auth()->user()?->hasRole('super_admin')) {
-                $data['signature_collection_id'] = $getUser->signature_collection_id;
+                $data['signature_collection_id'] = $user->signature_collection_id;
             }
         }
         return $data;
