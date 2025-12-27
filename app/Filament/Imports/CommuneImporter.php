@@ -41,6 +41,9 @@ class CommuneImporter extends Importer
             ImportColumn::make('authority_address_place')->requiredMapping(),
             ImportColumn::make('address_checked')->requiredMapping(),
             ImportColumn::make('lang'),
+            ImportColumn::make('canton_2_char_label')
+                ->requiredMapping()
+                ->rules(['required', 'max:2']),
         ];
     }
 
@@ -51,6 +54,20 @@ class CommuneImporter extends Importer
         ]);
 
         // return new Commune();
+    }
+
+    /**
+     * Untested, but required for moving commune data from one instance to another
+     * using UI export/import.
+     */
+    public function fillRecord(\Illuminate\Database\Eloquent\Model $record): void
+    {
+        parent::fillRecord($record);
+
+        if (isset($this->data['canton_2_char_label'])) {
+            $canton = \App\Models\Canton::where('label', $this->data['canton_2_char_label'])->first();
+            $record->canton_id = $canton?->id;
+        }
     }
 
     public static function getCompletedNotificationBody(Import $import): string

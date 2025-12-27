@@ -30,6 +30,7 @@ class CommuneExporter extends Exporter
             ExportColumn::make('created_at')->enabledByDefault(false),
             ExportColumn::make('updated_at')->enabledByDefault(false),
             ExportColumn::make('lang'),
+            ExportColumn::make('canton.label')->label('Canton'),
         ];
     }
 
