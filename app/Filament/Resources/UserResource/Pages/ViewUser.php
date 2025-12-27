@@ -39,16 +39,26 @@ class ViewUser extends ViewRecord
                     ]),
                 Section::make('Login Code')
                     ->visible(fn () => auth()->user()?->hasAnyRole(['admin', 'super_admin']))
+                    ->description('Click the code below to copy it, then open the login URL')
                     ->schema([
                         TextEntry::make('login_code')
-                            ->label('Login Code (30s)')
+                            ->label('Code (click to copy)')
                             ->getStateUsing(function ($record) {
                                 if ($record->hasAnyRole(['admin', 'super_admin'])) {
                                     return 'N/A';
                                 }
                                 return $record->generateLoginCodeForAdminIP(request()->ip());
                             })
-                            ->copyable(),
+                            ->copyable()
+                            ->copyMessage('Code copied!')
+                            ->copyMessageDuration(2000)
+                            ->extraAttributes(['class' => 'font-mono text-2xl font-bold'])
+                            ->color('success'),
+                        TextEntry::make('login_url')
+                            ->label('Login URL')
+                            ->getStateUsing(fn () => route('code-login'))
+                            ->url(fn () => route('code-login'), true)
+                            ->color('primary'),
                         TextEntry::make('login_code_expiration')
                             ->label('Valid until'),
                         TextEntry::make('login_code_valid_ip')

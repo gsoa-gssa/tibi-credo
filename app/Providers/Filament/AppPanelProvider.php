@@ -20,6 +20,9 @@ use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Rmsramos\Activitylog\ActivitylogPlugin;
+use Filament\Support\Facades\FilamentView;
+use Filament\View\PanelsRenderHook;
+use Illuminate\Support\Facades\Blade;
 
 
 class AppPanelProvider extends PanelProvider
@@ -31,6 +34,11 @@ class AppPanelProvider extends PanelProvider
                 ->defaultPaginationPageOption(25)
                 ->paginationPageOptions([10, 25, 50]);
         });
+
+        FilamentView::registerRenderHook(
+            PanelsRenderHook::AUTH_LOGIN_FORM_BEFORE,
+            fn (): string => Blade::render('<div class="mt-4 text-center"><x-filament::link :href="route(\'code-login\')" size="sm">{{ __(\'code_login.use_code\') }}</x-filament::link></div>')
+        );
     }
 
     public function panel(Panel $panel): Panel
