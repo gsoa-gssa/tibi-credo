@@ -47,7 +47,10 @@ class AppPanelProvider extends PanelProvider
             ->default()
             ->brandName(function () {
                 $user = auth()->user();
-                return 'Certimi - ' . ($user && $user->signatureCollection ? $user->signatureCollection->short_name : 'Admin');
+                if ($user && $user->signatureCollection && $user->signatureCollection->short_name) {
+                    return 'Certimi - ' . $user->signatureCollection->short_name;
+                }
+                return 'Certimi';
             })
             ->id('app')
             ->path('')
@@ -80,7 +83,6 @@ class AppPanelProvider extends PanelProvider
                 DispatchServingFilamentEvent::class,
             ])
             ->passwordReset()
-            ->registration()
             ->plugins([
                 SpotlightPlugin::make(),
                 \TomatoPHP\FilamentUsers\FilamentUsersPlugin::make(),
