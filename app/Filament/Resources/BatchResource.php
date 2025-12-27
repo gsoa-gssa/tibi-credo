@@ -73,14 +73,17 @@ class BatchResource extends Resource
                     ->numeric()
                     ->minValue(1)
                     ->live(onBlur: true)
-                    ->hidden(function (Get $get) {
+                    ->hidden(function (Get $get, $record) {
+                        if ($record !== null) {
+                            return false;
+                        }
                         $sheets = $get('sheets_count');
                         if (!is_numeric($sheets)) {
                             return true;
                         }
                         return ((int) $sheets) < 100;
                     })
-                    ->required(),
+                    ->required(fn ($record) => $record === null),
                 Forms\Components\Checkbox::make('confirm')
                     ->label(__('batch.fields.confirm_creation'))
                     ->columnSpan(2)
@@ -99,9 +102,36 @@ class BatchResource extends Resource
                         $sigSheetRelationSmall = $sig > 5 && $sheets > 0 && ($sig / $sheets) < 1.5;
                         return !($manySigs || $sigSheetRelationBig || $sigSheetRelationSmall);
                     }),
-                Forms\Components\DatePicker::make('expectedDeliveryDate')
+                Forms\Components\ToggleButtons::make('open')
+                    ->label(__('batch.fields.open'))
+                    ->options([
+                       false => __('batch.filters.open.closed'),
+                       true => __('batch.filters.open.open'),
+                    ])
+                    ->inline()
+                    ->columnSpan(2)
+                    ->hidden(fn ($record) => $record === null),
+                Forms\Components\DatePicker::make('expected_delivery_date')
                     ->label(__('batch.fields.expected_delivery_date'))
                     ->hidden(fn ($record) => $record === null),
+                Forms\Components\DatePicker::make('expected_return_date')
+                    ->label(__('batch.fields.expected_return_date'))
+                    ->hidden(fn ($record) => $record === null),
+                Forms\Components\Select::make('send_kind')
+                    ->label(__('batch.fields.send_kind'))
+                    ->relationship('sendKind', 'short_name_de')
+                    ->required()
+                    ->hidden(fn ($record) => $record === null),
+                Forms\Components\Select::make('receive_kind')
+                    ->label(__('batch.fields.receive_kind'))
+                    ->relationship('receiveKind', 'short_name_de')
+                    ->nullable()
+                    ->hidden(fn ($record) => $record === null),
+                Forms\Components\Textarea::make('letter_html')
+                    ->label(__('batch.fields.letter_html'))
+                    ->columnSpan(2)
+                    ->readOnly()
+                    ->hidden(fn ($record) => $record === null || empty($record->letter_html)),
             ];
     }
 
@@ -118,18 +148,10 @@ class BatchResource extends Resource
                     ->label(__('commune.name'))
                     ->url(fn (Batch $record) => static::getUrl('view', ['record' => $record]))
                     ->sortable(),
-                Tables\Columns\IconColumn::make('status')
-                    ->icon(fn (Batch $batch) => match ($batch->status) {
-                        'pending' => 'heroicon-o-inbox',
-                        'sent' => 'heroicon-o-building-library',
-                        'returned' => 'heroicon-o-check-circle',
-                    })
-                    ->tooltip(fn (Batch $batch) => match ($batch->status) {
-                        'pending' => 'Pending',
-                        'sent' => 'Sent',
-                        'returned' => 'Returned',
-                    })
-                    ->default('pending')
+                Tables\Columns\IconColumn::make('open')
+                    ->label(__('batch.fields.open'))
+                    ->icon(fn (Batch $batch) => $batch->open ? 'heroicon-o-arrow-path' : 'heroicon-o-check')
+                    ->tooltip(fn (Batch $batch) => $batch->open ? __('batch.filters.open.open') : __('batch.filters.open.closed'))
                     ->sortable(),
                 Tables\Columns\TextColumn::make('sheets_count')
                     ->label(__('batch.fields.sheets_count'))
@@ -143,8 +165,21 @@ class BatchResource extends Resource
                     ->icon(fn ($record) => $record->trashed() ? 'heroicon-o-trash' : null)
                     ->tooltip(fn ($record) => $record->trashed() ? 'Deleted' : null)
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('expectedDeliveryDate')
+                Tables\Columns\TextColumn::make('expected_delivery_date')
                     ->date()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('expected_return_date')
+                    ->label(__('batch.fields.expected_return_date'))
+                    ->date()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('sendKind.short_name_de')
+                    ->label(__('batch.fields.send_kind'))
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('receiveKind.short_name_de')
+                    ->label(__('batch.fields.receive_kind'))
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
@@ -180,15 +215,36 @@ class BatchResource extends Resource
                               ->where('event', 'created');
                         });
                     }),
-                SelectFilter::make('status')
+                SelectFilter::make('open')
                     ->options([
-                        'pending' => __('batch.filters.status.pending'),
-                        'sent' => __('batch.filters.status.sent'),
-                        'returned' => __('batch.filters.status.returned'),
+                        true => __('batch.filters.open.open'),
+                        false => __('batch.filters.open.closed'),
                     ])
-                    ->default('pending')
-                    ->label(__('batch.filters.status'))
+                    ->label(__('batch.filters.open'))
                     ->multiple(),
+                SelectFilter::make('send_kind')
+                    ->relationship('sendKind', 'short_name_de')
+                    ->label(__('batch.filters.send_kind'))
+                    ->multiple()
+                    ->preload(),
+                SelectFilter::make('receive_kind')
+                    ->relationship('receiveKind', 'short_name_de')
+                    ->label(__('batch.filters.receive_kind'))
+                    ->multiple()
+                    ->preload(),
+                Filter::make('expected_return_date')
+                    ->form([
+                        Forms\Components\DatePicker::make('expected_return_date_from')
+                            ->label(__('batch.filters.expected_return_date_from')),
+                        Forms\Components\DatePicker::make('expected_return_date_to')
+                            ->label(__('batch.filters.expected_return_date_to')),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when($data['expected_return_date_from'] ?? null, fn (Builder $q, $date) => $q->whereDate('expected_return_date', '>=', $date))
+                            ->when($data['expected_return_date_to'] ?? null, fn (Builder $q, $date) => $q->whereDate('expected_return_date', '<=', $date));
+                    })
+                    ->label(__('batch.filters.expected_return_date')),
                 SelectFilter::make('age')
                     ->label(__('batch.filters.age'))
                     ->options([

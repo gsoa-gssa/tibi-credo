@@ -18,18 +18,27 @@ class Batch extends Model
 
     protected $fillable = [
         'status',
-        'expectedDeliveryDate',
+        'expected_delivery_date',
+        'expected_return_date',
         'commune_id',
         'signature_count',
         'sheets_count',
+        'open',
+        'send_kind',
+        'receive_kind',
+        'letter_html',
     ];
 
     protected $casts = [
         'id' => 'integer',
-        'expectedDeliveryDate' => 'date',
+        'expected_delivery_date' => 'date',
+        'expected_return_date' => 'date',
         'commune_id' => 'integer',
         'signature_count' => 'integer',
         'sheets_count' => 'integer',
+        'open' => 'boolean',
+        'send_kind' => 'integer',
+        'receive_kind' => 'integer',
     ];
 
     protected static function booted()
@@ -40,6 +49,16 @@ class Batch extends Model
     public function commune(): BelongsTo
     {
         return $this->belongsTo(Commune::class);
+    }
+
+    public function sendKind(): BelongsTo
+    {
+        return $this->belongsTo(BatchKind::class, 'send_kind');
+    }
+
+    public function receiveKind(): BelongsTo
+    {
+        return $this->belongsTo(BatchKind::class, 'receive_kind');
     }
 
     public function countSignatures(): int
@@ -134,29 +153,29 @@ class Batch extends Model
     }
 
     /**
-     * Mark batch for priority delivery: expectedDeliveryDate = created_at + 1 workday
+     * Mark batch for priority delivery: expected_delivery_date = created_at + 1 workday
      */
     public function mark_priority_delivery(): void
     {
-        $this->expectedDeliveryDate = self::nextWorkday($this->created_at, 1);
+        $this->expected_delivery_date = self::nextWorkday($this->created_at, 1);
         $this->save();
     }
 
     /**
-     * Mark batch for standard delivery: expectedDeliveryDate = created_at + 2 workdays
+     * Mark batch for standard delivery: expected_delivery_date = created_at + 2 workdays
      */
     public function mark_standard_delivery(): void
     {
-        $this->expectedDeliveryDate = self::nextWorkday($this->created_at, 2);
+        $this->expected_delivery_date = self::nextWorkday($this->created_at, 2);
         $this->save();
     }
 
     /**
-     * Mark batch for mass delivery: expectedDeliveryDate = created_at + 6 workdays
+     * Mark batch for mass delivery: expected_delivery_date = created_at + 6 workdays
      */
     public function mark_mass_delivery(): void
     {
-        $this->expectedDeliveryDate = self::nextWorkday($this->created_at, 6);
+        $this->expected_delivery_date = self::nextWorkday($this->created_at, 6);
         $this->save();
     }
 
@@ -181,6 +200,18 @@ class Batch extends Model
     protected static function boot()
     {
         parent::boot();
+
+        // If receive_kind is set, automatically set open to false
+        static::saving(function (self $batch) {
+            if ($batch->receive_kind !== null) {
+                $batch->open = false;
+            }
+
+            // Prevent changes to letter_html if it's not empty
+            if ($batch->isDirty('letter_html') && !empty($batch->getOriginal('letter_html'))) {
+                throw new \Exception('Cannot modify letter_html once it has been generated.');
+            }
+        });
     }
 
     public function getActivitylogOptions(): LogOptions

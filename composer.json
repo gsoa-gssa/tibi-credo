@@ -27,6 +27,7 @@
         "spatie/laravel-activitylog": "^4.8",
         "spatie/laravel-backup": "^9.0",
         "spatie/laravel-db-snapshots": "^2.6",
+        "tecnickcom/tcpdf": "^6.10",
         "tomatophp/filament-users": "^1.0"
     },
     "require-dev": {

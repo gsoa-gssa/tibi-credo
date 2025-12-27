@@ -43,6 +43,9 @@ class SourceResource extends Resource implements HasShieldPermissions
     {
         return $form
             ->schema([
+                Forms\Components\Hidden::make('signature_collection_id')
+                    ->default(fn () => auth()->user()?->signature_collection_id)
+                    ->required(),
                 Forms\Components\Tabs::make("labels")
                     ->tabs([
                         Forms\Components\Tabs\Tab::make("german")

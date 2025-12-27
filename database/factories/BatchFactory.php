@@ -23,7 +23,7 @@ class BatchFactory extends Factory
     {
         return [
             'status' => $this->faker->randomElement(["pending","sent","returned"]),
-            'expectedDeliveryDate' => $this->faker->dateTime(),
+            'expected_delivery_date' => $this->faker->dateTime(),
             'commune_id' => Commune::factory(),
         ];
     }

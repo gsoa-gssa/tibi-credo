@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 class SignatureCollection extends Model
 {
     use HasFactory;
@@ -25,4 +26,9 @@ class SignatureCollection extends Model
         'responsible_person_email_it',
         'responsible_person_phone_it',
     ];
+
+    public function signatureSheets(): HasMany
+    {
+        return $this->hasMany(SignatureSheet::class);
+    }
 }
