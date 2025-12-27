@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('batches', function (Blueprint $table) {
             if (!Schema::hasColumn('batches', 'sheets_count')) {
-                $table->integer('sheets_count')->default(0)->after('signature_count');
+                $table->integer('sheets_count')->default(0);
             }
         });
     }

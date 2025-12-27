@@ -35,6 +35,20 @@ return new class extends Migration
             )
         ');
 
+        // Migrate sheets data to batches: set sheets_count per batch
+        \DB::statement('
+            UPDATE batches
+            SET sheets_count = (
+                SELECT COUNT(*)
+                FROM sheets
+                WHERE sheets.batch_id = batches.id
+                AND sheets.deleted_at IS NULL
+            )
+            WHERE id IN (
+                SELECT DISTINCT batch_id FROM sheets WHERE batch_id IS NOT NULL
+            )
+        ');
+
         // Disable foreign key checks to drop sheets table
         \DB::statement('SET FOREIGN_KEY_CHECKS=0');
         Schema::dropIfExists('sheets');
