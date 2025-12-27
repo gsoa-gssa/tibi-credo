@@ -66,7 +66,7 @@ class SourceResource extends Resource implements HasShieldPermissions
                     ]),
                 Forms\Components\TextInput::make('code')
                     ->required()
-                    ->maxLength(255),
+                    ->maxLength(2),
                 Forms\Components\TextInput::make('shortcut')
                     ->maxLength(2),
             ]);
