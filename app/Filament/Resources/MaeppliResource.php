@@ -40,40 +40,39 @@ class MaeppliResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Group::make([
-                    Forms\Components\TextInput::make('label')
-                        ->required()
-                        ->maxLength(255)
-                        ->label('Bezeichnung'),
-                    Forms\Components\Select::make('commune_id')
-                        ->label(__('maeppli.commune'))
-                        ->relationship('commune', 'name')
-                        ->required()
-                        ->searchable()
-                        ->preload()
-                        ->placeholder(__('input.placeholder.select_commune')),
-                ])->columns(2),
-                Forms\Components\Group::make([
-                    Forms\Components\TextInput::make('sheets_count')
-                        ->label(__('maeppli.sheets_count'))
-                        ->numeric()
-                        ->minValue(1)
-                        ->maxValue(1000)
-                        ->required(),
-                    Forms\Components\TextInput::make('signatures_valid_count')
-                        ->label(__('maeppli.signatures_valid_count'))
-                        ->numeric()
-                        ->minValue(0)
-                        ->maxValue(10000)
-                        ->required(),
-                    Forms\Components\TextInput::make('signatures_invalid_count')
-                        ->label(__('maeppli.signatures_invalid_count'))
-                        ->numeric()
-                        ->minValue(0)
-                        ->maxValue(10000)
-                        ->required(),
-                ])->columns(3),
-            ])->columns(1);
+                Forms\Components\Select::make('commune_id')
+                    ->label(__('commune.name'))
+                    ->relationship('commune', 'name')
+                    ->columnSpan(2)
+                    ->required()
+                    ->searchable()
+                    ->preload()
+                    ->placeholder(__('input.placeholder.select_commune')),
+                Forms\Components\TextInput::make('sheets_count')
+                    ->label(__('maeppli.fields.sheets_count'))
+                    ->numeric()
+                    ->minValue(1)
+                    ->maxValue(1000)
+                    ->required(),
+                Forms\Components\TextInput::make('weight_grams')
+                    ->label(__('batch.fields.weight_grams'))
+                    ->numeric()
+                    ->minValue(0)
+                    ->maxValue(100000)
+                    ->helperText(__('batch.weight_grams_helper')),
+                Forms\Components\TextInput::make('signatures_valid_count')
+                    ->label(__('maeppli.fields.signatures_valid_count'))
+                    ->numeric()
+                    ->minValue(0)
+                    ->maxValue(10000)
+                    ->required(),
+                Forms\Components\TextInput::make('signatures_invalid_count')
+                    ->label(__('maeppli.fields.signatures_invalid_count'))
+                    ->numeric()
+                    ->minValue(0)
+                    ->maxValue(10000)
+                    ->required(),
+            ])->columns(2);
     }
 
     public static function infolist(Infolist $infolist): Infolist
@@ -82,10 +81,12 @@ class MaeppliResource extends Resource
             ->schema([
                 Components\Section::make(__('maeppli.sections.basic_info'))
                     ->schema([
-                        Components\TextEntry::make('label')
-                            ->label(__('maeppli.label')),
+                        Components\TextEntry::make('display_label_html')
+                            ->label(__('maeppli.fields.label'))
+                            ->html()
+                            ->getStateUsing(fn ($record) => $record->display_label_html),
                         Components\TextEntry::make('commune.name')
-                            ->label(__('maeppli.commune')),
+                            ->label(__('commune.name')),
                         Components\TextEntry::make('created_at')
                             ->label(__('maeppli.created_at'))
                             ->dateTime(),
@@ -94,11 +95,13 @@ class MaeppliResource extends Resource
                 Components\Section::make(__('maeppli.sections.statistics'))
                     ->schema([
                         Components\TextEntry::make('sheets_count')
-                            ->label(__('maeppli.sheets_count')),
+                            ->label(__('maeppli.fields.sheets_count')),
+                        Components\TextEntry::make('weight_grams')
+                            ->label(__('batch.fields.weight_grams')),
                         Components\TextEntry::make('signatures_valid_count')
-                            ->label(__('maeppli.signatures_valid_count')),
+                            ->label(__('maeppli.fields.signatures_valid_count')),
                         Components\TextEntry::make('signatures_invalid_count')
-                            ->label(__('maeppli.signatures_invalid_count')),
+                            ->label(__('maeppli.fields.signatures_invalid_count')),
                         Components\TextEntry::make('sheets_valid_ratio')
                             ->label(__('maeppli.sheets_valid_ratio'))
                             ->getStateUsing(function ($record) {
@@ -114,7 +117,7 @@ class MaeppliResource extends Resource
                             }),
                         
                     ])
-                    ->columns(3),
+                    ->columns(2),
             ]);
     }
 
@@ -122,26 +125,28 @@ class MaeppliResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('label')
-                    ->label(__('maeppli.label'))
-                    ->sortable()
-                    ->searchable('maepplis.label'),
+                Tables\Columns\TextColumn::make('display_label_html')
+                    ->label(__('maeppli.fields.label'))
+                    ->sortable(query: fn (Builder $query, string $direction) => $query->orderBy('label_number', $direction))
+                    ->searchable(['label_number'])
+                    ->html()
+                    ->getStateUsing(fn ($record) => $record->display_label_html),
                 Tables\Columns\TextColumn::make('commune.name')
-                    ->label(__('maeppli.commune'))
+                    ->label(__('commune.name'))
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('sheets_count')
-                    ->label(__('maeppli.sheets_count'))
+                    ->label(__('maeppli.fields.sheets_count'))
                     ->numeric()
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->sortable(),
                 Tables\Columns\TextColumn::make('signatures_valid_count')
-                    ->label(__('maeppli.signatures_valid_count'))
+                    ->label(__('maeppli.fields.signatures_valid_count'))
                     ->numeric()
                     ->toggleable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('signatures_invalid_count')
-                    ->label(__('maeppli.signatures_invalid_count'))
+                    ->label(__('maeppli.fields.signatures_invalid_count'))
                     ->numeric()
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->sortable(),

@@ -32,7 +32,21 @@ class AppPanelProvider extends PanelProvider
         \Filament\Tables\Table::configureUsing(function (\Filament\Tables\Table $table): void {
             $table
                 ->defaultPaginationPageOption(25)
-                ->paginationPageOptions([10, 25, 50]);
+                ->paginationPageOptions([10, 25, 50])
+                ->emptyStateHeading(function () use ($table) {
+                    try {
+                        $model = $table->getModel();
+                        if ($model) {
+                            $resourceClass = \Filament\Facades\Filament::getModelResource($model);
+                            if ($resourceClass && method_exists($resourceClass, 'getPluralModelLabel')) {
+                                return __('general.empty_table', ['model_name' => $resourceClass::getPluralModelLabel()]);
+                            }
+                        }
+                    } catch (\Exception $e) {
+                        // Silently ignore if model can't be determined
+                    }
+                    return null;
+                });
         });
 
         FilamentView::registerRenderHook(

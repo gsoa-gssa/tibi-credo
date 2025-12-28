@@ -117,6 +117,9 @@ class CommuneResource extends Resource
                             ->maxLength(255),
                         Forms\Components\DatePicker::make('checked_on')
                             ->label(__('commune.fields.checked_on')),
+                        Forms\Components\Toggle::make('dissolved')
+                            ->label(__('commune.fields.dissolved'))
+                            ->default(false),
                         Forms\Components\TextInput::make('officialId')
                             ->label(__('commune.fields.official_id'))
                             ->required()

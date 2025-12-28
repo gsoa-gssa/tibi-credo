@@ -163,11 +163,16 @@ class Commune extends Model
 
     public function nameWithCanton(): string
     {
+        $name = preg_replace('/\s*\(hist\)$/i', '', $this->name);
         if ($this->canton && $this->canton->label) {
-            return $this->name . ' ' . $this->canton->label ;
+            $name_with_canton = $name . ' ' . $this->canton->label;
+            if ($this->dissolved) {
+                $name_with_canton .= ' '. __('commune.dissolved_suffix');
+            }
+            return $name_with_canton;
+        } else {
+            throw new \RuntimeException('Canton not set for this commune.');
         }
-
-        return $this->name;
     }
 
     public function zipcode_4(): int|null
