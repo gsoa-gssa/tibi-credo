@@ -39,11 +39,11 @@ class MaepplisRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('sheets_count')
                     ->label(__('maeppli.sheets_count'))
                     ->sortable(),
-                Tables\Columns\TextColumn::make('sheets_valid_count')
-                    ->label(__('maeppli.sheets_valid_count'))
+                Tables\Columns\TextColumn::make('signatures_valid_count')
+                    ->label(__('maeppli.signatures_valid_count'))
                     ->sortable(),
-                Tables\Columns\TextColumn::make('sheets_invalid_count')
-                    ->label(__('maeppli.sheets_invalid_count'))
+                Tables\Columns\TextColumn::make('signatures_invalid_count')
+                    ->label(__('maeppli.signatures_invalid_count'))
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label(__('maeppli.fields.created_at'))

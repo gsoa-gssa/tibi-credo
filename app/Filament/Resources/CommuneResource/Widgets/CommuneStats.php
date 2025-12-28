@@ -20,11 +20,11 @@ class CommuneStats extends BaseWidget
             ),
             Stat::make(
                 __("widgets.communeStats.valid"),
-                \App\Models\Maeppli::where('commune_id', $this->record->id)->sum('sheets_valid_count')
+                \App\Models\Maeppli::where('commune_id', $this->record->id)->sum('signatures_valid_count')
             ),
             Stat::make(
                 __("widgets.communeStats.invalid"),
-                \App\Models\Maeppli::where('commune_id', $this->record->id)->sum('sheets_invalid_count')
+                \App\Models\Maeppli::where('commune_id', $this->record->id)->sum('signatures_invalid_count')
             ),
             Stat::make(
                 __("widgets.communeStats.sheets"),

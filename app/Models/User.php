@@ -89,7 +89,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     }
 
     /**
-     * Determine if user can access filament by checking if email domain is in the allowed list
+     * Determine if user can access filament panel
      */
     public function canAccessPanel(\Filament\Panel $panel): bool
     {

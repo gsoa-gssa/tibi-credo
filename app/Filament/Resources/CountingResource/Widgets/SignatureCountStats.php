@@ -11,8 +11,8 @@ class SignatureCountStats extends BaseWidget
 {
     protected static function validityTotal(): float
     {
-        $validity_total = Maeppli::sum('sheets_valid_count');
-        $validity_total_quotient = $validity_total + Maeppli::sum('sheets_invalid_count');
+        $validity_total = Maeppli::sum('signatures_valid_count');
+        $validity_total_quotient = $validity_total + Maeppli::sum('signatures_invalid_count');
         if ( $validity_total_quotient == 0 ) {
             return 0;
         }
@@ -27,13 +27,13 @@ class SignatureCountStats extends BaseWidget
         // Select worst Maepplis by invalid/valid ratio (descending).
         // Handle division by zero by treating 0 valid as a very large ratio.
         $worstMaepplis = Maeppli::select('maepplis.*')
-            ->selectRaw('COALESCE(1.0 * sheets_invalid_count / NULLIF(sheets_valid_count, 0), 999999.0) AS invalid_valid_ratio')
+            ->selectRaw('COALESCE(1.0 * signatures_invalid_count / NULLIF(signatures_valid_count, 0), 999999.0) AS invalid_valid_ratio')
             ->orderByDesc('invalid_valid_ratio')
             ->limit($number_of_worst_maeppli)
             ->get();
 
-        $validity_worst = $worstMaepplis->sum('sheets_valid_count');
-        $validity_worst_quotient = $validity_worst + $worstMaepplis->sum('sheets_invalid_count');
+        $validity_worst = $worstMaepplis->sum('signatures_valid_count');
+        $validity_worst_quotient = $validity_worst + $worstMaepplis->sum('signatures_invalid_count');
         if ( $validity_worst_quotient == 0 ) {
             return 0;
         }

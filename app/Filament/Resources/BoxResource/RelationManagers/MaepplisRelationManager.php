@@ -31,8 +31,8 @@ class MaepplisRelationManager extends RelationManager
                 TextColumn::make('commune.name')
                   ->label(__('commune.name'))
                   ->searchable(),
-                TextColumn::make('sheets_valid_count')
-                  ->label(__('maeppli.sheets_valid_count')),
+                TextColumn::make('signatures_valid_count')
+                  ->label(__('maeppli.signatures_valid_count')),
             ])
             ->filters([
             ])

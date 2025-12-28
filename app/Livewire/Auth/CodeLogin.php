@@ -98,6 +98,15 @@ class CodeLogin extends SimplePage
             return;
         }
 
+        if (!$user->approved) {
+            Notification::make()
+                ->danger()
+                ->title(__('user.not_approved'))
+                ->send();
+            $this->form->fill(['code' => '']);
+            return;
+        }
+
         // Prevent logging in admins via code
         if ($user->hasAnyRole(['admin', 'super_admin'])) {
             Notification::make()

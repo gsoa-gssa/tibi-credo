@@ -117,11 +117,19 @@ class BatchResource extends Resource
                 Forms\Components\DatePicker::make('expected_return_date')
                     ->label(__('batch.fields.expected_return_date'))
                     ->hidden(fn ($record) => $record === null),
+                Forms\Components\Checkbox::make('is_problem_letter')
+                    ->label(__('batch.fields.is_problem_letter'))
+                    ->columnSpan(2)
+                    ->default(false)
+                    ->dehydrated(false)
+                    ->live()
+                    ->hidden(fn ($record) => $record !== null),
                 Forms\Components\Select::make('send_kind')
                     ->label(__('batch.fields.send_kind'))
                     ->relationship('sendKind', 'short_name_de')
                     ->required()
-                    ->hidden(fn ($record) => $record === null),
+                    ->columnSpan(fn (Get $get) => $get('is_problem_letter') ? 2 : 1)
+                    ->hidden(fn (Get $get, $record) => $record === null && !$get('is_problem_letter')),
                 Forms\Components\Select::make('receive_kind')
                     ->label(__('batch.fields.receive_kind'))
                     ->relationship('receiveKind', 'short_name_de')

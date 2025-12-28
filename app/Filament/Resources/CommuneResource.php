@@ -187,8 +187,8 @@ class CommuneResource extends Resource
                         if (!$maeppli) {
                             return __('commune.computed.validity_quota_current.no_data');
                         }
-                        $valid = $maeppli->sheets_valid_count ?? 0;
-                        $invalid = $maeppli->sheets_invalid_count ?? 0;
+                        $valid = $maeppli->signatures_valid_count ?? 0;
+                        $invalid = $maeppli->signatures_invalid_count ?? 0;
                         $total = $valid + $invalid;
                         if ($total === 0) {
                             return "Leerer Versand?";
@@ -285,7 +285,7 @@ class CommuneResource extends Resource
                     ->numeric()
                     ->getStateUsing(function (Model $record) {
                         return \App\Models\Maeppli::where('commune_id', $record->id)
-                            ->selectRaw('SUM(sheets_valid_count + sheets_invalid_count) as total')
+                            ->selectRaw('SUM(signatures_valid_count + signatures_invalid_count) as total')
                             ->value('total') ?? 0;
                     })
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -294,7 +294,7 @@ class CommuneResource extends Resource
                     ->numeric()
                     ->getStateUsing(function (Model $record) {
                         return \App\Models\Maeppli::where('commune_id', $record->id)
-                            ->sum('sheets_valid_count') ?? 0;
+                            ->sum('signatures_valid_count') ?? 0;
                     })
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('invalid_signatures_in_maepplis')
@@ -302,7 +302,7 @@ class CommuneResource extends Resource
                     ->numeric()
                     ->getStateUsing(function (Model $record) {
                         return \App\Models\Maeppli::where('commune_id', $record->id)
-                            ->sum('sheets_invalid_count') ?? 0;
+                            ->sum('signatures_invalid_count') ?? 0;
                     })
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('authority_address_name')->label('Name of Authority')->searchable()->toggleable(isToggledHiddenByDefault: true),

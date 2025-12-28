@@ -26,13 +26,11 @@ class MaeppliResource extends Resource
         return __('navigation.group.projectDataManagement');
     }
 
-    // Add model label
     public static function getModelLabel(): string
     {
         return __('maeppli.name');
     }
 
-    // Add plural model label
     public static function getPluralModelLabel(): string
     {
         return __('maeppli.namePlural');
@@ -62,14 +60,14 @@ class MaeppliResource extends Resource
                         ->minValue(1)
                         ->maxValue(1000)
                         ->required(),
-                    Forms\Components\TextInput::make('sheets_valid_count')
-                        ->label(__('maeppli.sheets_valid_count'))
+                    Forms\Components\TextInput::make('signatures_valid_count')
+                        ->label(__('maeppli.signatures_valid_count'))
                         ->numeric()
                         ->minValue(0)
                         ->maxValue(10000)
                         ->required(),
-                    Forms\Components\TextInput::make('sheets_invalid_count')
-                        ->label(__('maeppli.sheets_invalid_count'))
+                    Forms\Components\TextInput::make('signatures_invalid_count')
+                        ->label(__('maeppli.signatures_invalid_count'))
                         ->numeric()
                         ->minValue(0)
                         ->maxValue(10000)
@@ -97,22 +95,22 @@ class MaeppliResource extends Resource
                     ->schema([
                         Components\TextEntry::make('sheets_count')
                             ->label(__('maeppli.sheets_count')),
-                        Components\TextEntry::make('sheets_valid_count')
-                            ->label(__('maeppli.sheets_valid_count')),
-                        Components\TextEntry::make('sheets_invalid_count')
-                            ->label(__('maeppli.sheets_invalid_count')),
+                        Components\TextEntry::make('signatures_valid_count')
+                            ->label(__('maeppli.signatures_valid_count')),
+                        Components\TextEntry::make('signatures_invalid_count')
+                            ->label(__('maeppli.signatures_invalid_count')),
                         Components\TextEntry::make('sheets_valid_ratio')
                             ->label(__('maeppli.sheets_valid_ratio'))
                             ->getStateUsing(function ($record) {
-                                $valid = (int) $record->sheets_valid_count;
-                                $invalid = (int) $record->sheets_invalid_count;
+                                $valid = (int) $record->signatures_valid_count;
+                                $invalid = (int) $record->signatures_invalid_count;
                                 $total = $valid + $invalid;
                                 return $total > 0 ? (string)(int)($valid / $total * 100) . '%' : $valid . ' / ' . $total;
                             }),
                         Components\TextEntry::make('signatures_total')
                             ->label(__('maeppli.signatures_total'))
                             ->getStateUsing(function ($record) {
-                                return $record->sheets_valid_count+$record->sheets_invalid_count;
+                                return $record->signatures_valid_count+$record->signatures_invalid_count;
                             }),
                         
                     ])
@@ -137,13 +135,13 @@ class MaeppliResource extends Resource
                     ->numeric()
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->sortable(),
-                Tables\Columns\TextColumn::make('sheets_valid_count')
-                    ->label(__('maeppli.sheets_valid_count'))
+                Tables\Columns\TextColumn::make('signatures_valid_count')
+                    ->label(__('maeppli.signatures_valid_count'))
                     ->numeric()
                     ->toggleable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('sheets_invalid_count')
-                    ->label(__('maeppli.sheets_invalid_count'))
+                Tables\Columns\TextColumn::make('signatures_invalid_count')
+                    ->label(__('maeppli.signatures_invalid_count'))
                     ->numeric()
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->sortable(),
@@ -155,8 +153,8 @@ class MaeppliResource extends Resource
                 Tables\Columns\TextColumn::make('sheets_valid_ratio')
                     ->label(__('maeppli.sheets_valid_ratio'))
                     ->getStateUsing(function ($record) {
-                        $valid = (int) $record->sheets_valid_count;
-                        $invalid = (int) $record->sheets_invalid_count;
+                        $valid = (int) $record->signatures_valid_count;
+                        $invalid = (int) $record->signatures_invalid_count;
                         $total = $valid + $invalid;
                         return $total > 0 ? (string)(int)($valid / $total * 100 ) . '%' : $valid . ' / ' . $total;
                     })
@@ -174,7 +172,7 @@ class MaeppliResource extends Resource
                         '1000' => '> 1000',
                     ])
                     ->query(fn (Builder $query, array $data) =>
-                        $data['value'] ? $query->where('sheets_valid_count', '>', (int)$data['value']) : $query
+                        $data['value'] ? $query->where('signatures_valid_count', '>', (int)$data['value']) : $query
                     ),
                 Tables\Filters\Filter::make('has_box')
                     ->label(__('maeppli.filters.has_box'))
