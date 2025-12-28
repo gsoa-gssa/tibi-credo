@@ -69,10 +69,6 @@ class AppPanelProvider extends PanelProvider
             ->id('app')
             ->path('')
             ->login()
-            // ->colors([
-            //     'primary' => "#b40e44",
-            //     'gray' => Color::Slate,
-            // ])
             ->databaseNotifications()
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
@@ -129,7 +125,7 @@ class AppPanelProvider extends PanelProvider
             ])
             ->renderHook(
                 \Filament\View\PanelsRenderHook::USER_MENU_BEFORE,
-                fn (): string => \Illuminate\Support\Facades\Blade::render("@livewire('signature-collection-selector')")
+                fn (): string => \Illuminate\Support\Facades\Blade::render("@livewire('admin-warning')@livewire('signature-collection-selector')")
             );
     }
 }

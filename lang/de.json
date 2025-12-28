@@ -252,6 +252,7 @@
     "maeppli.namePlural": "Couverts (beglaubigt)",
     "maeppli.no_batch": "Nie versandt",
     "general.empty_table": "Keine :model_name",
+    "role.admin_warning": "Als Admin angemeldet",
     "maeppli.sections.basic_info": "Grundinformationen",
     "maeppli.sections.statistics": "Statistiken",
     "maeppli.sheets_count_helper": "Gerne eingeben, wenn nicht zu viel Aufwand (steht auf Gesamtbescheinigung oder es sind nur wenige Bögen).",
