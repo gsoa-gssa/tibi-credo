@@ -17,6 +17,9 @@ class SignatureSheet extends Model
         'short_name',
         'description_internal',
         'sheet_pdf',
+        'source_x',
+        'source_y',
+        'source_font_size',
     ];
 
     public function signatureCollection(): BelongsTo

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Scopes\SignatureCollectionScope;
+use App\Traits\HasLocalizedFields;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -10,7 +11,7 @@ use Rupadana\ApiService\Contracts\HasAllowedFilters;
 
 class Source extends Model implements HasAllowedFilters
 {
-    use HasFactory;
+    use HasFactory, HasLocalizedFields;
 
     public $casts = [
         'label' => 'json',

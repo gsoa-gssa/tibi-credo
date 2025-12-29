@@ -46,6 +46,23 @@ class SignatureSheetResource extends Resource
                 Forms\Components\Textarea::make('description_internal')
                     ->rows(4)
                     ->label(__('signatureSheet.fields.description_internal')),
+                Forms\Components\Section::make('source')
+                    ->schema([
+                        Forms\Components\TextInput::make('source_x')
+                            ->numeric()
+                            ->label(__('signatureSheet.fields.source_x')),
+                        Forms\Components\TextInput::make('source_y')
+                            ->numeric()
+                            ->label(__('signatureSheet.fields.source_y')),
+                        Forms\Components\TextInput::make('source_font_size')
+                            ->numeric()
+                            ->label(__('signatureSheet.fields.source_font_size')),
+                        Forms\Components\TextInput::make('source_page_number')
+                            ->numeric()
+                            ->label(__('signatureSheet.fields.source_page_number')),
+                    ])
+                    ->columns(2)
+                    ->label(__('signatureSheet.sections.source')),
                 Forms\Components\FileUpload::make('sheet_pdf')
                     ->acceptedFileTypes(['application/pdf'])
                     ->disk('public')
@@ -55,6 +72,7 @@ class SignatureSheetResource extends Resource
                     ->downloadable()
                     ->openable()
                     ->required()
+                    ->columnSpan('full')
                     ->label(__('signatureSheet.fields.sheet_pdf')),
             ]);
     }

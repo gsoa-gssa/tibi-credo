@@ -17,6 +17,11 @@ class SourcesRelationManager extends RelationManager
 
     protected static ?string $recordTitleAttribute = 'code';
 
+    public static function getTitle(\Illuminate\Database\Eloquent\Model $ownerRecord, string $pageClass): string
+    {
+        return __('source.namePlural');
+    }
+
     public function table(Table $table): Table
     {
         return $table
@@ -24,16 +29,16 @@ class SourcesRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('code')
                     ->label(__('source.fields.code')),
                 Tables\Columns\TextColumn::make('label')
-                    ->label(__('source.fields.label')),
+                    ->label(__('source.fields.label'))
+                    ->formatStateUsing(fn ($record) => $record->getLocalized('label')),
             ])
             ->filters([
                 //
             ])
             ->actions([
                 Tables\Actions\Action::make('customized_pdf')
-                    ->label('Download PDF')
+                    ->label(__('source.actions.download_pdf'))
                     ->icon('heroicon-o-arrow-down-tray')
-                    ->requiresConfirmation()
                     ->action(function (Source $record) {
                         $sheet = $this->getOwnerRecord();
 
@@ -90,10 +95,11 @@ class SourcesRelationManager extends RelationManager
                                 $pdf->AddPage($orientation, [$size['width'], $size['height']]);
                                 $pdf->useTemplate($tplId);
 
-                                if ($pageNo === 1) {
-                                    $pdf->SetFont('Courier', '', 14);
+                                if ($pageNo === $sheet->source_page_number) {
+                                    $pdf->SetFont('Courier', '', $sheet->source_font_size);
                                     $pdf->SetTextColor(0, 0, 0);
-                                    $pdf->Text(193.5, 14, (string) $record->code);
+                                    $textWidth = $pdf->GetStringWidth((string) $record->code);
+                                    $pdf->Text($sheet->source_x - $textWidth / 2, $sheet->source_y, (string) $record->code);
                                 }
                             }
 
