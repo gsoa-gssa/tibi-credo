@@ -51,6 +51,11 @@ class Batch extends Model
         return $this->belongsTo(Commune::class);
     }
 
+    public function signatureCollection(): BelongsTo
+    {
+        return $this->belongsTo(SignatureCollection::class);
+    }
+
     public function sendKind(): BelongsTo
     {
         return $this->belongsTo(BatchKind::class, 'send_kind');
@@ -152,43 +157,58 @@ class Batch extends Model
         return $date;
     }
 
-    /**
-     * Mark batch for priority delivery: expected_delivery_date = created_at + 1 workday
-     */
-    public function mark_priority_delivery(): void
+    public function get_expected_delivery_date(string $priority): ?\Carbon\Carbon
     {
-        $this->expected_delivery_date = self::nextWorkday($this->created_at, 1);
-        $this->save();
+        if ($priority === 'A') {
+            return self::nextWorkday(now(), 1);
+        } elseif ($priority === 'B1') {
+            return self::nextWorkday(now(), 2);
+        } elseif ($priority === 'B2') {
+            return self::nextWorkday(now(), 6);
+        } else {
+            throw new \InvalidArgumentException('Invalid priority: ' . $priority);
+        }
     }
 
-    /**
-     * Mark batch for standard delivery: expected_delivery_date = created_at + 2 workdays
-     */
-    public function mark_standard_delivery(): void
+    public function get_letter_html(bool $posLeft, string $priority): string
     {
-        $this->expected_delivery_date = self::nextWorkday($this->created_at, 2);
-        $this->save();
-    }
+        if( $this->letter_html !== null ) {
+            return $this->letter_html;
+        }
 
-    /**
-     * Mark batch for mass delivery: expected_delivery_date = created_at + 6 workdays
-     */
-    public function mark_mass_delivery(): void
-    {
-        $this->expected_delivery_date = self::nextWorkday($this->created_at, 6);
-        $this->save();
-    }
+        // check priority is in A, B1, B2. Throw exception if not.
+        if (!in_array($priority, ['A', 'B1', 'B2'])) {
+            throw new \InvalidArgumentException('Invalid priority: ' . $priority);
+        }
+        $A = ($priority === 'A');
+        $addressPosition = $posLeft ? 'left' : 'right';
 
-    public function pdf($posLeft = true, $priority = false): \Symfony\Component\HttpFoundation\StreamedResponse
-    {
+        // calculate expected delivery and return dates
+        $this->expected_delivery_date = $this->get_expected_delivery_date($priority);
+        $this->expected_return_date = self::nextWorkday($this->expected_delivery_date, $this->signatureCollection->return_workdays);
+
         // change locale to render in correct language
         $currentLocale = (string) app()->getLocale();
         $lang = $this->commune->lang;
         app()->setLocale($lang);
-        $addressPosition = $posLeft ? 'left' : 'right';
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('batch.partials.letter-a4-' . $lang, ['batch' => $this, 'addressPosition' => $addressPosition, 'priorityMail' => $priority]);
+        $html = view('batch.partials.letter', ['batch' => $this, 'addressPosition' => $addressPosition, 'priorityMail' => $A])->render();
+
         // restore locale
         app()->setLocale($currentLocale);
+
+        // side effects
+        $this->letter_html = $html;
+        $this->save();
+        return $html;
+    }
+        
+
+    public function get_letter_pdf(): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        if( $this->letter_html === null ) {
+            throw new \Exception('Letter HTML not generated yet for batch ID ' . $this->id);
+        }
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($this->letter_html);
         return response()->streamDownload(function () use ($pdf) {
             echo $pdf->output();
         }, 'batch-letter-ID_' . $this->id . '.pdf');
@@ -207,8 +227,15 @@ class Batch extends Model
                 $batch->open = false;
             }
 
-            // Prevent changes to letter_html if it's not empty
-            if ($batch->isDirty('letter_html') && !empty($batch->getOriginal('letter_html'))) {
+            // Prevent changes to letter_html if it's not empty, except for super_admins deleting it
+            if (
+                $batch->isDirty('letter_html') &&
+                !empty($batch->getOriginal('letter_html')) &&
+                !(
+                    optional(auth()->user())->hasRole('super_admin') &&
+                    ($batch->letter_html === null || $batch->letter_html === '')
+                )
+            ) {
                 throw new \Exception('Cannot modify letter_html once it has been generated.');
             }
         });

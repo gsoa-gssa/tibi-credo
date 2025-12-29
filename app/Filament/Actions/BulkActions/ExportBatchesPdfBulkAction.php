@@ -13,18 +13,20 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class ExportBatchesPdfBulkAction extends BulkAction
 {
 
-    protected bool $priorityMail = false;
+    protected ?string $priority = null; // 'A', 'B1', 'B2' or null
     protected string $addressPosition = 'left'; // 'left' or 'right'
-    protected bool $massDelivery = false;
 
     public static function getDefaultName(): ?string
     {
         return 'export_batches_pdf';
     }
 
-    public function priorityMail(bool $priorityMail = true): static
+    public function mailPriority(string $priority): static
     {
-        $this->priorityMail = $priorityMail;
+        if (!in_array($priority, ['A', 'B1', 'B2'])) {
+            throw new \InvalidArgumentException('Invalid priority: ' . $priority);
+        }
+        $this->priority = $priority;
         return $this;
     }
 
@@ -34,13 +36,6 @@ class ExportBatchesPdfBulkAction extends BulkAction
             throw new \InvalidArgumentException("addressPosition must be 'left' or 'right'");
         }
         $this->addressPosition = $addressPosition;
-        return $this;
-    }
-
-    public function massDelivery(bool $massDelivery = true): static
-    {
-        $this->massDelivery = $massDelivery;
-        $this->priorityMail = false;
         return $this;
     }
 
@@ -59,7 +54,7 @@ class ExportBatchesPdfBulkAction extends BulkAction
     {
         try {
             // Load relationships to avoid N+1 queries
-            $batches->load(['commune']);
+            $batches->load(['commune', 'signatureCollection']);
 
             // Generate combined HTML from individual templates
             $combinedHtml = $this->generateCombinedHtml($batches);
@@ -116,28 +111,7 @@ class ExportBatchesPdfBulkAction extends BulkAction
         // Generate HTML for each contact
         foreach ($batches as $batch) {
             try {
-                // change locale to render in correct language
-                $currentLocale = (string) app()->getLocale();
-                $lang = $batch->commune->lang;
-                app()->setLocale($lang);
-                $individualPages[] = view('batch.partials.letter-a4-' . $lang, [
-                    'batch' => $batch,
-                    'addressPosition' => $this->addressPosition,
-                    'priorityMail' => $this->priorityMail,
-                ])->render();
-                // Mark batch with appropriate delivery tier
-                if ($this->massDelivery) {
-                    $batch->mark_mass_delivery();
-                } elseif ($this->priorityMail) {
-                    $batch->mark_priority_delivery();
-                } else {
-                    $batch->mark_standard_delivery();
-                }
-                // set to sent
-                $batch->status = 'sent';
-                $batch->save();
-                // Reset locale after rendering
-                app()->setLocale($currentLocale);
+                $individualPages[] = $batch->get_letter_html($this->addressPosition, $this->priority);
             } catch (\Exception $e) {
                 \Filament\Notifications\Notification::make()
                     ->title('Contact Export Skipped')

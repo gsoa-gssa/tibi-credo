@@ -11,27 +11,27 @@ class ExportBatchesBulkActionGroup
         return BulkActionGroup::make([
             ExportBatchesPdfBulkAction::make('letters_left')
                 ->addressPosition('left')
-                ->priorityMail(false)
+                ->mailPriority('B1')
                 ->label(__('batch.action.exportLetterLeftA4')),
             ExportBatchesPdfBulkAction::make('letters_left_mass_delivery')
                 ->addressPosition('left')
-                ->massDelivery(true)
+                ->mailPriority('B2')
                 ->label(__('batch.action.exportLetterLeftA4MassDelivery')),
             ExportBatchesPdfBulkAction::make('letters_left_priority')
                 ->addressPosition('left')
-                ->priorityMail(true)
+                ->mailPriority('A')
                 ->label(__('batch.action.exportLetterLeftA4Priority')),
             ExportBatchesPdfBulkAction::make('letters_right')
                 ->addressPosition('right')
-                ->priorityMail(false)
+                ->mailPriority('B1')
                 ->label(__('batch.action.exportLetterRightA4')),
             ExportBatchesPdfBulkAction::make('letters_right_mass_delivery')
                 ->addressPosition('right')
-                ->massDelivery(true)
+                ->mailPriority('B2')
                 ->label(__('batch.action.exportLetterRightA4MassDelivery')),
             ExportBatchesPdfBulkAction::make('letters_right_priority')
                 ->addressPosition('right')
-                ->priorityMail(true)
+                ->mailPriority('A')
                 ->label(__('batch.action.exportLetterRightA4Priority')),
         ])
         ->label(__('batch.action.exportLetter'))

@@ -135,11 +135,12 @@ class BatchResource extends Resource
                     ->relationship('receiveKind', 'short_name_de')
                     ->nullable()
                     ->hidden(fn ($record) => $record === null),
-                Forms\Components\Textarea::make('letter_html')
-                    ->label(__('batch.fields.letter_html'))
-                    ->columnSpan(2)
-                    ->readOnly()
+                Forms\Components\ViewField::make('letter_html')
+                    ->label(__('batch.fields.letter_preview'))
+                    ->view('filament.forms.components.letter-html-preview')
+                    ->columnSpanFull()
                     ->hidden(fn ($record) => $record === null || empty($record->letter_html)),
+                    
             ];
     }
 
