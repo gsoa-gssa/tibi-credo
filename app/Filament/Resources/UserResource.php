@@ -73,7 +73,7 @@ class UserResource extends Resource
                 ->default(fn () => auth()->user()?->signature_collection_id)
                 ->preload()
                 ->required()
-                ->hidden(fn () => !auth()->user()?->hasRole('super_admin')),
+                ->disabled(fn () => !auth()->user()?->hasRole('super_admin')),
             TextInput::make('password')
                 ->label(__('filament-users::user.resource.password'))
                 ->password()
@@ -87,7 +87,11 @@ class UserResource extends Resource
             $rows[] = Forms\Components\Select::make('roles')
                 ->multiple()
                 ->preload()
-                ->relationship('roles', 'name')
+                ->relationship('roles', 'name', function ($query) {
+                    if (!auth()->user()?->hasRole('super_admin')) {
+                        $query->where('name', '!=', 'super_admin');
+                    }
+                })
                 ->label(trans('filament-users::user.resource.roles'));
         }
 

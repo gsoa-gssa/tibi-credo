@@ -14,6 +14,27 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 {
+    /**
+     * Override the save method to enforce business rules:
+     * - Only super_admin can assign super_admin role
+     * - signature_collection_id must match current user's if not super_admin
+     */
+    public function save(array $options = [])
+    {
+        $currentUser = auth()->user();
+        if ($currentUser && !$currentUser->hasRole('super_admin')) {
+            // Prevent assigning super_admin role
+            if ($this->hasRole('super_admin') || (isset($this->roles) && in_array('super_admin', (array)$this->roles))) {
+                $this->syncRoles(array_diff((array)$this->getRoleNames(), ['super_admin']));
+            }
+            // Enforce signature_collection_id
+            $this->signature_collection_id = $currentUser->signature_collection_id;
+        }
+        if (empty($this->signature_collection_id)) {
+            throw new \Exception('signature_collection_id cannot be null');
+        }
+        return parent::save($options);
+    }
     use HasFactory, Notifiable, HasRoles, HasApiTokens;
 
     /**

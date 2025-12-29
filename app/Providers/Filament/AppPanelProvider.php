@@ -57,14 +57,31 @@ class AppPanelProvider extends PanelProvider
 
     public function panel(Panel $panel): Panel
     {
-        return $panel
+        $isDebug = config('app.debug');
+        $panel = $panel
             ->default()
-            ->brandName(function () {
+            ->colors(function () use ($isDebug) {
+                if ($isDebug) {
+                    // Use a distinct color palette for debug mode
+                    return [
+                        'primary' => Color::Pink,
+                    ];
+                }
+                // Default colors (can be omitted if Filament defaults are fine)
+                return [
+                ];
+            })
+            ->brandName(function () use ($isDebug) {
+                if ($isDebug) {
+                    $base_name = 'DEBUG';
+                } else {
+                    $base_name = 'Certimi';
+                }
                 $user = auth()->user();
                 if ($user && $user->signatureCollection && $user->signatureCollection->short_name) {
-                    return 'Certimi - ' . $user->signatureCollection->short_name;
+                    return $base_name . ' - ' . $user->signatureCollection->short_name;
                 }
-                return 'Certimi';
+                return $base_name;
             })
             ->id('app')
             ->path('')
@@ -127,5 +144,7 @@ class AppPanelProvider extends PanelProvider
                 \Filament\View\PanelsRenderHook::USER_MENU_BEFORE,
                 fn (): string => \Illuminate\Support\Facades\Blade::render("@livewire('admin-warning')@livewire('signature-collection-selector')")
             );
+
+        return $panel;
     }
 }
