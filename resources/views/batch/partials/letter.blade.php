@@ -1,3 +1,15 @@
+@if (!in_array($addressPosition, ['left', 'right']))
+    @php
+        throw new \InvalidArgumentException("addressPosition must be 'left' or 'right'");
+    @endphp
+@endif
+
+@if (!in_array($priorityMail, ['A', 'B']))
+  @php
+    throw new \InvalidArgumentException("priorityMail must be 'A' or 'B'");
+  @endphp
+@endif
+
 @php
   $sheet_labels = $batch->sheetsHTMLString();
 @endphp
@@ -6,7 +18,7 @@
     <x-slot name="addressPosition">{{ $addressPosition }}</x-slot>
     <x-slot name="pp_postcode">{{ $batch->signatureCollection->pp_sender_zipcode }}</x-slot>
     <x-slot name="pp_place">{{ $batch->signatureCollection->getLocalized('pp_sender_place') }}</x-slot>
-    <x-slot name="priorityMail">{{ $priorityMail ?? false }}</x-slot>
+    <x-slot name="priorityMail">{{ $priorityMail }}</x-slot>
     <x-slot name="ppLine">
       {{ $batch->signatureCollection->getLocalized('pp_sender_name') }}
     </x-slot>
@@ -17,7 +29,10 @@
       {{ $batch->signatureCollection->getLocalized('pp_sender_place') }}, {{$batch->created_at->format("d.m.Y")}}
     </x-slot>
     <x-slot name="subjectLine">
-      {!! __('letter.subject') !!}
+      <b>
+        {{ $batch->signatureCollection->getLocalized('official_name') }}<br>
+        {{ __('letter.subject') }}
+      </b>
     </x-slot>
     @if($batch->created_at->gt($batch->signatureCollection->end_date->subDays(20)))
       <p style="border: 5px solid black; padding: 5px;">
@@ -53,7 +68,8 @@
       @endif
     </p>
     <p>
-      {{ __('letter.ending' . $batch->signatureCollection->type->value) }}<br>
+      {{ __('letter.ending') }}<br><br>
+      {{ __('letter.ending.' . $batch->signatureCollection->type->value) }}<br>
       {{ $batch->signatureCollection->getLocalized('responsible_person_name') }}<br>
       {{ $batch->signatureCollection->getLocalized('responsible_person_email') }}<br>
       {{ $batch->signatureCollection->getLocalized('responsible_person_phone') }}<br>

@@ -1,14 +1,21 @@
 @props([
-    'addressPosition' => 'left',
-    'pp_postcode' => null,
-    'pp_place' => null,
-    'priorityMail' => false
+  'addressPosition' => 'left',
+  'pp_postcode' => null,
+  'pp_place' => null,
+  // priorityMail must be 'A' or 'B'
+  'priorityMail' => 'B'
 ])
 
 @if (!in_array($addressPosition, ['left', 'right']))
     @php
         throw new \InvalidArgumentException("addressPosition must be 'left' or 'right'");
     @endphp
+@endif
+
+@if (!in_array($priorityMail, ['A', 'B']))
+  @php
+    throw new \InvalidArgumentException("priorityMail must be 'A' or 'B'");
+  @endphp
 @endif
 
 @if (is_null($pp_postcode) || !preg_match('/^\d{4}$/', $pp_postcode))
@@ -30,14 +37,14 @@
 </x-slot>
 <div class="letter-content">
   <div class="workaround">.</div>
-  <div class="address-block {{ $addressPosition === 'right' ? 'address-block-right' : 'address-block-left' }}">
+  <div class="address-block {{ $addressPosition == 'right' ? 'address-block-right' : 'address-block-left' }}">
     <div>
           <div style="position: relative; border-bottom: 1px solid black; margin-bottom: 3mm; font-family: Arial, Verdana, Helvetica, sans-serif; font-size: 8pt;">
                 <div style="position: absolute; top: 0; right: 0; font-size: 6pt;">{{__('letter.post_company') }}</div>
               <b style="font-size:12pt;">
                 P.P.
               </b>
-              @if ($priorityMail)
+              @if ($priorityMail == 'A')
                 <b style="font-size:24pt; line-height: 0.5em;">
                   A
                 </b>

@@ -13,8 +13,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class ExportBatchesPdfBulkAction extends BulkAction
 {
 
-    protected ?string $priority = null; // 'A', 'B1', 'B2' or null
-    protected string $addressPosition = 'left'; // 'left' or 'right'
+    protected string $priority = 'B1'; // 'A', 'B1', 'B2' or null
+    protected string $addressPosition = 'right'; // 'left' or 'right'
 
     public static function getDefaultName(): ?string
     {
@@ -108,14 +108,13 @@ class ExportBatchesPdfBulkAction extends BulkAction
     {
         $individualPages = [];
 
-        // Generate HTML for each contact
         foreach ($batches as $batch) {
             try {
                 $individualPages[] = $batch->get_letter_html($this->addressPosition, $this->priority);
             } catch (\Exception $e) {
                 \Filament\Notifications\Notification::make()
-                    ->title('Contact Export Skipped')
-                    ->body('Contact ' . $contact->id . ' could not be rendered and was skipped: ' . $e->getMessage())
+                    ->title('Batch Export Skipped')
+                    ->body('Batch ' . $batch->id . ' could not be rendered and was skipped: ' . $e->getMessage())
                     ->warning()
                     ->send();
             }
@@ -123,7 +122,7 @@ class ExportBatchesPdfBulkAction extends BulkAction
 
         \Filament\Notifications\Notification::make()
             ->title('Batches Processed')
-            ->body(count($individualPages) . ' out of ' . $batches->count() . ' letters were generated with address position ' . $this->addressPosition . ', priority mail ' . ($this->priorityMail ? 'enabled' : 'disabled') . ' and mass delivery ' . ($this->massDelivery ? 'enabled' : 'disabled') . '.')
+            ->body(count($individualPages) . ' out of ' . $batches->count() . ' letters were generated with address position ' . $this->addressPosition . ' and priority ' . $this->priority . '.')
             ->success()
             ->send();
 

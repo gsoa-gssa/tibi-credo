@@ -170,9 +170,9 @@ class Batch extends Model
         }
     }
 
-    public function get_letter_html(bool $posLeft, string $priority): string
+    public function get_letter_html(string $addressPosition, string $priority): string
     {
-        if( $this->letter_html !== null ) {
+        if ($this->letter_html !== null) {
             return $this->letter_html;
         }
 
@@ -180,8 +180,12 @@ class Batch extends Model
         if (!in_array($priority, ['A', 'B1', 'B2'])) {
             throw new \InvalidArgumentException('Invalid priority: ' . $priority);
         }
-        $A = ($priority === 'A');
-        $addressPosition = $posLeft ? 'left' : 'right';
+        $priorityMail = $priority === 'A' ? 'A' : 'B';
+
+        // check addressPosition is 'left' or 'right'. Throw exception if not.
+        if (!in_array($addressPosition, ['left', 'right'])) {
+            throw new \InvalidArgumentException("addressPosition must be 'left' or 'right'");
+        }
 
         // calculate expected delivery and return dates
         $this->expected_delivery_date = $this->get_expected_delivery_date($priority);
@@ -191,7 +195,12 @@ class Batch extends Model
         $currentLocale = (string) app()->getLocale();
         $lang = $this->commune->lang;
         app()->setLocale($lang);
-        $html = view('batch.partials.letter', ['batch' => $this, 'addressPosition' => $addressPosition, 'priorityMail' => $A])->render();
+        \Log::info("Generating letter HTML for batch ID {$this->id} in locale {$lang} with address position {$addressPosition} and priority {$priority}, priorityMail is " . $priorityMail);
+        $html = view('batch.partials.letter', [
+            'batch' => $this,
+            'addressPosition' => $addressPosition,
+            'priorityMail' => $priorityMail
+        ])->render();
 
         // restore locale
         app()->setLocale($currentLocale);
