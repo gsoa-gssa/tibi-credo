@@ -80,18 +80,13 @@ class SignatureSheetResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('short_name')
             ->columns([
                 Tables\Columns\TextColumn::make('short_name')
                     ->label(__('signatureSheet.fields.short_name'))
                     ->searchable(),
                 Tables\Columns\TextColumn::make('signatureCollection.short_name')
                     ->label(__('signature_collection.name')),
-                Tables\Columns\IconColumn::make('sheet_pdf')
-                    ->label(__('signatureSheet.fields.sheet_pdf'))
-                    ->icon('heroicon-o-document-text')
-                    ->tooltip(fn ($record) => $record->sheet_pdf ? __('Open PDF') : __('No file'))
-                    ->color(fn ($record) => $record->sheet_pdf ? 'primary' : 'gray')
-                    ->url(fn ($record) => $record->sheet_pdf ? Storage::disk('public')->url($record->sheet_pdf) : null, shouldOpenInNewTab: true),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -99,17 +94,9 @@ class SignatureSheetResource extends Resource
             ->filters([
                 //
             ])
-            ->headerActions([
-                Tables\Actions\CreateAction::make(),
-            ])
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
             ]);
     }
 
