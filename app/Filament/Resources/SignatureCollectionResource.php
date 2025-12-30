@@ -45,10 +45,16 @@ class SignatureCollectionResource extends Resource
                 ->columnSpan(2),
             Forms\Components\Select::make('type')
                 ->label(__('signature_collection.fields.type'))
-                ->columnSpan(2)
                 ->options(SignatureCollectionType::options())
                 ->required()
                 ->default('federal_initiative'),
+            Forms\Components\ColorPicker::make('color')
+                ->label(__('signature_collection.fields.color'))
+                ->required()
+                ->helperText(__('signature_collection.color_helper'))
+                ->formatStateUsing(fn ($state) => $state ? strtoupper($state) : null)
+                ->live()
+                ->rule('regex:/^#[A-Fa-f0-9]{6}$/'),
             Forms\Components\Textarea::make('return_address_letters')
                 ->label(__('signature_collection.fields.return_address_letters'))
                 ->helperText(__('signature_collection.return_address_letters_helper'))

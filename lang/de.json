@@ -463,6 +463,8 @@
     "signature_collection.fields.short_name": "Bezeichnung",
     "signature_collection.fields.type": "Typ",
     "signature_collection.name": "Sammlung",
+    "signature_collection.fields.color": "Farbe",
+    "signature_collection.color_helper": "Hauptsächlich für Menschen mit Zugriff auf mehrere Sammlungen in diesem Werkzeug zur einfacheren Unterscheidung.",
     "signature_collection.namePlural": "Sammlungen",
     "signature_collection.return_address_letters_helper": "Das kann eine Postfachadresse sein. Wenn die gleiche wie für Pakete angegeben wird, wird auf dem Brief nur eine Adresse aufgedruckt.",
     "signature_collection.return_address_parcels_helper": "Das muss eine physische Adresse sein, da Pakete nicht an Postfächer zugestellt werden.",

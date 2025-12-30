@@ -67,9 +67,6 @@ class AppPanelProvider extends PanelProvider
                         'primary' => Color::Pink,
                     ];
                 }
-                // Default colors (can be omitted if Filament defaults are fine)
-                return [
-                ];
             })
             ->brandName(function () use ($isDebug) {
                 if ($isDebug) {
@@ -140,6 +137,19 @@ class AppPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ])
+            ->renderHook(
+                \Filament\View\PanelsRenderHook::BODY_END,
+                function (): string {
+                    $user = auth()->user();
+                    \Log::debug('Rendering viewport border for user', ['user_id' => $user ? $user->id : null]);
+                    $color = null;
+                    if ($user && $user->signatureCollection && $user->signatureCollection->color) {
+                        \Log::debug('User has signature collection with color', ['color' => $user->signatureCollection->color]);
+                        $color = $user->signatureCollection->color;
+                    }
+                    return \Illuminate\Support\Facades\Blade::render('<x-viewport-border color="'.$color.'" />');
+                }
+            )
             ->renderHook(
                 \Filament\View\PanelsRenderHook::USER_MENU_BEFORE,
                 fn (): string => \Illuminate\Support\Facades\Blade::render("@livewire('admin-warning')@livewire('signature-collection-selector')")

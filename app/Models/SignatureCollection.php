@@ -38,6 +38,7 @@ class SignatureCollection extends Model
         'pp_sender_name_de',
         'pp_sender_name_fr',
         'pp_sender_name_it',
+        'color',
     ];
 
     protected $casts = [
