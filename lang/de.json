@@ -394,7 +394,7 @@
     "pages.createBatchWorkflow.validation.confirm": "Hier fehlt die Bestätigung.",
     "pages.createBatchWorkflow.validation.no_sheets_selected": "Du musst mindestens einen Bogen auswählen - wir verschicken ja keine leeren Briefumschläge an die Gemeinden.",
     "pages.createBatchWorkflow.validation.select_commune": "Gemeinde muss ausgewählt werden.",
-    "pages.createCounting.name": "Zählen",
+    "pages.createCounting.name": "Unterschriften zählen",
     "pages.createCounting.recentLabel": "Letzte Zählungen",
     "pages.createCounting.save.error": "Fehler beim Speichern der Zählung",
     "pages.createCounting.save.success": "Zählung erfolgreich gespeichert",
