@@ -66,6 +66,8 @@ class AppPanelProvider extends PanelProvider
                     return [
                         'primary' => Color::Pink,
                     ];
+                } else {
+                    return [];
                 }
             })
             ->brandName(function () use ($isDebug) {
