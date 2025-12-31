@@ -61,20 +61,32 @@ class CreateBatchWorkflow extends Page implements HasForms, HasTable
 
     public function table(Table $table): Table
     {
-        return $table
-            ->query(
-                Batch::query()
+        $batch_query = Batch::query()
                     ->with('commune')
                     ->whereDate('created_at', today())
                     ->whereHas('activities', function ($q) {
                         $q->where('causer_id', auth()->id())
                           ->where('event', 'created');
                     })
-                    ->where('status', 'pending')
-                    ->latest('created_at')
-                    ->limit(10)
+                    ->where('expected_delivery_date', null)
+                    ->latest('created_at');
+        return $table
+            ->query(
+                $batch_query->limit(10)
             )
-            ->columns(BatchResource::getTableSchema())
+            ->columns([
+                Tables\Columns\TextColumn::make('commune.name_with_canton_and_zipcode')
+                    ->label(__('commune.name')),
+                Tables\Columns\TextColumn::make('sheets_count')
+                    ->label(__('batch.fields.sheets_count'))
+                    ->numeric(),
+                Tables\Columns\TextColumn::make('signature_count')
+                    ->label(__('batch.fields.signature_count'))
+                    ->numeric(),
+                Tables\Columns\TextColumn::make('weight_grams')
+                    ->label(__('batch.fields.weight_grams'))
+                    ->numeric(),
+            ])
             ->bulkActions([
                 \App\Filament\Actions\BulkActions\ExportBatchesBulkActionGroup::make(),
             ])

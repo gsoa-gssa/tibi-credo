@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Models\Maeppli;
+use App\Exceptions\MatchBatchException;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
@@ -125,6 +126,11 @@ class CaptureBatchWorkflow extends Page implements HasForms, HasTable
                     })
                     ->columnSpan(2)
                     ->helperText(__('maeppli.helpers.suspect_values')),
+                Forms\Components\Checkbox::make('no_matching')
+                    ->label(__('maeppli.fields.no_matching'))
+                    ->columnSpan(2)
+                    ->hidden(fn () => !auth()->user()->hasAnyRole(['super_admin', 'admin']))
+                    ->helperText(__('maeppli.helpers.no_matching')),
             ])
             ->columns(2)
             ->statePath('data')
@@ -178,12 +184,18 @@ class CaptureBatchWorkflow extends Page implements HasForms, HasTable
 
             Notification::make()
                 ->success()
-                ->title(__('maeppli.name') . ' created')
-                ->body(__('maeppli.label') . ': ' . $maeppli->display_label)
+                ->title(__('pages.captureBatchWorkflow.notifications.maeppli_created'))
+                ->body($maeppli->getDisplayLabelAttribute())
                 ->send();
 
             $this->form->fill();
             $this->dispatch('table-reloaded');
+        } catch (MatchBatchException $e) {
+            Notification::make()
+                ->danger()
+                ->title(__('maeppli.match_batch_exception.title'))
+                ->body(__('maeppli.match_batch_exception.body'))
+                ->send();
         } catch (\Exception $e) {
             Notification::make()
                 ->danger()

@@ -3,11 +3,18 @@
 namespace App\Filament\Pages;
 
 use Filament\Pages\Page;
+use Filament\Tables;
+use Filament\Tables\Table;
+use Filament\Tables\Concerns\InteractsWithTable;
+use Filament\Tables\Contracts\HasTable;
+use App\Models\Commune;
+use Filament\Tables\Enums\FiltersLayout;
 
-class CommuneLink extends Page
+class CommuneLink extends Page implements HasTable
 {
-    protected static ?string $navigationIcon = 'heroicon-o-building-library';
+    use InteractsWithTable;
 
+    protected static ?string $navigationIcon = 'heroicon-o-building-library';
     protected static ?int $navigationSort = 6;
 
     public function getTitle(): string
@@ -25,9 +32,25 @@ class CommuneLink extends Page
         return __('navigation.group.workflows');
     }
 
-    public function mount(): void
+    public function table(Table $table): Table
     {
-        $this->redirect(route('filament.app.resources.communes.index'));
+        return $table
+            ->query(Commune::query())
+            ->columns([
+                Tables\Columns\TextColumn::make('name_with_canton_and_zipcode')
+                    ->label(__('commune.name'))
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('last_contacted_on')
+                    ->label(__('commune.fields.last_contacted_on'))
+                    ->date()
+                    ->sortable(),
+            ])
+            ->filters([
+                \App\Filament\Filters\SignaturesInOpenBatchesFilter::make(),
+                \App\Filament\Filters\LastContactedBeforeFilter::make(),
+                \App\Filament\Filters\LastContactedAfterFilter::make(),
+            ], layout: FiltersLayout::AboveContent)
+            ->filtersFormColumns(3);
     }
 
     protected static string $view = 'filament.pages.commune-link';

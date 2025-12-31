@@ -41,6 +41,10 @@ class Batch extends Model
         'receive_kind' => 'integer',
     ];
 
+    protected $attributes = [
+        'open' => true,
+    ];
+
     protected static function booted()
     {
         static::addGlobalScope(new SignatureCollectionScope);
@@ -246,6 +250,11 @@ class Batch extends Model
                 )
             ) {
                 throw new \Exception('Cannot modify letter_html once it has been generated.');
+            }
+
+            // Set send_kind to the user's signatureCollection default if not set
+            if (empty($batch->send_kind) && auth()->check() && auth()->user()->signatureCollection) {
+                $batch->send_kind = auth()->user()->signatureCollection->default_send_kind_id;
             }
         });
     }

@@ -33,17 +33,34 @@ class BatchesRelationManager extends RelationManager
             ->recordTitleAttribute('id')
             ->recordUrl(fn (Model $record) => BatchResource::getUrl('view', ['record' => $record]))
             ->columns([
-                Tables\Columns\TextColumn::make('created_at')
-                    ->label(__('batch.fields.created_at'))
-                    ->dateTime()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('status')
-                    ->label(__('batch.fields.status'))
-                    ->badge()
-                    ->sortable(),
+                // Tables\Columns\IconColumn::make('open')
+                //     ->label(__('batch.fields.open'))
+                //     ->icon(fn (Batch $batch) => $batch->open ? 'heroicon-o-clock' : 'heroicon-o-archive-box')
+                //     ->tooltip(fn (Batch $batch) => $batch->open ? __('batch.filters.open.open') : __('batch.filters.open.closed'))
+                //     ->color(fn (Batch $batch) => $batch->open ? 'warning' : 'success'),
+                Tables\Columns\ToggleColumn::make('open')
+                    ->label(__('batch.fields.open'))
+                    ->onIcon('heroicon-o-clock')
+                    ->offIcon('heroicon-o-archive-box')
+                    ->onColor('warning')
+                    ->offColor('success')
+                    ->tooltip(fn (Batch $batch) => $batch->open ? __('batch.filters.open.open') : __('batch.filters.open.closed')),
                 Tables\Columns\TextColumn::make('sheets_count')
-                    ->label(__('batch.fields.sheets'))
-                    ->sortable(),
+                    ->label(__('batch.fields_short.sheets_count'))
+                    ->numeric(),
+                Tables\Columns\TextColumn::make('signature_count')
+                    ->label(__('batch.fields_short.signature_count'))
+                    ->numeric(),
+                Tables\Columns\TextColumn::make('expected_delivery_date')
+                    ->label(__('batch.fields_short.expected_delivery_date'))
+                    ->date(),
+                Tables\Columns\TextColumn::make('expected_return_date')
+                    ->label(__('batch.fields_short.expected_return_date'))
+                    ->date(),
+                Tables\Columns\TextColumn::make('sendKind.short_name_de')
+                    ->label(__('batch.fields.send_kind')),
+                Tables\Columns\TextColumn::make('receiveKind.short_name_de')
+                    ->label(__('batch.fields.receive_kind')),
             ])
             ->filters([
                 // none

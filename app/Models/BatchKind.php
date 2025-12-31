@@ -32,6 +32,11 @@ class BatchKind extends Model
         return $this->hasMany(Batch::class, 'receive_kind');
     }
 
+    public function signatureCollectionsDefaultFor()
+    {
+        return $this->hasMany(SignatureCollection::class, 'default_send_kind_id');
+    }
+
     public function getShortNameAttribute()
     {
         $lang = app()->getLocale();

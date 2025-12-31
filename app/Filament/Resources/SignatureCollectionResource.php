@@ -155,6 +155,11 @@ class SignatureCollectionResource extends Resource
                 ->numeric()
                 ->minValue(0)
                 ->helperText(__('signature_collection.return_workdays_helper')),
+            Forms\Components\Select::make('default_send_kind_id')
+                ->label(__('signature_collection.fields.default_send_kind'))
+                ->relationship('defaultSendKind', 'short_name_de')
+                ->helperText(__('signature_collection.helpers.default_send_kind'))
+                ->nullable(),
         ]);
     }
 

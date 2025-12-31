@@ -195,13 +195,15 @@ class CreateCounting extends Page implements HasForms, HasTable
         return $table
             ->query(Counting::query()->latest('created_at')->limit(10))
             ->columns([
-                Tables\Columns\TextColumn::make('date')
-                    ->date()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('name'),
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label(__('counting.fields.created_at')),
+                Tables\Columns\TextColumn::make('name')
+                    ->label(__('counting.fields.name')),
                 Tables\Columns\TextColumn::make('count')
-                    ->numeric()
-                    ->sortable(),
+                    ->label(__('counting.fields.count'))
+                    ->numeric(),
+                Tables\Columns\TextColumn::make('source.code')
+                    ->label(__('source.name')),
             ])
             ->defaultSort('created_at', 'desc')
             ->paginated(false);

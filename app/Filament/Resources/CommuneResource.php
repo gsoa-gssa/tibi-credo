@@ -26,6 +26,7 @@ use App\Filament\Actions\ScrapeAddressesBulkAction;
 use App\Filament\Actions\ExportAuthorityCandidatesBulkAction;
 use App\Filament\Actions\FillNameWithCantonAction;
 use App\Filament\Actions\ImportBfsAction;
+use Filament\Tables\Enums\FiltersLayout;
 
 class CommuneResource extends Resource
 {
@@ -71,32 +72,32 @@ class CommuneResource extends Resource
                             Forms\Components\TextInput::make('phone')
                                 ->nullable(),
                             Forms\Components\TextInput::make('authority_address_name')
-                                ->label('Name of Authority')
+                                ->label(__('commune.fields.authority_address_name'))
                                 ->columnSpan(3)
                                 ->nullable(),
                             Forms\Components\TextInput::make('authority_address_street')
-                                ->label('Street Name')
+                                ->label(__('commune.fields.authority_address_street'))
                                 ->columnSpan(2)
                                 ->nullable(),
                             Forms\Components\TextInput::make('authority_address_house_number')
-                                ->label('House Number')
+                                ->label(__('commune.fields.authority_address_house_number'))
                                 ->nullable(),
                             Forms\Components\TextInput::make('authority_address_extra')
-                                ->label('Extra Address Line')
+                                ->label(__('commune.fields.authority_address_extra'))
                                 ->columnSpan(3)
                                 ->nullable(),
                             Forms\Components\TextInput::make('authority_address_postcode')
-                                ->label('Postcode')
+                                ->label(__('commune.fields.authority_address_postcode'))
                                 ->numeric()
                                 ->minLength(4)
                                 ->maxLength(4)
                                 ->nullable(),
                             Forms\Components\TextInput::make('authority_address_place')
-                                ->label('Place')
+                                ->label(__('commune.fields.authority_address_place'))
                                 ->columnSpan(2)
                                 ->nullable(),
                             Forms\Components\Toggle::make('address_checked')
-                                ->label('Address Checked')
+                                ->label(__('commune.fields.address_checked'))
                                 ->columnSpan(3)
                                 ->default(false),
                             Forms\Components\ToggleButtons::make('lang')
@@ -157,29 +158,13 @@ class CommuneResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name_with_canton')
-                    ->label(__('commune.fields.name_with_canton'))
-                    ->searchable()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('name')
-                    ->searchable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('name_with_canton_and_zipcode')
+                    ->label(__('commune.name'))
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('officialId')
                     ->label(__('commune.fields.official_id'))
                     ->numeric()
-                    ->toggleable(isToggledHiddenByDefault: true)
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('sheets_no_batch')
-                    ->sortable(query: function (Builder $query, $direction) {
-                        $query->withCount(['sheets as sheets_count' => function($query) {
-                            $query->where("status", "recorded");
-                        }])->orderBy("sheets_count", $direction);
-                    })
-                    ->label(__('commune.computed.sheets_no_batch'))
-                    ->toggleable(isToggledHiddenByDefault: true)
-                    ->getStateUsing(function (Model $record) {
-                        return $record->sheets()->where("status", "recorded")->count();
-                    }),
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('validity_quota_current')
                     ->label(__('commune.computed.validity_quota_current'))
                     ->toggleable(isToggledHiddenByDefault: true)
@@ -230,59 +215,6 @@ class CommuneResource extends Resource
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('sheets_sent_not_returned')
-                    ->label(__('commune.fields.sheets_sent_not_returned'))
-                    ->numeric()
-                    ->sortable(query: function (Builder $query, $direction) {
-                        return $query->withCount(['sheets as sheets_sent_not_returned_count' => function ($q) {
-                            $q->whereNotNull('batch_id')
-                              ->whereNull('maeppli_id')
-                              ->whereHas('batch', function ($bq) {
-                                  $bq->whereNull('deleted_at')
-                                     ->whereColumn('commune_id', 'communes.id');
-                              });
-                        }])->orderBy('sheets_sent_not_returned_count', $direction);
-                    })
-                    ->getStateUsing(fn (Model $record) => $record->sheets()
-                        ->whereNotNull('batch_id')
-                        ->whereNull('maeppli_id')
-                        ->whereHas('batch', function ($bq) use ($record) {
-                            $bq->whereNull('deleted_at')
-                               ->where('commune_id', $record->id);
-                        })
-                        ->count())
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('sheets_sent_not_returned_percent')
-                    ->label(__('commune.fields.sheets_sent_not_returned_percent'))
-                    ->getStateUsing(function (Model $record) {
-                        $sent = $record->sheets()->whereNotNull('batch_id')->count();
-                        if ($sent === 0) return 'N/A';
-                        $notReturned = $record->sheets()->whereNotNull('batch_id')->whereNull('maeppli_id')->count();
-                        return round(($notReturned / $sent) * 100, 1) . '%';
-                    })
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('signatures_on_sheets')
-                    ->label(__('commune.fields.signatures_on_sheets'))
-                    ->numeric()
-                    ->sortable(query: function (Builder $query, $direction) {
-                        return $query->withSum('sheets as total_signatures', 'signatureCount')
-                            ->orderBy('total_signatures', $direction);
-                    })
-                    ->getStateUsing(fn (Model $record) => $record->sheets()->sum('signatureCount'))
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('signatures_in_batches')
-                    ->label(__('commune.fields.signatures_in_batches'))
-                    ->numeric()
-                    ->sortable(query: function (Builder $query, $direction) {
-                        return $query->withSum(['sheets as batch_signatures' => fn($q) => $q->whereNotNull('batch_id')], 'signatureCount')
-                            ->orderBy('batch_signatures', $direction);
-                    })
-                    ->getStateUsing(fn (Model $record) => $record->sheets()->whereNotNull('batch_id')->sum('signatureCount'))
-                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('signatures_in_maepplis')
                     ->label(__('commune.fields.signatures_in_maepplis'))
                     ->numeric()
@@ -308,177 +240,36 @@ class CommuneResource extends Resource
                             ->sum('signatures_invalid_count') ?? 0;
                     })
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('authority_address_name')->label('Name of Authority')->searchable()->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('authority_address_street')->label('Street Name')->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('authority_address_house_number')->label('House Number')->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('authority_address_extra')->label('Extra Address Line')->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('authority_address_postcode')->label('Postcode')->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('authority_address_place')->label('Place')->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\IconColumn::make('address_checked')->label('Address Checked')->boolean()->toggleable(isToggledHiddenByDefault: true),
+                    Tables\Columns\TextColumn::make('authority_address_name')
+                        ->label(__('commune.fields.authority_address_name'))
+                        ->searchable()
+                        ->toggleable(isToggledHiddenByDefault: true),
+                    Tables\Columns\TextColumn::make('authority_address_street')
+                        ->label(__('commune.fields.authority_address_street'))
+                        ->toggleable(isToggledHiddenByDefault: true),
+                    Tables\Columns\TextColumn::make('authority_address_house_number')
+                        ->label(__('commune.fields.authority_address_house_number'))
+                        ->toggleable(isToggledHiddenByDefault: true),
+                    Tables\Columns\TextColumn::make('authority_address_extra')
+                        ->label(__('commune.fields.authority_address_extra'))
+                        ->toggleable(isToggledHiddenByDefault: true),
+                    Tables\Columns\TextColumn::make('authority_address_postcode')
+                        ->label(__('commune.fields.authority_address_postcode'))
+                        ->toggleable(isToggledHiddenByDefault: true),
+                    Tables\Columns\TextColumn::make('authority_address_place')
+                        ->label(__('commune.fields.authority_address_place'))
+                        ->toggleable(isToggledHiddenByDefault: true),
+                    Tables\Columns\IconColumn::make('address_checked')
+                        ->label(__('commune.fields.address_checked'))
+                        ->boolean()
+                        ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('checked_on')
-                    ->label(__('commune.filters.checked_on'))
-                    ->options(function () {
-                        $dates = \App\Models\Commune::query()
-                            ->whereNotNull('checked_on')
-                            ->select('checked_on')
-                            ->distinct()
-                            ->orderBy('checked_on', 'desc')
-                            ->get()
-                            ->pluck('checked_on')
-                            ->map(fn($d) => \Illuminate\Support\Carbon::parse($d)->toDateString())
-                            ->unique()
-                            ->mapWithKeys(fn($d) => [$d => $d])
-                            ->all();
-                        return ['__null__' => __('commune.filters.checked_on.never')] + $dates;
-                    })
-                    ->query(function (Builder $query, array $data): Builder {
-                        $val = $data['value'] ?? null;
-                        if (!$val) {
-                            return $query;
-                        }
-                        if ($val === '__null__') {
-                            return $query->whereNull('checked_on');
-                        }
-                        return $query->whereDate('checked_on', $val);
-                    }),
-                Tables\Filters\SelectFilter::make('batch_created_since')
-                    ->label(__('commune.filters.batch_created_since'))
-                    ->options([
-                        'today' => __('commune.filters.batch_created_since.today'),
-                        'since_yesterday' => __('commune.filters.batch_created_since.since_yesterday'),
-                        'since_1_week' => __('commune.filters.batch_created_since.since_1_week'),
-                        'since_1_month' => __('commune.filters.batch_created_since.since_1_month'),
-                        'since_3_months' => __('commune.filters.batch_created_since.since_3_months'),
-                    ])
-                    ->query(function (Builder $query, array $data): Builder {
-                        if (!$data['value']) {
-                            return $query;
-                        }
-                        $date = match($data['value']) {
-                            'today' => now()->startOfDay(),
-                            'since_yesterday' => now()->subDay()->startOfDay(),
-                            'since_1_week' => now()->subWeek()->startOfDay(),
-                            'since_1_month' => now()->subMonth()->startOfDay(),
-                            'since_3_months' => now()->subMonths(3)->startOfDay(),
-                            default => null,
-                        };
-                        if (!$date) {
-                            return $query;
-                        }
-                        return $query->whereHas('batches', function ($q) use ($date) {
-                            $q->whereNull('deleted_at')->where('created_at', '>=', $date);
-                        });
-                    }),
-                Tables\Filters\SelectFilter::make('no_batch_created_since')
-                    ->label(__('commune.filters.no_batch_created_since'))
-                    ->options([
-                        'today' => __('commune.filters.no_batch_created_since.today'),
-                        'since_yesterday' => __('commune.filters.no_batch_created_since.since_yesterday'),
-                        'since_1_week' => __('commune.filters.no_batch_created_since.since_1_week'),
-                        'since_1_month' => __('commune.filters.no_batch_created_since.since_1_month'),
-                        'since_3_months' => __('commune.filters.no_batch_created_since.since_3_months'),
-                    ])
-                    ->query(function (Builder $query, array $data): Builder {
-                        if (!$data['value']) {
-                            return $query;
-                        }
-                        $date = match($data['value']) {
-                            'today' => now()->startOfDay(),
-                            'since_yesterday' => now()->subDay()->startOfDay(),
-                            'since_1_week' => now()->subWeek()->startOfDay(),
-                            'since_1_month' => now()->subMonth()->startOfDay(),
-                            'since_3_months' => now()->subMonths(3)->startOfDay(),
-                            default => null,
-                        };
-                        if (!$date) {
-                            return $query;
-                        }
-                        return $query->whereDoesntHave('batches', function ($q) use ($date) {
-                            $q->whereNull('deleted_at')->where('created_at', '>=', $date);
-                        });
-                    }),
-                Tables\Filters\SelectFilter::make('last_contacted_before')
-                    ->label(__('commune.filters.last_contacted_on_before'))
-                    ->options([
-                        'today' => 'Today',
-                        'yesterday' => 'Yesterday',
-                        '2_days' => '2 days ago',
-                        '3_days' => '3 days ago',
-                        '4_days' => '4 days ago',
-                        '5_days' => '5 days ago',
-                        '1_week' => '1 week ago',
-                        '2_weeks' => '2 weeks ago',
-                        '1_month' => '1 month ago',
-                        'more_than_1_month' => 'More than 1 month ago',
-                    ])
-                    ->query(function (Builder $query, array $data): Builder {
-                        if (!$data['value']) {
-                            return $query;
-                        }
-
-                        $date = match($data['value']) {
-                            'today' => now()->startOfDay(),
-                            'yesterday' => now()->subDay()->startOfDay(),
-                            '2_days' => now()->subDays(2)->startOfDay(),
-                            '3_days' => now()->subDays(3)->startOfDay(),
-                            '4_days' => now()->subDays(4)->startOfDay(),
-                            '5_days' => now()->subDays(5)->startOfDay(),
-                            '1_week' => now()->subWeek()->startOfDay(),
-                            '2_weeks' => now()->subWeeks(2)->startOfDay(),
-                            '1_month' => now()->subMonth()->startOfDay(),
-                            'more_than_1_month' => now()->subMonth()->startOfDay(),
-                            default => null,
-                        };
-
-                        if (!$date) {
-                            return $query;
-                        }
-
-                        return $query->where(function ($q) use ($date) {
-                            $q->where('last_contacted_on', '<', $date)
-                              ->orWhereNull('last_contacted_on');
-                        });
-                    }),
-                Tables\Filters\SelectFilter::make('last_contacted_after')
-                    ->label(__('commune.filters.last_contacted_on_after'))
-                    ->options([
-                        'yesterday' => 'Yesterday',
-                        '2_days' => '2 days ago',
-                        '3_days' => '3 days ago',
-                        '4_days' => '4 days ago',
-                        '5_days' => '5 days ago',
-                        '1_week' => '1 week ago',
-                        '2_weeks' => '2 weeks ago',
-                        '1_month' => '1 month ago',
-                        'more_than_1_month' => 'More than 1 month ago',
-                    ])
-                    ->query(function (Builder $query, array $data): Builder {
-                        if (!$data['value']) {
-                            return $query;
-                        }
-
-                        $date = match($data['value']) {
-                            'today' => now()->startOfDay(),
-                            'yesterday' => now()->subDay()->startOfDay(),
-                            '2_days' => now()->subDays(2)->startOfDay(),
-                            '3_days' => now()->subDays(3)->startOfDay(),
-                            '4_days' => now()->subDays(4)->startOfDay(),
-                            '5_days' => now()->subDays(5)->startOfDay(),
-                            '1_week' => now()->subWeek()->startOfDay(),
-                            '2_weeks' => now()->subWeeks(2)->startOfDay(),
-                            '1_month' => now()->subMonth()->startOfDay(),
-                            'more_than_1_month' => now()->subMonth()->startOfDay(),
-                            default => null,
-                        };
-
-                        if (!$date) {
-                            return $query;
-                        }
-
-                        return $query->where('last_contacted_on', '>', $date);
-                    }),
+                \App\Filament\Filters\CheckedOnFilter::make(),
+                \App\Filament\Filters\BatchCreatedSinceFilter::make(),
+                \App\Filament\Filters\NoBatchCreatedSinceFilter::make(),
+                \App\Filament\Filters\LastContactedBeforeFilter::make(),
+                \App\Filament\Filters\LastContactedAfterFilter::make(),
                 Tables\Filters\Filter::make('has_zipcodes')
                     ->label(__('commune.filters.has_zipcodes'))
                     ->toggle()
@@ -506,7 +297,8 @@ class CommuneResource extends Resource
                     ->relationship('canton', 'label')
                     ->preload()
                     ->searchable(),
-            ])
+                    ], layout: FiltersLayout::Modal
+                )->filtersFormColumns(3)
             ->actions([
                 Tables\Actions\ViewAction::make(),
             ])

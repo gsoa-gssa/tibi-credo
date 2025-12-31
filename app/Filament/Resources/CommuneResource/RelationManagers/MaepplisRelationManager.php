@@ -32,19 +32,22 @@ class MaepplisRelationManager extends RelationManager
             ->recordTitleAttribute('label')
             ->recordUrl(fn (Model $record) => MaeppliResource::getUrl('view', ['record' => $record]))
             ->columns([
-                Tables\Columns\TextColumn::make('label')
-                    ->label(__('maeppli.label'))
-                    ->sortable()
-                    ->searchable(),
+                Tables\Columns\TextColumn::make('display_label_html')
+                    ->label(__('maeppli.fields.label'))
+                    ->html()
+                    ->getStateUsing(fn ($record) => $record->display_label_html),
                 Tables\Columns\TextColumn::make('sheets_count')
-                    ->label(__('maeppli.sheets_count'))
-                    ->sortable(),
+                    ->label(__('maeppli.fields_short.sheets_count'))
+                    ->numeric(),
                 Tables\Columns\TextColumn::make('signatures_valid_count')
-                    ->label(__('maeppli.signatures_valid_count'))
-                    ->sortable(),
+                    ->label(__('maeppli.fields_short.signatures_valid_count'))
+                    ->numeric(),
                 Tables\Columns\TextColumn::make('signatures_invalid_count')
-                    ->label(__('maeppli.signatures_invalid_count'))
-                    ->sortable(),
+                    ->label(__('maeppli.fields_short.signatures_invalid_count'))
+                    ->numeric(),
+                Tables\Columns\TextColumn::make('weight_grams')
+                    ->label(__('maeppli.fields_short.weight_grams'))
+                    ->numeric(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label(__('maeppli.fields.created_at'))
                     ->dateTime()

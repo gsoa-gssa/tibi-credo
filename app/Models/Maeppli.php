@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Scopes\SignatureCollectionScope;
+use App\Exceptions\MatchBatchException;
 use Spatie\Activitylog\LogOptions;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,9 +17,31 @@ class Maeppli extends Model
 {
     use SoftDeletes, LogsActivity, HasFilamentComments;
 
+    protected $casts = [
+        'no_matching' => 'boolean',
+    ];
+
+    protected $attributes = [
+        'no_matching' => false,
+    ];
+
     protected static function booted()
     {
         static::addGlobalScope(new SignatureCollectionScope);
+
+        static::creating(function ($maeppli) {
+            if (!$maeppli->no_matching) {
+                if (!$maeppli->matchBatch(save: false)) {
+                    throw new MatchBatchException("MatchBatch failed.");
+                }
+            }
+        });
+
+        static::created(function ($maeppli) {
+            if (!$maeppli->no_matching) {
+                $maeppli->matchBatch(save: true);
+            }
+        });
     }
 
     public function commune(): BelongsTo
@@ -35,6 +58,59 @@ class Maeppli extends Model
     {
         return LogOptions::defaults()
             ->logAll();
+    }
+
+    /**
+     * If this returns true, the maeppli can be matched to a batch.
+     */
+    public function matchBatch($save = false): bool
+    {
+        \Log::debug('Attempting to match Maeppli ID ' . $this->id . ' to a Batch, save=' . ($save ? 'true' : 'false') . '.');
+        $batches = Batch::where('commune_id', $this->commune_id)
+            ->where('open', true)
+            ->oldest()
+            ->get();
+
+        // exact match total sigs and sheets
+        foreach ($batches as $batch) {
+            if ($batch->signature_count === $this->signatures_valid_count + $this->signatures_invalid_count &&
+                ($batch->sheets_count === $this->sheets_count || $this->sheets_count === null)) {
+                if ($save) {
+                    $batch->open = false;
+                    $batch->save();
+                }
+                return true;
+            }
+        }
+        \Log::debug('No exact match found for Maeppli ID ' . $this->id . '. Trying close match.');
+
+        // close match: total sigs and sheets within 5%
+        foreach ($batches as $batch) {
+            $totalSigs = $this->signatures_valid_count + $this->signatures_invalid_count;
+            $sigDiff = abs($batch->signature_count - $totalSigs);
+            $sheetsDiff = $this->sheets_count ? abs($batch->sheets_count - $this->sheets_count) : 0;
+            $sigDiffRelative = $sigDiff / max(1, $batch->signature_count);
+            $sheetsDiffRelative = $sheetsDiff / max(1, $batch->sheets_count);
+
+            if (($sigDiffRelative <= 0.05 && $sheetsDiffRelative <= 0.05) || ($sigDiff <= 5 && $sheetsDiff <= 2)) {
+                if ($save) {
+                    $batch->open = false;
+                    $batch->save();
+                }
+                return true;
+            }
+        }
+        \Log::debug('No close match found for Maeppli ID ' . $this->id . '. Trying low count match.');
+
+        // low counts: less than 10 signatures, do not match
+        if (($this->signatures_valid_count + $this->signatures_invalid_count) < 10) {
+            \Log::debug('Maeppli ID ' . $this->id . ' has less than 10 signatures, skipping matching.');
+            return true;
+        }
+
+        // no match found
+        \Log::debug('No match found for Maeppli ID ' . $this->id . '.');
+        return false;
     }
 
     /**
@@ -68,6 +144,11 @@ class Maeppli extends Model
         parent::boot();
 
         static::saving(function ($maeppli) {
+            // set signature_collection_id from user if empty
+            if (empty($maeppli->signature_collection_id)) {
+                $maeppli->signature_collection_id = auth()->user()?->signature_collection_id;
+            }
+
             // make sure there is a commune set
             if (!$maeppli->commune_id) {
                 throw new \Exception('Maeppli must have a commune assigned.');

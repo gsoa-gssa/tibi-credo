@@ -47,10 +47,14 @@ class BatchResource extends Resource
     public static function getFormSchema(): array
     {
         return [
+                Forms\Components\Hidden::make('signature_collection_id')
+                    ->default(fn () => auth()->user()?->signature_collection_id)
+                    ->required(),
                 Forms\Components\Select::make('commune_id')
                     ->label(__('commune.name'))
                     ->columnSpan(2)
                     ->searchable()
+                    ->formatStateUsing(fn ($state) => Commune::find($state)?->name_with_canton_and_zipcode)
                     ->getSearchResultsUsing(fn (string $search): array => Commune::searchByNameOrZip($search)->mapWithKeys(function ($commune) {
                         return [$commune->id => $commune->name_with_canton_and_zipcode];
                     })->toArray())
@@ -95,12 +99,19 @@ class BatchResource extends Resource
                         if (!is_numeric($sig) || !is_numeric($sheets)) {
                             return true;
                         }
+                        $weight = $get('weight_grams');
+                        $weightSuspect = false;
+                        if (is_numeric($weight)){
+                            $weight = (int) $weight;
+                            $expectedWeight = $sheets * 5;
+                            $weightSuspect = $weight < $expectedWeight * 0.8 || $weight > $expectedWeight * 1.2;
+                        }
                         $sig = (int) $sig;
                         $sheets = (int) $sheets;
                         $manySigs = $sig > 500;
-                        $sigSheetRelationBig = $sig > 5 && $sheets > 0 && ($sig / $sheets) > 3;
-                        $sigSheetRelationSmall = $sig > 5 && $sheets > 0 && ($sig / $sheets) < 1.5;
-                        return !($manySigs || $sigSheetRelationBig || $sigSheetRelationSmall);
+                        $sigSheetRelationBig = ($sig > 15 || $sheets > 5) && $sheets > 0 && ($sig / $sheets) > 3;
+                        $sigSheetRelationSmall = ($sig > 15 || $sheets > 5) && $sheets > 0 && ($sig / $sheets) < 1.5;
+                        return !($manySigs || $sigSheetRelationBig || $sigSheetRelationSmall || $weightSuspect);
                     }),
                 Forms\Components\ToggleButtons::make('open')
                     ->label(__('batch.fields.open'))
@@ -128,6 +139,7 @@ class BatchResource extends Resource
                     ->label(__('batch.fields.send_kind'))
                     ->relationship('sendKind', 'short_name_de')
                     ->required()
+                    ->default(fn () => auth()->user()->signatureCollection->default_send_kind_id)
                     ->columnSpan(fn (Get $get) => $get('is_problem_letter') ? 2 : 1)
                     ->hidden(fn (Get $get, $record) => $record === null && !$get('is_problem_letter')),
                 Forms\Components\Select::make('receive_kind')
@@ -159,8 +171,9 @@ class BatchResource extends Resource
                     ->sortable(),
                 Tables\Columns\IconColumn::make('open')
                     ->label(__('batch.fields.open'))
-                    ->icon(fn (Batch $batch) => $batch->open ? 'heroicon-o-arrow-path' : 'heroicon-o-check')
+                    ->icon(fn (Batch $batch) => $batch->open ? 'heroicon-o-clock' : 'heroicon-o-archive-box')
                     ->tooltip(fn (Batch $batch) => $batch->open ? __('batch.filters.open.open') : __('batch.filters.open.closed'))
+                    ->color(fn (Batch $batch) => $batch->open ? 'warning' : 'success')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('sheets_count')
                     ->label(__('batch.fields.sheets_count'))
@@ -175,6 +188,7 @@ class BatchResource extends Resource
                     ->tooltip(fn ($record) => $record->trashed() ? 'Deleted' : null)
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('expected_delivery_date')
+                    ->label(__('batch.fields.expected_delivery_date'))
                     ->date()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),

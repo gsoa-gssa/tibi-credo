@@ -12,7 +12,6 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ExportBatchesPdfBulkAction extends BulkAction
 {
-
     protected string $priority = 'B1'; // 'A', 'B1', 'B2' or null
     protected string $addressPosition = 'right'; // 'left' or 'right'
 

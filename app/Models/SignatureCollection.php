@@ -52,4 +52,9 @@ class SignatureCollection extends Model
     {
         return $this->hasMany(SignatureSheet::class);
     }
+
+    public function defaultSendKind()
+    {
+        return $this->belongsTo(BatchKind::class, 'default_send_kind_id');
+    }
 }
