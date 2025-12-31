@@ -129,7 +129,13 @@ class SourceResource extends Resource implements HasShieldPermissions
                 Tables\Columns\TextColumn::make('short_description')
                     ->label(__('source.fields.short_description'))
                     ->getStateUsing(fn (Source $record) => $record->getLocalized('short_description'))
-                    ->searchable(),
+                    ->searchable(query: function (Builder $query, string $search) {
+                        $query->where(function ($q) use ($search) {
+                            $q->where('short_description_de', 'like', "%{$search}%")
+                              ->orWhere('short_description_fr', 'like', "%{$search}%")
+                              ->orWhere('short_description_it', 'like', "%{$search}%");
+                        });
+                    }),
                 Tables\Columns\TextColumn::make('sheets_printed')
                     ->label(__('source.fields_short.sheets_printed'))
                     ->sortable(),
