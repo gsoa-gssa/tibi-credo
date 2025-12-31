@@ -13,6 +13,7 @@ trait HasLocalizedFields
      */
     public function getLocalized(string $baseField): string
     {
+        \Log::debug("Getting localized field '{$baseField}' for model " . get_class($this) . " with ID " . $this->id);
         $locale = app()->getLocale();
         $field = "{$baseField}_{$locale}";
 
@@ -39,6 +40,7 @@ trait HasLocalizedFields
             // If it's an array, try to get the value for the current locale or fallback
             return $this->$baseField[$locale] ?? $this->$baseField[$fallbackLocale] ?? '';
         }
+        \Log::warning("Localized field '{$baseField}' not found on model " . get_class($this) . " with ID " . $this->id);
         return '';
     }
 }

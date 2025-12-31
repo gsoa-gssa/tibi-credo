@@ -27,10 +27,21 @@ class SourcesRelationManager extends RelationManager
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('code')
-                    ->label(__('source.fields.code')),
-                Tables\Columns\TextColumn::make('label')
-                    ->label(__('source.fields.label'))
-                    ->formatStateUsing(fn ($record) => $record->getLocalized('label')),
+                    ->label(__('source.fields.code'))
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('short_description')
+                    ->label(__('source.fields.short_description'))
+                    ->searchable(
+                        query: function ($query, string $search) {
+                            $query->where(function ($q) use ($search) {
+                                $q->where('short_description_de', 'like', "%$search%")
+                                  ->orWhere('short_description_fr', 'like', "%$search%")
+                                  ->orWhere('short_description_it', 'like', "%$search%")
+                                ;
+                            });
+                        }
+                    )
+                    ->getStateUsing(fn ($record) => $record->getLocalized('short_description')),
             ])
             ->filters([
                 //

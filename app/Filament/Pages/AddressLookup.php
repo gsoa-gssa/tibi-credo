@@ -92,8 +92,21 @@ class AddressLookup extends Page implements HasForms
 
     public function form(Form $form): Form
     {
-        $components = [
-            Forms\Components\Group::make([
+        $components = [];
+        $components[] = Forms\Components\Group::make([
+          Forms\Components\Placeholder::make('spacer')
+            ->label('')
+            ->columnSpan(3),
+          Forms\Components\Actions::make([
+          Forms\Components\Actions\Action::make('clearForm')
+            ->label(__('pages.addressLookup.clearForm'))
+            ->action(fn () => $this->clearForm())
+            // ->color('danger')
+            ->icon('heroicon-o-trash')
+            ->extraAttributes(['class' => 'w-full']),
+          ]),
+        ])->columns(4);
+        $components[] = Forms\Components\Group::make([
                 Forms\Components\TextInput::make('zipcode')
                     ->label(__('zipcode.name'))
                     ->numeric()
@@ -116,8 +129,7 @@ class AddressLookup extends Page implements HasForms
                     ->afterStateUpdated(function () {
                         $this->performLookup();
                     }),
-            ])->columns(3),
-        ];
+            ])->columns(3);
 
         // Add address rows
         for ($i = 0; $i < $this->maxRows; $i++) {
@@ -145,8 +157,20 @@ class AddressLookup extends Page implements HasForms
             ->columns(3)
             ->extraAttributes(['data-address-row' => (string) $i]);
         }
-
         return $form->schema($components);
+    }
+
+    public function clearForm()
+    {
+        $this->zipcode = '';
+        $this->canton = '';
+        $this->place = '';
+        $this->initializeAddressRows();
+        $this->helperText = '';
+        $this->possibleCommuneIDs = [];
+        $this->possibleCommuneNamesWithCanton = [];
+        $this->amountOfPossibleCommunes = 0;
+        $this->resetErrorBag();
     }
 
     /**
@@ -302,7 +326,7 @@ class AddressLookup extends Page implements HasForms
     {
       
       $this->amountOfPossibleCommunes = count($this->possibleCommuneIDs);
-      $this->possibleCommuneNamesWithCanton = Commune::whereIn('id', $this->possibleCommuneIDs->take(3))->pluck('name_with_canton')->toArray();
+      $this->possibleCommuneNamesWithCanton = Commune::whereIn('id', $this->possibleCommuneIDs->take(3))->pluck('name_with_canton_and_zipcode')->toArray();
 
       if ($this->possibleCommuneIDs->isEmpty()) {
         $this->helperText = __('pages.addressLookup.noMatchingCommunes');

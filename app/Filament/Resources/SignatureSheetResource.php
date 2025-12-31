@@ -46,7 +46,7 @@ class SignatureSheetResource extends Resource
                 Forms\Components\Textarea::make('description_internal')
                     ->rows(4)
                     ->label(__('signatureSheet.fields.description_internal')),
-                Forms\Components\Section::make('source')
+                Forms\Components\Section::make(__('signatureSheet.sections.source'))
                     ->schema([
                         Forms\Components\TextInput::make('source_x')
                             ->numeric()
@@ -61,8 +61,7 @@ class SignatureSheetResource extends Resource
                             ->numeric()
                             ->label(__('signatureSheet.fields.source_page_number')),
                     ])
-                    ->columns(2)
-                    ->label(__('signatureSheet.sections.source')),
+                    ->columns(2),
                 Forms\Components\FileUpload::make('sheet_pdf')
                     ->acceptedFileTypes(['application/pdf'])
                     ->disk('public')

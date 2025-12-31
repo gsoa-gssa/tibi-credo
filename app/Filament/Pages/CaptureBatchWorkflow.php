@@ -63,19 +63,21 @@ class CaptureBatchWorkflow extends Page implements HasForms, HasTable
                 Forms\Components\TextInput::make('signatures_valid_count')
                     ->label(__('maeppli.fields.signatures_valid_count'))
                     ->numeric()
-                    ->live()
+                    ->live(onBlur: true)
                     ->minValue(0)
                     ->maxValue(10000)
                     ->required(),
                 Forms\Components\TextInput::make('signatures_invalid_count')
                     ->label(__('maeppli.fields.signatures_invalid_count'))
                     ->numeric()
+                    ->live(onBlur: true)
                     ->minValue(0)
                     ->maxValue(10000)
                     ->required(),
                 Forms\Components\TextInput::make('sheets_count')
                     ->label(__('maeppli.fields.sheets_count'))
                     ->numeric()
+                    ->live(onBlur: true)
                     ->minValue(1)
                     ->maxValue(1000)
                     ->helperText(__('maeppli.sheets_count_helper'))
@@ -83,27 +85,46 @@ class CaptureBatchWorkflow extends Page implements HasForms, HasTable
                 Forms\Components\TextInput::make('weight_grams')
                     ->label(__('batch.fields.weight_grams'))
                     ->numeric()
+                    ->live(onBlur: true)
                     ->columnSpan(2)
                     ->minValue(0)
                     ->maxValue(5000)
-                    ->helperText(__('batch.weight_grams_helper'))
+                    ->helperText(__('maeppli.helpers.weight_grams'))
                     ->hidden(function (Get $get, $record) {
                         if ($record !== null) {
                             return false;
                         }
-                        $sheets = $get('signatures_valid_count');
-                        if (!is_numeric($sheets)) {
+                        $valid = $get('signatures_valid_count');
+                        $invalid = $get('signatures_invalid_count');
+                        $sigs = ((int) $valid) + ((int) $invalid);
+                        if (!is_numeric($sigs)) {
                             return true;
                         }
-                        return ((int) $sheets) < 100;
+                        return ((int) $sigs) < 100;
                     })
                     ->required(fn ($record) => $record === null),
                 Forms\Components\Checkbox::make('suspect_values')
                     ->label(__('maeppli.fields.suspect_values'))
                     ->dehydrated(false)
                     ->required()
+                    ->hidden(function (Get $get) {
+                        $valid = $get('signatures_valid_count');
+                        $invalid = $get('signatures_invalid_count');
+                        $sheets = $get('sheets_count');
+                        $weight = $get('weight_grams');
+                        $valid = (int) $valid;
+                        $invalid = (int) $invalid;
+                        $sheets = (int) $sheets;
+                        $expected_weight = $sheets ? $sheets * 5 : $valid / 2 * 5;
+                        $ratio_valid_invalid = $invalid > 0 ? $valid / $invalid : 0.9;
+                        $ratio_valid_sheets = $sheets > 0 ? $valid / $sheets : 2;
+                        $validity_suspect = ($ratio_valid_invalid < 1 || $ratio_valid_invalid > 10) && $valid > 10;
+                        $sheets_suspect = $ratio_valid_sheets > 10 || ($ratio_valid_sheets > 5 && $valid > 50) || ($ratio_valid_sheets > 3 && $valid > 200);
+                        $weight_suspect = !empty($weight) && ($weight < ($expected_weight * 0.8) || $weight > ($expected_weight * 1.2));
+                        return !($validity_suspect || $sheets_suspect || $weight_suspect);
+                    })
                     ->columnSpan(2)
-                    ->helperText(__('maeppli.suspect_values_helper')),
+                    ->helperText(__('maeppli.helpers.suspect_values')),
             ])
             ->columns(2)
             ->statePath('data')
