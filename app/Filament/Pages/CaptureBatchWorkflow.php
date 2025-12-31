@@ -98,6 +98,12 @@ class CaptureBatchWorkflow extends Page implements HasForms, HasTable
                         return ((int) $sheets) < 100;
                     })
                     ->required(fn ($record) => $record === null),
+                Forms\Components\Checkbox::make('suspect_values')
+                    ->label(__('maeppli.fields.suspect_values'))
+                    ->dehydrated(false)
+                    ->required()
+                    ->columnSpan(2)
+                    ->helperText(__('maeppli.suspect_values_helper')),
             ])
             ->columns(2)
             ->statePath('data')

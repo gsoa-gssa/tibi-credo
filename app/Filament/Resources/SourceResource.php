@@ -46,33 +46,69 @@ class SourceResource extends Resource implements HasShieldPermissions
                 Forms\Components\Hidden::make('signature_collection_id')
                     ->default(fn () => auth()->user()?->signature_collection_id)
                     ->required(),
-                Forms\Components\Tabs::make("labels")
-                    ->tabs([
-                        Forms\Components\Tabs\Tab::make("german")
-                            ->schema([
-                                Forms\Components\TextInput::make("label.de")
-                                    ->label(__("input.label.source.label.de"))
-                                    ->required(),
-                            ]),
-                        Forms\Components\Tabs\Tab::make("french")
-                            ->schema([
-                                Forms\Components\TextInput::make("label.fr")
-                                    ->label(__("input.label.source.label.fr"))
-                                    ->required(),
-                            ]),
-                        Forms\Components\Tabs\Tab::make("italian")
-                            ->schema([
-                                Forms\Components\TextInput::make("label.it")
-                                    ->label(__("input.label.source.label.it"))
-                                    ->required(),
-                            ]),
-                    ]),
                 Forms\Components\TextInput::make('code')
+                    ->label(__('source.fields.code'))
                     ->required()
+                    ->columnSpan(3)
                     ->maxLength(2),
-                Forms\Components\TextInput::make('shortcut')
-                    ->maxLength(2),
-            ]);
+                Forms\Components\TextInput::make('short_description_de')
+                    ->label(__('source.fields.short_description_de'))
+                    ->rule(function (Forms\Get $get) {
+                        $fr = $get('short_description_fr');
+                        $it = $get('short_description_it');
+                        $de = $get('short_description_de');
+                        if (empty($de) && empty($fr) && empty($it)) {
+                            return 'required';
+                        }
+                        return 'nullable';
+                    })
+                    ->validationMessages([
+                        'required' => __('source.validations.at_least_one_language'),
+                    ])
+                    ->nullable(),
+                Forms\Components\TextInput::make('short_description_fr')
+                    ->label(__('source.fields.short_description_fr'))
+                    ->rule(function (Forms\Get $get) {
+                        $fr = $get('short_description_fr');
+                        $it = $get('short_description_it');
+                        $de = $get('short_description_de');
+                        if (empty($de) && empty($fr) && empty($it)) {
+                            return 'required';
+                        }
+                        return 'nullable';
+                    })
+                    ->validationMessages([
+                        'required' => __('source.validations.at_least_one_language'),
+                    ])
+                    ->nullable(),
+                Forms\Components\TextInput::make('short_description_it')
+                    ->label(__('source.fields.short_description_it'))
+                    ->rule(function (Forms\Get $get) {
+                        $fr = $get('short_description_fr');
+                        $it = $get('short_description_it');
+                        $de = $get('short_description_de');
+                        if (empty($de) && empty($fr) && empty($it)) {
+                            return 'required';
+                        }
+                        return 'nullable';
+                    })
+                    ->validationMessages([
+                        'required' => __('source.validations.at_least_one_language'),
+                    ])
+                    ->nullable(),
+                Forms\Components\TextInput::make('sheets_printed')
+                    ->label(__('source.fields.sheets_printed'))
+                    ->numeric(),
+                Forms\Components\TextInput::make('addition_cost')
+                    ->label(__('source.fields.addition_cost'))
+                    ->numeric(),
+                Forms\Components\Textarea::make('comments')
+                    ->label(__('source.fields.comments'))
+                    ->rows(3)
+                    ->columnSpan('full')
+                    ->nullable(),
+            ])
+            ->columns(3);
     }
 
     public static function table(Table $table): Table
@@ -88,9 +124,19 @@ class SourceResource extends Resource implements HasShieldPermissions
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('code')
+                    ->label(__('source.fields.code'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('label.' . app()->getLocale())
+                Tables\Columns\TextColumn::make('short_description')
+                    ->label(__('source.fields.short_description'))
+                    ->getStateUsing(fn (Source $record) => $record->getLocalized('short_description'))
                     ->searchable(),
+                Tables\Columns\TextColumn::make('sheets_printed')
+                    ->label(__('source.fields_short.sheets_printed'))
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('addition_cost')
+                    ->label(__('source.fields_short.addition_cost'))
+                    ->money('CHF')
+                    ->sortable(),
             ])
             ->filters([
                 //
@@ -98,11 +144,6 @@ class SourceResource extends Resource implements HasShieldPermissions
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
             ]);
     }
 

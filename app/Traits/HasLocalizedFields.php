@@ -11,15 +11,23 @@ trait HasLocalizedFields
      * @param string|null $fallbackLocale The fallback locale (default: 'de')
      * @return string
      */
-    public function getLocalized(string $baseField, ?string $fallbackLocale = 'de'): string
+    public function getLocalized(string $baseField): string
     {
         $locale = app()->getLocale();
         $field = "{$baseField}_{$locale}";
-        $fallbackField = "{$baseField}_{$fallbackLocale}";
 
-        // If any localized field exists, use it
-        if (isset($this->$field) || isset($this->$fallbackField)) {
-            return $this->$field ?? $this->$fallbackField ?? '';
+        if (isset($this->$field)) {
+            return $this->$field;
+        }
+
+        // If any localized field exists, use it, for languages de, fr, it
+        foreach (['de', 'fr', 'it'] as $fallbackLocale) {
+            if ($locale !== $fallbackLocale) {
+                $fallbackField = "{$baseField}_{$fallbackLocale}";
+                if (isset($this->$fallbackField)) {
+                    return $this->$fallbackField;
+                }
+            }
         }
 
         // Otherwise, check for a JSON field with no suffix

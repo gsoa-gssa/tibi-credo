@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\CountingResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\CountingResource\RelationManagers;
+use App\Models\Source;
 
 class CountingResource extends Resource
 {
@@ -40,48 +41,129 @@ class CountingResource extends Resource
 
     public static function getFormSchema(): array
     {
+        $sources = Source::all()->pluck('code', 'id')->toArray();
         return [
-            Forms\Components\TextInput::make('count')
+            Forms\Components\TextInput::make('srcAndCount')
+                ->label(__('counting.fields.countAndSourceShortcut'))
+                ->helperText(__('counting.helper.countAndSourceShortcut'))
+                ->columnSpan('full')
+                ->maxLength(5)
+                ->dehydrated(false)
+                ->extraAttributes([
+                    'wire:model' => 'srcAndCount',
+                    'x-data' => '{
+                        sources: ' . \Illuminate\Support\Js::from($sources) . ',
+                        errorMsg: ""
+                    }',
+                    'x-on:input' => '
+                        console.log("srcAndCount input triggered", $event.target.value);
+                        console.log("Current source:", $wire.source_id);
+                        console.log("Current signatureCount:", $wire.signatureCount);
+                        $wire.call("get", "source_id").then(value => {
+                            console.log("Actual source_id value:", value);
+                        });
+                        $wire.call("get", "signatureCount").then(value => {
+                            console.log("Actual signatureCount value:", value);
+                        });
+                        let text = $event.target.value;
+                        text = text.replace(/\s+/g, "");
+                        text = text.toUpperCase();
+                        errorMsg = "";
+
+                        if (text) {
+                            let match = text.match(/^(\d+)([a-zA-Z]*.*)$/);
+                            console.log("match result", match);
+                            if (match) {
+                                let count = parseInt(match[1]);
+                                console.log("parsed count", count);
+                                if (count >= 1 && count <= 12) {
+                                    $wire.set("signatureCount", count);
+                                    console.log("Set signatureCount", count);
+
+                                    source_part = match[2];
+                                    // if source_part not empty
+                                    if (source_part) {
+                                        sourcesCandidates = Object.entries(sources).filter(([id, code]) => code.startsWith(source_part));
+                                        console.log("source_part", source_part, "candidates", sourcesCandidates);
+
+                                        if (sourcesCandidates.length === 1) {
+                                            $wire.set("source_id", sourcesCandidates[0][0]);
+                                            console.log("Set source_id", sourcesCandidates[0][0]);
+                                        } else if (sourcesCandidates.length > 1) {
+                                            let codes = sourcesCandidates.map(([id, code]) => code).join(", ");
+                                            $wire.set("source_id", sourcesCandidates[0][0]);
+                                            errorMsg = "Multiple source matches: " + codes;
+                                            console.log("Multiple source matches", codes);
+                                        } else {
+                                            errorMsg = "No source match found for: " + source_part;
+                                            console.log("No source match found", source_part);
+                                        }
+                                    } else {
+                                        // if there is already a source_id set, keep it and notify user about that through errorMsg
+                                        // if there is no source_id set, tell user in error message to add one
+                                        if ($wire.source_id) {
+                                            errorMsg = "Using existing source from last time (see below)";
+                                            console.log("Using existing source_id", $wire.source_id);
+                                        } else {
+                                            errorMsg = "Please add a source";
+                                            console.log("No source_id set");
+                                        }
+                                    }
+                                } else {
+                                    errorMsg = "Count must be between 1 and 12";
+                                    console.log("Count out of range", count);
+                                }
+                            } else {
+                                errorMsg = "Format: [count][source] (e.g. 5AB)";
+                                console.log("Format error", text);
+                            }
+                        }
+
+                        // Show/hide error
+                        let errorEl = $el.parentElement.parentElement.querySelector(".srcAndCount-error");
+                        if (!errorEl) {
+                            errorEl = document.createElement("p");
+                            errorEl.className = "srcAndCount-error text-sm text-danger-600 dark:text-danger-400 mt-1";
+                            $el.parentElement.parentElement.appendChild(errorEl);
+                        }
+                        errorEl.textContent = errorMsg;
+                        errorEl.style.display = errorMsg ? "block" : "none";
+
+                        $event.target.value = text;
+                        $wire.set("srcAndCount", text);
+                        console.log("Final srcAndCount value", text);
+                    '
+            ]),
+            Forms\Components\Select::make('source_id')
+                ->label(__('source.name'))
+                ->options(Source::all()->pluck('code', 'id'))
+                ->required()
+                ->searchable()
+                ->extraAttributes([
+                    'wire:model' => 'source_id',
+                ]),
+            Forms\Components\TextInput::make('signatureCount')
                 ->label(__('counting.fields.count'))
                 ->required()
                 ->live(onBlur: true)
                 ->numeric()
                 ->extraAttributes([
-                    'data-count-input' => 'true',
-                ])
-                ->columnSpan(2),
+                    'wire:model' => 'signatureCount',
+                ]),
             Forms\Components\Checkbox::make('confirm_large_count')
                 ->label(__('counting.fields.confirmLargeCount'))
                 ->default(false)
                 ->required(fn (\Filament\Forms\Get $get) => ((int) ($get('count') ?? 0)) > 100)
                 ->hidden(fn (\Filament\Forms\Get $get) => ((int) ($get('count') ?? 0)) <= 100)
                 ->dehydrated(false)
-                ->extraAttributes([
-                    'id' => 'confirm-large-count-checkbox',
-                    'data-large-count-field' => 'true',
-                ])
                 ->columnSpan(2),
-            Forms\Components\Select::make('source_id')
-                ->label(__('source.name'))
-                ->relationship('source', 'code')
-                ->required()
-                ->searchable()
-                ->preload(),
-            Forms\Components\ToggleButtons::make('paper_format')
-                ->label(__('counting.fields.paper_format'))
-                ->options([
-                    false => 'A4',
-                    true => 'A5',
-                ])
-                ->default(false)
-                ->inline(),
             Forms\Components\DatePicker::make('date')
                 ->label(__('counting.fields.date'))
                 ->default(now())
                 ->required(),
             Forms\Components\TextInput::make('name')
                 ->label(__('counting.fields.name'))
-                ->required()
+                ->required(fn (\Filament\Forms\Get $get) => ((int) ($get('count') ?? 0)) > 10)
                 ->maxLength(255),
 
         ];
@@ -120,10 +202,6 @@ class CountingResource extends Resource
                 Tables\Columns\TextColumn::make('description')
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
-                Tables\Columns\TextColumn::make('sumToDate')
-                    ->numeric()
-                    ->toggleable(isToggledHiddenByDefault: true)
-                    ->sortable(),
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([

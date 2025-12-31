@@ -16,4 +16,11 @@ class ViewSource extends ViewRecord
             SourceResource\Widgets\SourceStats::make(),
         ];
     }
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Actions\EditAction::make(),
+        ];
+    }
 }

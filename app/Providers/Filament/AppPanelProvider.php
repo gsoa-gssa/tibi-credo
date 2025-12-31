@@ -147,7 +147,8 @@ class AppPanelProvider extends PanelProvider
                         \Log::debug('User has signature collection with color', ['color' => $user->signatureCollection->color]);
                         $color = $user->signatureCollection->color;
                     }
-                    return \Illuminate\Support\Facades\Blade::render('<x-viewport-border color="'.$color.'" />');
+                    $style = config('app.debug') ? 'dashed' : 'solid';
+                    return \Illuminate\Support\Facades\Blade::render('<x-viewport-border style="'.$style.'" color="'.$color.'" />');
                 }
             )
             ->renderHook(

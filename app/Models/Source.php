@@ -9,12 +9,28 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Rupadana\ApiService\Contracts\HasAllowedFilters;
 
+
 class Source extends Model implements HasAllowedFilters
 {
     use HasFactory, HasLocalizedFields;
 
-    public $casts = [
-        'label' => 'json',
+    protected $fillable = [
+        'code',
+        'short_description_de',
+        'short_description_fr',
+        'short_description_it',
+        'sheets_printed',
+        'addition_cost',
+        'comments',
+    ];
+
+    protected $casts = [
+        'short_description_de' => 'string',
+        'short_description_fr' => 'string',
+        'short_description_it' => 'string',
+        'sheets_printed' => 'integer',
+        'addition_cost' => 'float',
+        'comments' => 'string',
     ];
 
     protected static function booted()
