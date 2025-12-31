@@ -210,6 +210,7 @@ class MaeppliResource extends Resource
     {
         return [
             'index' => Pages\ListMaepplis::route('/'),
+            'create' => Pages\CreateMaeppli::route('/create'),
             'view' => Pages\ViewMaeppli::route('/{record}'),
             'edit' => Pages\EditMaeppli::route('/{record}/edit'),
         ];
