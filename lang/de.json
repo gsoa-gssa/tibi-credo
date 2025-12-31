@@ -342,6 +342,8 @@
     "pages.captureBatchWorkflow.certificationTypeForm.individual": "Einzelbescheinigung",
     "pages.captureBatchWorkflow.navigationGroup": "Arbeitsvorgänge",
     "pages.captureBatchWorkflow.navigationLabel": "Versand rückerfassen",
+    "contactTypes.name": "Kontaktart",
+    "contactTypes.namePlural": "Kontaktarten",
     "pages.captureBatchWorkflow.notifications.maeppli_created": "Erfolgreich rückgebucht",
     "pages.captureBatchWorkflow.recentCreated": "Zuletzt von dir rückgebucht",
     "pages.captureBatchWorkflow.requirements.certification_authority_information": "Unterschrift (3): Ort, Datum und eigenhändige Unterschrift des Beamten sind Pflicht. Wenn ein Amtstempel vorhanden ist, ist die amtliche Eigenschaft des Beamten nicht Pflicht",

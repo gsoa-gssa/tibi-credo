@@ -41,7 +41,8 @@ class SignatureCollectionSelector extends Component implements hasForms
                         if ($user && $user->hasRole('super_admin')) {
                             $user->signature_collection_id = $state;
                             $user->save();
-                            $this->dispatch('reloadPage');
+                            // redirect to home page to avoid 404 due to scoped models
+                            redirect()->to(route('filament.app.pages.dashboard'));
                         }
                     }),
             ])

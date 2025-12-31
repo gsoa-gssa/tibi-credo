@@ -18,6 +18,21 @@ class ContactTypeResource extends Resource
     protected static ?string $model = ContactType::class;
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    public static function getModelLabel(): string
+    {
+        return __('contactTypes.name');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('contactTypes.namePlural');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('contactTypes.name');
+    }
+
     public static function getNavigationGroup(): ?string
     {
         return __('navigation.group.systemSettings');

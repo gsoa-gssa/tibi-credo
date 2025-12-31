@@ -154,7 +154,7 @@ class BoxWizard extends Page implements HasForms
                                         // Build options labels
                                         $options = [];
                                         foreach ($query->get() as $m) {
-                                            $label = $m->label . ' (' . ($m->commune?->nameWithCanton() ?? 'n/a') . ')';
+                                            $label = $m->getDisplayLabelAttribute() . ' (' . ($m->commune?->nameWithCanton() ?? 'n/a') . ')';
                                             $options[$m->id] = $label;
                                         }
 

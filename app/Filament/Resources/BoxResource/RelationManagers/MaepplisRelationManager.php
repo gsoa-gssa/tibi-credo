@@ -25,14 +25,16 @@ class MaepplisRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('label')
             ->columns([
-                TextColumn::make('label')
-                  ->label(__('maeppli.label'))
-                  ->searchable(),
-                TextColumn::make('commune.name')
+                Tables\Columns\TextColumn::make('display_label_html')
+                    ->label(__('maeppli.fields.label'))
+                    ->searchable(['label_number'])
+                    ->html()
+                    ->getStateUsing(fn ($record) => $record->display_label_html),
+                TextColumn::make('commune.name_with_canton_and_zipcode')
                   ->label(__('commune.name'))
                   ->searchable(),
                 TextColumn::make('signatures_valid_count')
-                  ->label(__('maeppli.signatures_valid_count')),
+                  ->label(__('maeppli.fields.signatures_valid_count')),
             ])
             ->filters([
             ])

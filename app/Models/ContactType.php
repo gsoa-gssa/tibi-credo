@@ -28,6 +28,18 @@ class ContactType extends Model
         static::addGlobalScope(new SignatureCollectionScope);
     }
 
+    public static function boot ()
+    {
+        parent::boot();
+
+        static::saving(function ($maeppli) {
+            // set signature_collection_id from user if empty
+            if (empty($maeppli->signature_collection_id)) {
+                $maeppli->signature_collection_id = auth()->user()?->signature_collection_id;
+            }
+        });
+    }
+
     public function contacts(): HasMany
     {
         return $this->hasMany(Contact::class);

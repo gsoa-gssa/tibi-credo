@@ -6,6 +6,7 @@ use App\Filament\Resources\ContactResource\Pages;
 use App\Filament\Resources\ContactResource\RelationManagers;
 use App\Models\Contact;
 use Filament\Forms;
+use Filament\Forms\Get;
 use Filament\Forms\Form;
 use Filament\Infolists;
 use Filament\Infolists\Infolist;
@@ -105,14 +106,15 @@ class ContactResource extends Resource
                 ->searchable()
                 ->preload(),
         ];
-        if ( !$newObject ){
-            $schema[] = Forms\Components\DateTimePicker::make('letter_sent')
-                    ->label(__('contact.fields.letter_sent'));
-            $schema[] = Forms\Components\Checkbox::make('address_corrected')
-                    ->label(__('contact.fields.address_corrected'));
-            $schema[] = Forms\Components\Checkbox::make('address_uncorrectable')
-                    ->label(__('contact.fields.address_uncorrectable'));
-        }
+        $schema[] = Forms\Components\DateTimePicker::make('letter_sent')
+            ->label(__('contact.fields.letter_sent'))
+            ->hidden(fn (Get $get, $record) => $record === null);
+        $schema[] = Forms\Components\Checkbox::make('address_corrected')
+            ->label(__('contact.fields.address_corrected'))
+            ->hidden(fn (Get $get, $record) => $record === null);
+        $schema[] = Forms\Components\Checkbox::make('address_uncorrectable')
+            ->label(__('contact.fields.address_uncorrectable'))
+            ->hidden(fn (Get $get, $record) => $record === null);
         return $schema;
     }
 
