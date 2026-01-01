@@ -206,7 +206,10 @@ class CreateCounting extends Page implements HasForms, HasTable
                 ->title(__('pages.createCounting.save.success'))
                 ->send();
 
+            // keep the name field
+            $name = $this->name;
             $this->form->fill();
+            $this->name = $name;
             $this->dispatch('table-reloaded');
         } catch (\Exception $e) {
             Notification::make()
