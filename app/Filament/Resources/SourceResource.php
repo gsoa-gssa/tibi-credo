@@ -50,7 +50,15 @@ class SourceResource extends Resource implements HasShieldPermissions
                     ->label(__('source.fields.code'))
                     ->required()
                     ->columnSpan(3)
-                    ->maxLength(2),
+                    ->maxLength(2)
+                    ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set, $state) {
+                        $set('code', strtoupper($state));
+                    })
+                    ->extraAttributes([
+                        'x-on:input' => '
+                            console.log($event.target.value);
+                            $event.target.value = $event.target.value.toUpperCase();',
+                    ]),
                 Forms\Components\TextInput::make('short_description_de')
                     ->label(__('source.fields.short_description_de'))
                     ->rule(function (Forms\Get $get) {
