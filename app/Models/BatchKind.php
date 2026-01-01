@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\HasLocalizedFields;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class BatchKind extends Model
 {
-    use HasFactory;
+    use HasFactory, HasLocalizedFields;
 
     protected $fillable = [
         'short_name_de',
@@ -39,7 +40,6 @@ class BatchKind extends Model
 
     public function getShortNameAttribute()
     {
-        $lang = app()->getLocale();
-        return $this->{'short_name_' . $lang} ?? $this->short_name_de;
+        return $this->getLocalized('short_name');
     }
 }

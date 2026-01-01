@@ -19,6 +19,8 @@ use App\Filament\Resources\BatchResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\BatchResource\RelationManagers;
 use App\Filament\Actions\BulkActions\ExportBatchesBulkActionGroup;
+use Filament\Infolists\Components;
+use Filament\Infolists\Infolist;
 
 class BatchResource extends Resource
 {
@@ -43,6 +45,45 @@ class BatchResource extends Resource
     }
 
     protected static ?int $navigationSort = 2;
+
+    public static function infolist(InfoList $infolist): InfoList
+    {
+        return $infolist
+            ->schema(self::getInfolistSchema());
+    }
+
+    public static function getInfolistSchema(): array
+    {
+        return [
+            Components\TextEntry::make('commune.name_with_canton_and_zipcode')
+                ->label(__('commune.name'))
+                ->columnSpanFull()
+                ->url(fn (Batch $record) => CommuneResource::getUrl('view', ['record' => $record->commune])),
+            Components\TextEntry::make('signature_count')
+                ->label(__('batch.fields.signature_count')),
+            Components\TextEntry::make('sheets_count')
+                ->label(__('batch.fields.sheets_count')),
+            Components\TextEntry::make('weight_grams')
+                ->label(__('batch.fields.weight_grams')),
+            Components\IconEntry::make('open')
+                ->label(__('batch.fields.open'))
+                ->icon(fn ($record) => $record->open ? 'heroicon-o-clock' : 'heroicon-o-archive-box')
+                ->color(fn ($record) => $record->open ? 'warning' : 'success')
+                ->tooltip(fn ($record) => $record->open ? __('batch.filters.open.open') : __('batch.filters.open.closed')),
+            Components\TextEntry::make('expected_delivery_date')
+                ->label(__('batch.fields.expected_delivery_date')),
+            Components\TextEntry::make('expected_return_date')
+                ->label(__('batch.fields.expected_return_date')),
+            Components\TextEntry::make('sendKind.short_name_de')
+                ->label(__('batch.fields.send_kind')),
+            Components\TextEntry::make('receiveKind.short_name_de')
+                ->label(__('batch.fields.receive_kind')),
+            Components\ViewEntry::make('letter_html')
+                ->label(__('batch.fields.letter_preview'))
+                ->view('filament.forms.components.letter-html-preview')
+                ->columnSpanFull()
+        ];
+    }
 
     public static function getFormSchema(): array
     {
@@ -147,12 +188,6 @@ class BatchResource extends Resource
                     ->relationship('receiveKind', 'short_name_de')
                     ->nullable()
                     ->hidden(fn ($record) => $record === null),
-                Forms\Components\ViewField::make('letter_html')
-                    ->label(__('batch.fields.letter_preview'))
-                    ->view('filament.forms.components.letter-html-preview')
-                    ->columnSpanFull()
-                    ->hidden(fn ($record) => $record === null || empty($record->letter_html)),
-                    
             ];
     }
 

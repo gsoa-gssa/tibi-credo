@@ -477,17 +477,11 @@ class CommuneResource extends Resource
     public static function getRelations(): array
     {
         return [
+            RelationManagers\OverviewRelationManager::class,
             RelationManagers\BatchesRelationManager::class,
             RelationManagers\MaepplisRelationManager::class,
             RelationManagers\ZipcodesRelationManager::class,
             RelationManagers\CommuneActivitylogRelationManager::class,
-        ];
-    }
-
-    public static function getWidgets(): array
-    {
-        return [
-            CommuneResource\Widgets\CommuneStats::class,
         ];
     }
 

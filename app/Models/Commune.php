@@ -108,6 +108,77 @@ class Commune extends Model
         return $this->hasMany(\App\Models\Address::class, 'commune_id');
     }
 
+    /**
+     * Returns an array of batch, maeppli and comment events for the overview table.
+     */
+    public function overview()
+    {
+        $rows = [];
+        // add batches
+        foreach ($this->batches as $batch) {
+            $batchMessage = __('communeOverview.batchOpenMessage', ['signatures_count' => $batch->signature_count, 'sheets_count' => $batch->sheets_count]);
+            if($batch->send_kind !== $batch->signatureCollection->default_send_kind_id) {
+                \Log::debug('Non-default send kind for batch ' . $batch->id . ' default: ' . ($batch->signatureCollection->default_send_kind_id ?? 'null') . ' actual: ' . ($batch->send_kind ?? 'null'));
+                $batchMessage .= ' ' . __('communeOverview.batchNonDefaultSendKindMessage', ['subject' => $batch->sendKind->getLocalized('subject')]);
+            }
+            if(!$batch->open) {
+                $batchMessage .= ' ' . __('communeOverview.batchClosedMessage');
+                if($batch->receiveKind !== null && $batch->receiveKind !== $batch->signatureCollection->default_send_kind) {
+                    $batchMessage .= ' ' . __('communeOverview.batchWithReceiveKindMessage', ['kind' => $batch->receiveKind->getLocalized('short_name')]);
+                }
+            }
+            $rows[] = [
+                'datetime' => $batch->created_at,
+                'signaturesBalance' => $batch->signature_count ?? 0,
+                'eventDescription' => $batchMessage,
+            ];
+        }
+        // add maepplis
+        foreach ($this->maepplis as $maeppli) {
+            $sheets_count = $maeppli->sheets_count;
+            if($sheets_count === null) {
+                $message = __('communeOverview.maeppliMessageNoSheets', ['valid' => $maeppli->signatures_valid_count ?? 0, 'invalid' => $maeppli->signatures_invalid_count ?? 0]);
+            } else {
+                $message = __('communeOverview.maeppliMessage', ['sheets_count' => $sheets_count, 'valid' => $maeppli->signatures_valid_count, 'invalid' => $maeppli->signatures_invalid_count]);
+            }
+            $rows[] = [
+                'datetime' => $maeppli->created_at,
+                'signaturesBalance' => -($maeppli->signatures_valid_count+$maeppli->signatures_invalid_count),
+                'eventDescription' => $message,
+            ];
+        }
+        // add comments from activity log
+        $activities = \Spatie\Activitylog\Models\Activity::query()
+            ->where('subject_type', self::class)
+            ->where('subject_id', $this->id)
+            ->where('event', 'comment')
+            ->get();
+        foreach ($activities as $activity) {
+            $rows[] = [
+                'datetime' => $activity->created_at,
+                'signaturesBalance' => null,
+                'eventDescription' => __('communeOverview.commentPrefix') . $activity->description,
+            ];
+        }
+        // sort by date descending
+        usort($rows, function ($a, $b) {
+            return strtotime($b['datetime']) <=> strtotime($a['datetime']);
+        });
+        // set cumulative balance
+        $lastBalance = 0;
+        for ($i = count($rows) - 1; $i >= 0; $i--) {
+            $row = &$rows[$i];
+            if ($row['signaturesBalance'] === null) {
+                $change = 0;
+            } else {
+                $change = $row['signaturesBalance'];
+            }
+            $lastBalance += $change;
+            $row['signaturesBalance'] = $lastBalance;
+        }
+        return collect($rows);
+    }
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()

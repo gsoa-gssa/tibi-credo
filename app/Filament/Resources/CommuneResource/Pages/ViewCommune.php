@@ -10,10 +10,15 @@ class ViewCommune extends ViewRecord
 {
     protected static string $resource = CommuneResource::class;
 
+    public function getTitle(): string
+    {
+        return $this->record->name_with_canton_and_zipcode;
+    }
+
     protected function getHeaderWidgets(): array
     {
         return [
-            CommuneResource\Widgets\CommuneStats::make()
+            CommuneResource\Widgets\CommuneStats::make(),
         ];
     }
 
