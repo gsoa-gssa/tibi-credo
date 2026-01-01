@@ -43,6 +43,11 @@ class BoxWizard extends Page implements HasForms
         return __('pages.BoxWorkflow.navigationGroup');
     }
 
+    public static function canAccess(): bool
+    {
+        return auth()->check();
+    }
+
     protected static string $view = 'filament.pages.box-wizard';
 
     public ?int $canton_id = null;

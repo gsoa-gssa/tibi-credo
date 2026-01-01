@@ -35,6 +35,11 @@ class AddressLookup extends Page implements HasForms
         return __('navigation.group.workflows');
     }
 
+    public static function canAccess(): bool
+    {
+        return auth()->check();
+    }
+
     public $zipcode = '';
     public $canton = '';
     public $place = '';

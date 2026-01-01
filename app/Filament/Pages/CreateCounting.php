@@ -20,6 +20,11 @@ class CreateCounting extends Page
         return __('navigation.group.workflows');
     }
 
+    public static function canAccess(): bool
+    {
+        return auth()->check();
+    }
+
     public function mount()
     {
         return redirect()->to(\App\Filament\Resources\CountingResource::getUrl('create'));

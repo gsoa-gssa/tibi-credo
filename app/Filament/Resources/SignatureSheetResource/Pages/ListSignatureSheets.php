@@ -20,15 +20,7 @@ class ListSignatureSheets extends ListRecords
         $user = Filament::auth()->user();
         if ($user && ($user->hasRole('admin') || $user->hasRole('super_admin'))) {
             $actions[] = Actions\Action::make('public_link')
-                ->label(__('Public Link'))
-                ->icon('heroicon-o-link')
-                ->url(function () {
-                    $scopeId = Filament::auth()->user()->signature_collection_id;
-                    return URL::temporarySignedRoute('public.signature-sheets', now()->addMinutes(30), ['signature_collection_id' => $scopeId]);
-                })
-                ->openUrlInNewTab();
-            $actions[] = Actions\Action::make('public_link')
-                ->label(__('Permanent Public Link'))
+                ->label(__('signatureSheet.actions.public_link'))
                 ->icon('heroicon-o-link')
                 ->url(function () {
                     $scopeId = Filament::auth()->user()->signature_collection_id;

@@ -20,6 +20,11 @@ class RegisterInvalid extends Page
       return __('pages.registerInvalid.navigationGroup');
   }
 
+  public static function canAccess(): bool
+  {
+      return auth()->check();
+  }
+
   public function mount()
   {
     return redirect()->to(\App\Filament\Resources\ContactResource::getUrl('create'));

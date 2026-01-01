@@ -32,6 +32,11 @@ class CommuneLink extends Page implements HasTable
         return __('navigation.group.workflows');
     }
 
+    public static function canAccess(): bool
+    {
+        return auth()->check();
+    }
+
     public function table(Table $table): Table
     {
         return $table

@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Filament\Pages\PublicSignatureSheetList;
+use App\Filament\Pages\PublicSignatureSheetShow;
 use App\Http\Controllers\PublicSignatureSheetController;
 
 Route::get('/communes/{commune}/label', [App\Filament\Resources\CommuneResource\Pages\LabelCommune::class, '__invoke'])->name('communes.label');
@@ -47,11 +49,11 @@ if (env('APP_ENV') === 'local') {
 // Code login route (guest accessible)
 Route::get('/code-login', \App\Livewire\Auth\CodeLogin::class)->name('code-login');
 
-Route::get('/public-signature-sheets', [PublicSignatureSheetController::class, 'index'])
+Route::get('/public-signature-sheets', PublicSignatureSheetList::class)
     ->middleware('signed')
     ->name('public.signature-sheets');
 
-Route::get('/public-signature-sheets/{sheet}', [PublicSignatureSheetController::class, 'show'])
+Route::get('/public-signature-sheets/{sheet}', PublicSignatureSheetShow::class)
     ->middleware('signed')
     ->name('public.signature-sheets.show');
 

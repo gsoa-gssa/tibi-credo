@@ -21,6 +21,11 @@ class CaptureBatchWorkflow extends Page
         return __('pages.captureBatchWorkflow.navigationGroup');
     }
 
+    public static function canAccess(): bool
+    {
+        return auth()->check();
+    }
+
     public function mount()
     {
         return redirect()->to(MaeppliResource::getUrl('create'));
