@@ -5,6 +5,8 @@ namespace App\Filament\Resources\SignatureSheetResource\Pages;
 use App\Filament\Resources\SignatureSheetResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Support\Facades\URL;
+use Filament\Facades\Filament;
 
 class ListSignatureSheets extends ListRecords
 {
@@ -12,8 +14,28 @@ class ListSignatureSheets extends ListRecords
 
     protected function getHeaderActions(): array
     {
-        return [
+        $actions = [
             Actions\CreateAction::make(),
         ];
+        $user = Filament::auth()->user();
+        if ($user && ($user->hasRole('admin') || $user->hasRole('super_admin'))) {
+            $actions[] = Actions\Action::make('public_link')
+                ->label(__('Public Link'))
+                ->icon('heroicon-o-link')
+                ->url(function () {
+                    $scopeId = Filament::auth()->user()->signature_collection_id;
+                    return URL::temporarySignedRoute('public.signature-sheets', now()->addMinutes(30), ['signature_collection_id' => $scopeId]);
+                })
+                ->openUrlInNewTab();
+            $actions[] = Actions\Action::make('public_link')
+                ->label(__('Permanent Public Link'))
+                ->icon('heroicon-o-link')
+                ->url(function () {
+                    $scopeId = Filament::auth()->user()->signature_collection_id;
+                    return URL::signedRoute('public.signature-sheets', ['signature_collection_id' => $scopeId]);
+                })
+                ->openUrlInNewTab();
+        }
+        return $actions;
     }
 }
