@@ -6,6 +6,11 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use App\Filament\Pages\PublicSignatureSheetList;
 use App\Filament\Pages\PublicSignatureSheetShow;
 use App\Http\Controllers\PublicSignatureSheetController;
+use App\Http\Controllers\BatchCollectionHtmlController;
+
+Route::get('/batches-html', [BatchCollectionHtmlController::class, 'show'])
+    ->name('batches.html')
+    ->middleware('auth');
 
 Route::get('/communes/{commune}/label', [App\Filament\Resources\CommuneResource\Pages\LabelCommune::class, '__invoke'])->name('communes.label');
 
@@ -25,26 +30,6 @@ Route::get('/labels/communes', function (Request $request) {
         'communes' => $communes,
     ]);
 })->name('labels.communes');
-
-Route::prefix("stats")->group(function () {
-    Route::get('/signatures/count', [App\Http\Controllers\StatsController::class, 'viewSignatureCount']);
-});
-
-
-Route::prefix("api")->group(function () {
-    Route::prefix("stats")->group(function () {
-        Route::get('/signatures/count', [App\Http\Controllers\StatsController::class, 'signatureCount']);
-    });
-});
-
-
-if (env('APP_ENV') === 'local') {
-    Route::get('/batch-letter', function () {
-        $batch = App\Models\Batch::with("sheets")->get()->first();
-        $pdf = Pdf::loadView('batch.letter-de', ['batch' => $batch]);
-        return $pdf->stream();
-    });
-}
 
 // Code login route (guest accessible)
 Route::get('/code-login', \App\Livewire\Auth\CodeLogin::class)->name('code-login');

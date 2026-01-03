@@ -179,6 +179,120 @@ class Commune extends Model
         return collect($rows);
     }
 
+    /**
+     * Return the overview array formatted as HTML.
+     * The headers are translated using communeOverview.headerKey as the translation keys
+     * The datetime column is formatted depending on the locale as de, fr or it.
+     * The signaturesBalance column is right aligned and formatted as numbers.
+     * The eventDescription column has paragraphs of text
+     */
+    public function overviewHTML(): string
+    {
+
+        $rows = $this->overview();
+        $locale = app()->getLocale();
+
+        $headers = [
+            'datetime' => __('communeOverview.datetime'),
+            'signaturesBalance' => __('communeOverview.signaturesBalance'),
+            'eventDescription' => __('communeOverview.eventDescription'),
+        ];
+
+        $html = '<table class="table table-sm"><thead><tr>';
+        $html .= '<th style="text-align:left">' . e($headers['datetime']) . '</th>';
+        $html .= '<th style="text-align:right">' . e($headers['signaturesBalance']) . '</th>';
+        $html .= '<th style="text-align:left">' . e($headers['eventDescription']) . '</th>';
+        $html .= '</tr></thead><tbody>';
+
+        foreach ($rows as $row) {
+            $dt = '';
+            if (!empty($row['datetime'])) {
+                try {
+                    $dt = \Carbon\Carbon::parse($row['datetime'])->locale($locale)->isoFormat('ll');
+                } catch (\Throwable $e) {
+                    $dt = (string)$row['datetime'];
+                }
+            }
+
+            $balance = $row['signaturesBalance'];
+            if ($balance === null || $balance === '') {
+                $balanceHtml = '';
+            } else {
+                $balanceHtml = number_format((int)$balance, 0, '.', "'");
+            }
+
+            // copilot added this paragraph splitting logic
+            // it's useless but I'll keep it for now
+            $desc = $row['eventDescription'] ?? '';
+            $paras = preg_split('/\r\n\s*\r\n|\n\s*\n|\r\s*\r/', $desc);
+            $descParts = [];
+            foreach ($paras as $p) {
+                $p = trim($p);
+                if ($p === '') {
+                    continue;
+                }
+                $p = nl2br(e($p));
+                $descParts[] = '<p>' . $p . '</p>';
+            }
+            $descHtml = implode('', $descParts);
+
+            $html .= '<tr>';
+            $html .= '<td style="text-align:left; white-space:nowrap;">' . e($dt) . '</td>';
+            $html .= '<td style="text-align:right">' . $balanceHtml . '</td>';
+            $html .= '<td style="text-align:left">' . $descHtml . '</td>';
+            $html .= '</tr>';
+        }
+
+        $html .= '</tbody></table>';
+
+        return $html;
+
+    }
+
+    public function anyBatchOpen(): bool
+    {
+        return $this->batches()->where('open', true)->exists();
+    }
+
+    /**
+     * Return openBatchOverview as HTML table.
+     */
+    public function openBatchOverviewHTML(): string
+    {
+        $batches = $this->batches()->where('open', true)->get();
+        $locale = app()->getLocale();
+
+        $headers = [
+            'created_at' => __('batch.fields.created_at'),
+            'expected_delivery_date' => __('batch.fields.expected_delivery_date'),
+            'expected_return_date' => __('batch.fields.expected_return_date'),
+            'sheets_count' => __('batch.fields.sheets_count'),
+            'signature_count' => __('batch.fields.signature_count'),
+        ];
+
+        $html = '<table class="table table-sm"><thead><tr>';
+        $html .= '<th style="text-align:left">' . e($headers['created_at']) . '</th>';
+        $html .= '<th style="text-align:left">' . e($headers['expected_delivery_date']) . '</th>';
+        $html .= '<th style="text-align:left">' . e($headers['expected_return_date']) . '</th>';
+        $html .= '<th style="text-align:right">' . e($headers['sheets_count']) . '</th>';
+        $html .= '<th style="text-align:right">' . e($headers['signature_count']) . '</th>';
+        $html .= '</tr></thead><tbody>';
+
+        foreach ($batches as $batch) {
+            $html .= '<tr>';
+            $html .= '<td style="text-align:left; white-space:nowrap;">' . e($batch->created_at->locale($locale)->isoFormat('ll')) . '</td>';
+            $html .= '<td style="text-align:left">' . e($batch->expected_delivery_date ? $batch->expected_delivery_date->locale($locale)->isoFormat('ll') : '') . '</td>';
+            $html .= '<td style="text-align:left">' . e($batch->expected_return_date ? $batch->expected_return_date->locale($locale)->isoFormat('ll') : '') . '</td>';
+            $html .= '<td style="text-align:right">' . e($batch->sheets_count) . '</td>';
+            $html .= '<td style="text-align:right">' . e($batch->signature_count) . '</td>';
+            $html .= '</tr>';
+        }
+
+        $html .= '</tbody></table>';
+
+        return $html;
+    }
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()

@@ -57,4 +57,14 @@ class SignatureCollection extends Model
     {
         return $this->belongsTo(BatchKind::class, 'default_send_kind_id');
     }
+
+    public function return_address_letters_html(): string
+    {
+        return nl2br(e($this->return_address_letters));
+    }
+
+    public function return_address_parcels_html(): string
+    {
+        return nl2br(e($this->return_address_parcels));
+    }
 }

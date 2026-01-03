@@ -56,17 +56,29 @@
     <p>
       {{ __('letter.request', ['deadline' => $batch->expected_return_date->format("d.m.Y")]) }}
     </p>
-    <p>
-      @if($batch->signatureCollection->return_address_letters == $batch->signatureCollection->return_address_parcels)
+    @if($batch->signatureCollection->return_address_letters == $batch->signatureCollection->return_address_parcels)
+      <p>
         {{ __('letter.return_address_all') }}<br>
-        {{ $batch->signatureCollection->return_address_letters }}
-      @else
-        {{ __('letter.return_address_letters') }}<br>
-        {{ $batch->signatureCollection->return_address_letters }}<br><br>
-        {{ __('letter.return_address_parcels') }}<br>
-        {{ $batch->signatureCollection->return_address_parcels }}
-      @endif
-    </p>
+        {!! $batch->signatureCollection->return_address_letters_html() !!}
+      </p>
+    @else
+      <table style="width:100%; border-spacing: 0;">
+        <tr>
+          <td style="vertical-align:top; padding-right: 20px;">
+            <p>
+              {{ __('letter.return_address_letters') }}<br>
+              {!! $batch->signatureCollection->return_address_letters_html() !!}
+            </p>
+          </td>
+          <td style="vertical-align:top;">
+            <p>
+              {{ __('letter.return_address_parcels') }}<br>
+              {!! $batch->signatureCollection->return_address_parcels_html() !!}
+            </p>
+          </td>
+        </tr>
+      </table>
+    @endif
     <p>
       {{ __('letter.ending') }}<br><br>
       {{ __('letter.ending.' . $batch->signatureCollection->type->value) }}<br>
@@ -74,5 +86,16 @@
       {{ $batch->signatureCollection->getLocalized('responsible_person_email') }}<br>
       {{ $batch->signatureCollection->getLocalized('responsible_person_phone') }}<br>
     </p>
+    @if($batch->anyOtherBatchOpen())
+      <x-slot name="additionalPages">
+        <h1>{{__('batch.letter.reminder.header')}}</h1>
+        <p>{{__('batch.letter.reminder.intro')}}</p>
+        <h2>{{__('batch.letter.reminder.batches_header')}}</h2>
+        {!! $batch->commune->openBatchOverviewHTML() !!}
+        <h2>{{__('batch.letter.reminder.overview_header')}}</h2>
+        <p>{{__('batch.letter.reminder.overview_intro')}}</p>
+        {!! $batch->commune->overviewHTML() !!}
+      </x-slot>
+    @endif
   </x-letter>
 </x-letters>

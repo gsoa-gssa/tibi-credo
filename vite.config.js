@@ -13,9 +13,11 @@ export default defineConfig({
         }),
     ],
     server: {
+        cors: true,
+        headers: { 'Access-Control-Allow-Origin': '*' },
         hmr: {
             protocol: 'wss',
-            host: 'tibi-credo.ddev.site',
+            host: 'certimi.ddev.site',
         }
     },
     resolve: {

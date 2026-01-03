@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Collection;
 
 
 class Batch extends Model
@@ -225,6 +226,51 @@ class Batch extends Model
         return response()->streamDownload(function () use ($pdf) {
             echo $pdf->output();
         }, 'batch-letter-ID_' . $this->id . '.pdf');
+    }
+
+    public function anyOtherBatchOpen(): bool
+    {
+        return self::where('commune_id', $this->commune_id)
+            ->where('id', '!=', $this->id)
+            ->where('open', true)
+            ->exists();
+    }
+
+    /**
+     * Generate combined HTML for multiple batches.
+     * This was moved from the Filament action into the model so callers
+     * can reuse the same logic.
+     *
+     * @param Collection $batches
+     * @param string $addressPosition
+     * @param string $priority
+     * @return string
+     */
+    public static function get_letter_html_many(Collection $batches, string $addressPosition, string $priority): string
+    {
+        $individualPages = [];
+
+        foreach ($batches as $batch) {
+            try {
+                $individualPages[] = $batch->get_letter_html($addressPosition, $priority);
+            } catch (\Exception $e) {
+                \Filament\Notifications\Notification::make()
+                    ->title('Batch Export Skipped')
+                    ->body('Batch ' . $batch->id . ' could not be rendered and was skipped: ' . $e->getMessage())
+                    ->warning()
+                    ->send();
+            }
+        }
+
+        \Filament\Notifications\Notification::make()
+            ->title('Batches Processed')
+            ->body(count($individualPages) . ' out of ' . $batches->count() . ' letters were generated with address position ' . $addressPosition . ' and priority ' . $priority . '.')
+            ->success()
+            ->send();
+
+        return view('contact.contacts-combined', [
+            'pages' => $individualPages,
+        ])->render();
     }
 
     /**

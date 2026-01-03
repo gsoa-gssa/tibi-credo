@@ -2,7 +2,7 @@
 
 namespace App\Filament\Actions\BulkActions;
 
-use App\Models\Batches;
+use App\Models\Batch;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Tables\Actions\BulkAction;
 use Illuminate\Database\Eloquent\Collection;
@@ -56,7 +56,7 @@ class ExportBatchesPdfBulkAction extends BulkAction
             $batches->load(['commune', 'signatureCollection']);
 
             // Generate combined HTML from individual templates
-            $combinedHtml = $this->generateCombinedHtml($batches);
+            $combinedHtml = Batch::get_letter_html_many($batches, $this->addressPosition, $this->priority);
 
             // Generate filename
             $filename = 'batches_export_' . now()->format('Y-m-d_H-i-s') . '.pdf';
@@ -101,33 +101,5 @@ class ExportBatchesPdfBulkAction extends BulkAction
 
             return response('Export failed', 500);
         }
-    }
-
-    protected function generateCombinedHtml(Collection $batches): string
-    {
-        $individualPages = [];
-
-        foreach ($batches as $batch) {
-            try {
-                $individualPages[] = $batch->get_letter_html($this->addressPosition, $this->priority);
-            } catch (\Exception $e) {
-                \Filament\Notifications\Notification::make()
-                    ->title('Batch Export Skipped')
-                    ->body('Batch ' . $batch->id . ' could not be rendered and was skipped: ' . $e->getMessage())
-                    ->warning()
-                    ->send();
-            }
-        }
-
-        \Filament\Notifications\Notification::make()
-            ->title('Batches Processed')
-            ->body(count($individualPages) . ' out of ' . $batches->count() . ' letters were generated with address position ' . $this->addressPosition . ' and priority ' . $this->priority . '.')
-            ->success()
-            ->send();
-
-        // Combine all pages with CSS page breaks
-        return view('contact.contacts-combined', [
-            'pages' => $individualPages,
-        ])->render();
-    }
+    }    
 }

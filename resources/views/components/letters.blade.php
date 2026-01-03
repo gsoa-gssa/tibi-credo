@@ -47,13 +47,11 @@
 
         .letter-content .date-and-subject {
             margin-top: 150px;
-            max-width: 15cm
         }
 
         .letter-content .main-letter {
             margin-top: 20px;
             text-align: justify;
-            max-width: 15cm
         }
 
         .monospace {
@@ -78,6 +76,12 @@
           {{ $css }}
         @endif
     </style>
+    @if (file_exists(public_path('build/manifest.json')))
+      @vite('resources/js/bwip-datamatrix.js')
+      <script>
+        console.log("Loaded bwip-datamatrix.js via Vite");
+      </script>
+    @endif
 </head>
 <body>
   {{ $slot }}

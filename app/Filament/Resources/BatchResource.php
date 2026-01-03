@@ -19,8 +19,10 @@ use App\Filament\Resources\BatchResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\BatchResource\RelationManagers;
 use App\Filament\Actions\BulkActions\ExportBatchesBulkActionGroup;
+use App\Filament\Actions\BulkActions\ShowBatchLettersBulkAction;
 use Filament\Infolists\Components;
 use Filament\Infolists\Infolist;
+use Illuminate\Support\Collection;
 
 class BatchResource extends Resource
 {
@@ -369,6 +371,18 @@ class BatchResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
                 ExportBatchesBulkActionGroup::make(),
+                ShowBatchLettersBulkAction::make(),
+                Tables\Actions\BulkAction::make('setLetterHtmlNull')
+                    ->label(__('batch.action.setLetterHtmlNull'))
+                    ->icon('heroicon-o-trash')
+                    ->requiresConfirmation()
+                    ->visible(fn () => auth()->user()?->hasRole('super_admin'))
+                    ->action(function (Collection $records) {
+                        $ids = $records->pluck('id')->all();
+                        if (!empty($ids)) {
+                            Batch::whereIn('id', $ids)->update(['letter_html' => null]);
+                        }
+                    }),
             ]);
     }
 

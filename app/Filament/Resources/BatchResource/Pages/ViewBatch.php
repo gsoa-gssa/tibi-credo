@@ -64,6 +64,58 @@ class ViewBatch extends ViewRecord
             ])
             ->button()
             ->label(__('batch.action.exportLetter')),
+            ActionGroup::make([
+                Action::make('viewLetterLeftA4')
+                    ->label(__('batch.action.viewLetterLeftA4'))
+                    ->icon('heroicon-o-envelope')
+                    ->url(fn (Model $batch) => route('batches.html', [
+                        'ids' => $batch->getKey(),
+                        'addressPosition' => 'left',
+                        'priority' => 'B1',
+                    ])),
+                Action::make('viewLetterLeftA4MassDelivery')
+                    ->label(__('batch.action.viewLetterLeftA4MassDelivery'))
+                    ->icon('heroicon-o-envelope')
+                    ->url(fn (Model $batch) => route('batches.html', [
+                        'ids' => $batch->getKey(),
+                        'addressPosition' => 'left',
+                        'priority' => 'B2',
+                    ])),
+                Action::make('viewLetterLeftA4Priority')
+                    ->label(__('batch.action.viewLetterLeftA4Priority'))
+                    ->icon('heroicon-o-envelope')
+                    ->url(fn (Model $batch) => route('batches.html', [
+                        'ids' => $batch->getKey(),
+                        'addressPosition' => 'left',
+                        'priority' => 'A',
+                    ])),
+                Action::make('viewLetterRightA4')
+                    ->label(__('batch.action.viewLetterRightA4'))
+                    ->icon('heroicon-o-envelope')
+                    ->url(fn (Model $batch) => route('batches.html', [
+                        'ids' => $batch->getKey(),
+                        'addressPosition' => 'right',
+                        'priority' => 'B1',
+                    ])),
+                Action::make('viewLetterRightA4MassDelivery')
+                    ->label(__('batch.action.viewLetterRightA4MassDelivery'))
+                    ->icon('heroicon-o-envelope')
+                    ->url(fn (Model $batch) => route('batches.html', [
+                        'ids' => $batch->getKey(),
+                        'addressPosition' => 'right',
+                        'priority' => 'B2',
+                    ])),
+                Action::make('viewLetterRightA4Priority')
+                    ->label(__('batch.action.viewLetterRightA4Priority'))
+                    ->icon('heroicon-o-envelope')
+                    ->url(fn (Model $batch) => route('batches.html', [
+                        'ids' => $batch->getKey(),
+                        'addressPosition' => 'right',
+                        'priority' => 'A',
+                    ])),
+            ])
+            ->button()
+            ->label(__('batch.action.viewLetterHtml') . 'TEST'),
             Action::make('setLetterHtmlNull')
                     ->label(__('batch.action.setLetterHtmlNull'))
                     ->icon('heroicon-o-trash')
