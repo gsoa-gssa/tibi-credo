@@ -39,6 +39,7 @@ class SignatureCollection extends Model
         'pp_sender_name_fr',
         'pp_sender_name_it',
         'color',
+        'post_ch_ag_billing_number',
     ];
 
     protected $casts = [
@@ -66,5 +67,20 @@ class SignatureCollection extends Model
     public function return_address_parcels_html(): string
     {
         return nl2br(e($this->return_address_parcels));
+    }
+
+    protected static function booted()
+    {
+        static::saving(function (self $model) {
+            $value = $model->post_ch_ag_billing_number;
+            if (empty($value)) {
+                // set to null
+                $model->post_ch_ag_billing_number = null;
+                return;
+            }
+            if (!preg_match('/^\d{8}$/', $value)) {
+                throw new \InvalidArgumentException('post_ch_ag_billing_number must be exactly 8 digits');
+            }
+        });
     }
 }

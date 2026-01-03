@@ -236,6 +236,29 @@ class Batch extends Model
             ->exists();
     }
 
+    public function datamatrixContent(): string
+    {
+        $components = "";
+        $components .= "756"; // Swiss country code / Post CH AG
+        $components .= "80"; // Brief national
+        $components .= "21"; // Fixer Wert «21» = Datamatrix-Code Typ 21
+        $components .= "00000000"; // RNN, die ersten 8 der 9 Stellen
+        $components .= $this->created_at->format('ymd'); // Auftragsnummer, 6 Stellen, YYMMDD
+        $components .= str_pad($this->id, 9, '0', STR_PAD_LEFT); // Auftragsnummer, 9 Stellen, Batch ID with leading zeros
+        $components .= "1"; // Addressblock
+        $components .= "00"; // 01=A, 02=B1, 04=B2. How do I get it?
+        $components .= "0"; // Retouren physisch normal
+        $components .= "0"; // freies Feld, nicht verwendet
+        $components .= "0"; // Zusatzleistungen: Keine
+        $components .= "00000000"; // Adress-ID Rückführadresse - nicht verwendet 
+        return $components;
+    }
+
+    public function datamatrixSize(): int
+    {
+        return 11; // in mm
+    }
+
     /**
      * Generate combined HTML for multiple batches.
      * This was moved from the Filament action into the model so callers

@@ -25,13 +25,32 @@
     <x-slot name="address">
       {!! $batch->commune->address !!}
     </x-slot>
+    @if ($batch->signatureCollection->post_ch_ag_billing_number)
+      <x-slot name="datamatrix_content">{{ $batch->datamatrixContent() }}</x-slot>
+      <x-slot name="datamatrix_size">{{ $batch->datamatrixSize() }}</x-slot>
+    @endif
+    <x-slot name="note_top">
+      <div style="display: flex; align-items: flex-start; gap: 2em; font-size: 8pt;">
+        <figure style="display: inline-block; text-align: center; margin: 0;">
+          <div data-bwip-qr="{{ __('batch.letter.link.instructions_pdf') }}" data-bwip-width="35mm" data-bwip-height="35mm"></div>
+          <figcaption style="width: 35mm; margin-top: 0.5em;">{{ __('batch.letter.instructions_pdf_note') }}</figcaption>
+        </figure>
+        <figure style="display: inline-block; text-align: center; margin: 0;">
+          <div data-bwip-qr="{{ __('batch.letter.link.instructions_general') }}" data-bwip-width="35mm" data-bwip-height="35mm"></div>
+          <figcaption style="width: 35mm; margin-top: 0.5em;">{{ __('batch.letter.instructions_general_note') }}</figcaption>
+        </figure>
+      </div>
+    </x-slot>
     <x-slot name="datePlaceLine">
-      {{ $batch->signatureCollection->getLocalized('pp_sender_place') }}, {{$batch->created_at->format("d.m.Y")}}
+      {{ $batch->signatureCollection->getLocalized('pp_sender_place') }}, {{$batch->created_at->locale(app()->getLocale())->isoFormat('LL')}}
     </x-slot>
     <x-slot name="subjectLine">
       <b>
         {{ $batch->signatureCollection->getLocalized('official_name') }}<br>
         {{ __('letter.subject') }}
+        @if($batch->anyOtherBatchOpen())
+          - {{__('batch.letter.reminder.subject_addition')}}
+        @endif
       </b>
     </x-slot>
     @if($batch->created_at->gt($batch->signatureCollection->end_date->subDays(20)))
@@ -78,6 +97,13 @@
           </td>
         </tr>
       </table>
+    @endif
+    @if($batch->anyOtherBatchOpen())
+      <p>
+        <b>
+          {{ __('batch.letter.reminder.refer_to_second_page') }}
+        </b>
+      </p>
     @endif
     <p>
       {{ __('letter.ending') }}<br><br>

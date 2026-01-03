@@ -3,7 +3,10 @@
   'pp_postcode' => null,
   'pp_place' => null,
   // priorityMail must be 'A' or 'B'
-  'priorityMail' => 'B'
+  'priorityMail' => 'B',
+  'datamatrix_content' => null,
+  'datamatrix_size' => null,
+  'note_top' => null,
 ])
 
 @if (!in_array($addressPosition, ['left', 'right']))
@@ -37,13 +40,17 @@
 </x-slot>
 <div class="letter-content" style="width: 210mm;">
   <div class="workaround">.</div>
+  @if (!is_null($note_top))
+    <div style="position:absolute; top: 0; {{ $addressPosition == 'right' ? 'left' : 'right' }}: 0;">
+      {{ $note_top }}
+    </div>
+  @endif
   <div class="address-block {{ $addressPosition == 'right' ? 'address-block-right' : 'address-block-left' }}">
     <div>
       <div style="position: relative; border-bottom: 1px solid black; margin-bottom: 3mm; font-family: Arial, Verdana, Helvetica, sans-serif; font-size: 8pt;">
         <div style="position: absolute; top: 0; right: 0; font-size: 6pt;">
           {{__('letter.post_company') }}
         </div>
-        <div data-bwip-datamatrix="123456789" data-bwip-width="12mm" data-bwip-height="12mm" style="position: absolute; top: 10mm; right: 0;"></div>
         <b style="font-size:12pt;">
           P.P.
         </b>
@@ -58,9 +65,12 @@
           {{ $ppLine }}
         </div>
       </div>
-      <p style="margin-top: 0">
-          {{ $address }}
-      </p>
+      <div style="margin-top: 0; position: relative;">
+        @if ($datamatrix_content && $datamatrix_size)
+          <div data-bwip-datamatrix="{{ $datamatrix_content }}" data-bwip-width="{{ $datamatrix_size }}mm" data-bwip-height="{{ $datamatrix_size }}mm" style="position: absolute; top: 0; right: 0;"></div>
+        @endif
+        {{ $address }}
+      </div>
     </div>
   </div>
   <div class="main-body">

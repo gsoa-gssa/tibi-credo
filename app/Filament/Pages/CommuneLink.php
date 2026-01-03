@@ -9,6 +9,7 @@ use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use App\Models\Commune;
 use Filament\Tables\Enums\FiltersLayout;
+use App\Filament\Resources\CommuneResource\BulkActions\RemindersBulkActionGroup;
 
 class CommuneLink extends Page implements HasTable
 {
@@ -55,7 +56,10 @@ class CommuneLink extends Page implements HasTable
                 \App\Filament\Filters\LastContactedBeforeFilter::make(),
                 \App\Filament\Filters\LastContactedAfterFilter::make(),
             ], layout: FiltersLayout::AboveContent)
-            ->filtersFormColumns(3);
+            ->filtersFormColumns(3)
+            ->bulkActions([
+                RemindersBulkActionGroup::make(),
+            ]);
     }
 
     protected static string $view = 'filament.pages.commune-link';

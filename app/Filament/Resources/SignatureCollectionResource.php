@@ -150,6 +150,12 @@ class SignatureCollectionResource extends Resource
                 ])
                 ->columnSpan(2)
                 ->label(__('signature_collection.sections.pp')),
+            TextInput::make('post_ch_ag_billing_number')
+                ->label(__('signature_collection.fields.post_ch_ag_billing_number'))
+                ->helperText(__('signature_collection.helpers.post_ch_ag_billing_number'))
+                ->rules(['nullable', 'regex:/^\d{8}$/'])
+                ->maxLength(8)
+                ->columnSpan('full'),
             TextInput::make('return_workdays')
                 ->label(__('signature_collection.fields.return_workdays'))
                 ->numeric()

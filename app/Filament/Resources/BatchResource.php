@@ -97,7 +97,7 @@ class BatchResource extends Resource
                     ->label(__('commune.name'))
                     ->columnSpan(2)
                     ->searchable()
-                    ->formatStateUsing(fn ($state) => Commune::find($state)?->name_with_canton_and_zipcode)
+                    ->getOptionLabelUsing(fn ($value): ?string => Commune::find($value)?->name_with_canton_and_zipcode)
                     ->getSearchResultsUsing(fn (string $search): array => Commune::searchByNameOrZip($search)->mapWithKeys(function ($commune) {
                         return [$commune->id => $commune->name_with_canton_and_zipcode];
                     })->toArray())

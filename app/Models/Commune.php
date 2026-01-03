@@ -221,25 +221,10 @@ class Commune extends Model
                 $balanceHtml = number_format((int)$balance, 0, '.', "'");
             }
 
-            // copilot added this paragraph splitting logic
-            // it's useless but I'll keep it for now
-            $desc = $row['eventDescription'] ?? '';
-            $paras = preg_split('/\r\n\s*\r\n|\n\s*\n|\r\s*\r/', $desc);
-            $descParts = [];
-            foreach ($paras as $p) {
-                $p = trim($p);
-                if ($p === '') {
-                    continue;
-                }
-                $p = nl2br(e($p));
-                $descParts[] = '<p>' . $p . '</p>';
-            }
-            $descHtml = implode('', $descParts);
-
             $html .= '<tr>';
-            $html .= '<td style="text-align:left; white-space:nowrap;">' . e($dt) . '</td>';
-            $html .= '<td style="text-align:right">' . $balanceHtml . '</td>';
-            $html .= '<td style="text-align:left">' . $descHtml . '</td>';
+            $html .= '<td style="vertical-align: top; text-align:left; white-space:nowrap;">' . e($dt) . '</td>';
+            $html .= '<td style="vertical-align: top; text-align:right">' . $balanceHtml . '</td>';
+            $html .= '<td style="vertical-align: top; text-align:left">' . $row['eventDescription'] . '</td>';
             $html .= '</tr>';
         }
 
