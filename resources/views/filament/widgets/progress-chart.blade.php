@@ -10,26 +10,45 @@
     <x-filament::section :description="$description" :heading="$heading">
         <x-slot name="headerEnd">
             <div class="flex flex-col gap-2">
-                <span class="text-sm text-gray-600 dark:text-gray-300">{{ __('widgets.progress_chart.choose_extrapolation_dates') }}</span>
                 <div class="flex items-center gap-2">
-                <div class="w-36">
-                    <input
-                        type="date"
-                        wire:model.live="startDate"
-                        min="{{ $this->minDate }}"
-                        max="{{ $this->maxDate }}"
-                        class="w-full rounded-md border-gray-200 bg-white text-gray-700 shadow-sm focus:ring-1 focus:ring-primary-500 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700"
-                    />
-                </div>
-                <div class="w-36">
-                    <input
-                        type="date"
-                        wire:model.live="endDate"
-                        min="{{ $this->minDate }}"
-                        max="{{ $this->maxDate }}"
-                        class="w-full rounded-md border-gray-200 bg-white text-gray-700 shadow-sm focus:ring-1 focus:ring-primary-500 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700"
-                    />
-                </div>
+                    <div class="w-36">
+                        <div class="mb-1">
+                            <span class="text-sm text-gray-600 dark:text-gray-300">{{ __('widgets.progress_chart.extrapolation.start') }}</span>
+                        </div>
+                        <input
+                            type="date"
+                            wire:model.live="startDate"
+                            min="{{ $this->minDate }}"
+                            max="{{ $this->maxDate }}"
+                            class="w-full rounded-md border-gray-200 bg-white text-gray-700 shadow-sm focus:ring-1 focus:ring-primary-500 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700"
+                        />
+                    </div>
+                    <div class="w-36">
+                        <div class="mb-1">
+                            <span class="text-sm text-gray-600 dark:text-gray-300">{{ __('widgets.progress_chart.extrapolation.end') }}</span>
+                        </div>
+                        <input
+                            type="date"
+                            wire:model.live="endDate"
+                            min="{{ $this->minDate }}"
+                            max="{{ $this->maxDate }}"
+                            class="w-full rounded-md border-gray-200 bg-white text-gray-700 shadow-sm focus:ring-1 focus:ring-primary-500 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700"
+                        />
+                    </div>
+                    <div class="w-36">
+                        <div class="mb-1">
+                            <span class="text-sm text-gray-600 dark:text-gray-300">{{ __('widgets.progress_chart.validity_assumed') }}</span>
+                        </div>
+                        <input
+                            type="number"
+                            wire:model.live="validity"
+                            min="0.7"
+                            max="0.85"
+                            step="0.01"
+                            placeholder="{{ __('widgets.progress_chart.validity_short') }}"
+                            class="w-full rounded-md border-gray-200 bg-white text-gray-700 shadow-sm focus:ring-1 focus:ring-primary-500 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700"
+                        />
+                    </div>
                 </div>
             </div>
         </x-slot>

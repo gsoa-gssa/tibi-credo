@@ -12,10 +12,13 @@ class CountingChart extends ChartWidget
 {
     protected array|string|int $columnSpan = 'full';
 
-    public function getHeading(): ?string
-    {
-        return __('counting.namePlural');
-    }
+    /**
+     * Validity factor for estimated signatures (optional).
+     *
+     * @var float|null
+     */
+    public ?float $validity = null;
+
     protected static string $view = 'filament.widgets.progress-chart';
 
     public ?string $startDate = null;
@@ -23,6 +26,15 @@ class CountingChart extends ChartWidget
 
     public ?string $minDate = null;
     public ?string $maxDate = null;
+
+
+    public function getHeading(): ?string
+    {
+        if ($this->validity !== null) {
+            return __('widgets.progress_chart.estimated_signatures');
+        }
+        return __('counting.namePlural');
+    }
 
     public function mount(): void
     {
@@ -128,6 +140,13 @@ class CountingChart extends ChartWidget
             $data[] = $running;
         }
 
+        // If validity is set, multiply all data values by validity
+        if ($this->validity !== null) {
+            // Clamp validity to allowed range
+            $validity = max(0.7, min(0.85, (float) $this->validity));
+            $data = array_map(fn($v) => $v * $validity, $data);
+        }
+
         // expose min/max dates for the view (used for input min/max)
         $this->minDate = $labels[0] ?? null;
         $this->maxDate = $labels[count($labels) - 1] ?? null;
@@ -199,7 +218,9 @@ class CountingChart extends ChartWidget
 
         $datasets = [
             [
-                'label' => __('counting.namePlural'),
+                'label' => $this->validity !== null
+                    ? __('widgets.progress_chart.estimated_signatures')
+                    : __('counting.namePlural'),
                 'data' => $data,
                 'fill' => false,
                 'pointRadius' => 0,
