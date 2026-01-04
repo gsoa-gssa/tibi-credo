@@ -1,10 +1,18 @@
 @php
     /** @var \Illuminate\Database\Eloquent\Collection|null $records */
+    $allHtmlGenerated = $records && $records->every(fn($record) => !empty($record->letter_html));
+    $someHtmlGenerated = $records && $records->some(fn($record) => !empty($record->letter_html));
 @endphp
 
 <div class="space-y-4">
     @if (! $records || $records->isEmpty())
         <p>{{ __('batch.notification.no_records_selected') }}</p>
+    @elseif ($allHtmlGenerated)
+        <x-filament::modal.heading>{{ __('batch.action.generate_letters.all_letters_already_generated_heading') }}</x-filament::modal.heading>
+        <p>{{ __('batch.action.generate_letters.all_letters_already_generated') }}</p>
+        <x-filament::button tag="a" :href="route('batches.html', ['ids' => $records->pluck('id')->join(',')])" target="_blank" size="md" class="w-full">
+            {{ __('batch.action.view_generated_letters') }}
+        </x-filament::button>
     @else
         @php
             $ids = $records->pluck('id')->join(',');
@@ -34,7 +42,8 @@
                 .batch-letters-columns { column-count: 1; }
             }
         </style>
-
+        <x-filament::modal.heading>{{ __('batch.action.generate_letters.choose_letter_variant_heading') }}</x-filament::modal.heading>
+        <p>{{ __('batch.action.generate_letters.choose_letter_variant_body') }}</p>
         <div class="batch-letters-columns">
             @foreach ($variants as $variant)
                 @php
@@ -50,5 +59,10 @@
                 </x-filament::button>
             @endforeach
         </div>
+        @if ($someHtmlGenerated)
+            <p>
+                {{ __('batch.action.generate_letters.some_letters_already_generated') }}
+            </p>
+        @endif
     @endif
 </div>

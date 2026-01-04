@@ -19,6 +19,16 @@ class OverviewRelationManager extends RelationManager
     private ?Collection $data = null;
     private ?Collection $headers = null;
 
+    private function ensureDataInitialized(): void
+    {
+        if ($this->data === null) {
+            $this->data = Collection::make($this->ownerRecord->overview() ?? []);
+        }
+        if ($this->headers === null) {
+            $this->headers = $this->data->first() ? Collection::make(array_keys((array)$this->data->first())) : Collection::make();
+        }
+    }
+
     public static function getTitle(Model $ownerRecord, string $pageClass): string
     {
         return __('communeOverview.name');
@@ -26,12 +36,13 @@ class OverviewRelationManager extends RelationManager
 
     public function mount(): void
     {
-        $this->data = Collection::make($this->ownerRecord->overview() ?? []);
-        $this->headers = $this->data->first() ? Collection::make(array_keys((array)$this->data->first())) : Collection::make();
+        $this->ensureDataInitialized();
     }
 
     private function getTableSchema(): array
     {
+        $this->ensureDataInitialized();
+
         $columns = [];
         foreach ($this->headers as $header) {
             $column = Tables\Columns\TextColumn::make($header)
@@ -50,11 +61,26 @@ class OverviewRelationManager extends RelationManager
 
     public function table(Table $table): Table
     {
-        return $table->columns($this->getTableSchema());
+        return $table
+            ->columns($this->getTableSchema())
+            ->headerActions([
+                \Filament\Tables\Actions\Action::make('addActivityLog')
+                    ->label(__('activityLog.addComment.button'))
+                    ->form([
+                        \Filament\Forms\Components\TextInput::make('message')
+                            ->label(__('activityLog.addComment.message'))
+                            ->required(),
+                    ])
+                    ->action(function (array $data, $livewire) {
+                        $this->getOwnerRecord()->addComment($data['message']);
+                    }),
+        ]);
     }
 
     public function getTableRecords(): Collection
     {
+        $this->ensureDataInitialized();
+
         // Create anonymous Model instances for test data
         $modelClass = new class extends Model {
             protected $guarded = [];
@@ -77,6 +103,8 @@ class OverviewRelationManager extends RelationManager
 
     public function paginateTableQuery(Builder $query): LengthAwarePaginator
     {
+        $this->ensureDataInitialized();
+
         $data = $this->getTableRecords();
         $perPage = $this->getTableRecordsPerPage();
         $page = request()->get('page', 1);

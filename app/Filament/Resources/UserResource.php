@@ -61,6 +61,10 @@ class UserResource extends Resource
         $rows = [
             TextInput::make('name')
                 ->required()
+                ->regex('/^\p{L}{2,}\s+\p{L}{2,}$/u')
+                ->validationMessages([
+                    'regex' => __('user.validation.full_name_required'),
+                ])
                 ->label(__('filament-users::user.resource.name')),
             TextInput::make('email')
                 ->email()

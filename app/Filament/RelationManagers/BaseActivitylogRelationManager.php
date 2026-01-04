@@ -6,6 +6,11 @@ use Rmsramos\Activitylog\RelationManagers\ActivitylogRelationManager;
 
 abstract class BaseActivitylogRelationManager extends ActivitylogRelationManager
 {
+    public static function getTitle(\Illuminate\Database\Eloquent\Model $ownerRecord, string $pageClass): string
+    {
+        return __('activityLog.name');
+    }
+    
     public function isReadOnly(): bool
     {
         return false;
@@ -56,27 +61,17 @@ abstract class BaseActivitylogRelationManager extends ActivitylogRelationManager
         // Add a button to add a new object (activity log entry)
         $table->headerActions([
             \Filament\Tables\Actions\Action::make('addActivityLog')
-                ->label('Add Comment')
+                ->label(__('activityLog.addComment.button'))
                 ->form([
                     \Filament\Forms\Components\TextInput::make('message')
-                        ->label('Message')
+                        ->label(__('activityLog.addComment.message'))
                         ->required(),
                 ])
                 ->action(function (array $data, $livewire) {
-                    $this->addActivityLogEntry($data['message']);
+                    $this->getOwnerRecord()->addComment($data['message']);
                 }),
         ]);
         return $table;
-    }
-
-    protected function addActivityLogEntry(string $message): void
-    {
-        $signatureCollectionId = auth()->user()->signature_collection_id ?? null;
-        activity()
-            ->on($this->getOwnerRecord())
-            ->event('comment')
-            ->withProperties(['signature_collection_id' => $signatureCollectionId])
-            ->log($message);
     }
 
     protected function summarize($record): string

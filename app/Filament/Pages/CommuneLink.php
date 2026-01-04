@@ -8,8 +8,10 @@ use Filament\Tables\Table;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use App\Models\Commune;
+use App\Filament\Resources\CommuneResource;
 use Filament\Tables\Enums\FiltersLayout;
 use App\Filament\Resources\CommuneResource\BulkActions\RemindersBulkActionGroup;
+use \App\Filament\Resources\CommuneResource\Filters;
 
 class CommuneLink extends Page implements HasTable
 {
@@ -45,6 +47,7 @@ class CommuneLink extends Page implements HasTable
             ->columns([
                 Tables\Columns\TextColumn::make('name_with_canton_and_zipcode')
                     ->label(__('commune.name'))
+                    ->url(fn ($record) => CommuneResource::getUrl('view', ['record' => $record]))
                     ->searchable(),
                 Tables\Columns\TextColumn::make('last_contacted_on')
                     ->label(__('commune.fields.last_contacted_on'))
@@ -52,9 +55,9 @@ class CommuneLink extends Page implements HasTable
                     ->sortable(),
             ])
             ->filters([
-                \App\Filament\Filters\SignaturesInOpenBatchesFilter::make(),
-                \App\Filament\Filters\LastContactedBeforeFilter::make(),
-                \App\Filament\Filters\LastContactedAfterFilter::make(),
+                Filters\SignaturesInOpenBatchesFilter::make(),
+                Filters\NoCommentsAfterFilter::make(),
+                Filters\HasCommentsAfterFilter::make(),
             ], layout: FiltersLayout::AboveContent)
             ->filtersFormColumns(3)
             ->bulkActions([

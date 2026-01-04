@@ -58,12 +58,12 @@ class CountingResource extends Resource
                     'x-on:input' => '
                         console.log("srcAndCount input triggered", $event.target.value);
                         console.log("Current source:", $wire.source_id);
-                        console.log("Current signatureCount:", $wire.signatureCount);
+                        console.log("Current count:", $wire.count);
                         $wire.call("get", "source_id").then(value => {
                             console.log("Actual source_id value:", value);
                         });
-                        $wire.call("get", "signatureCount").then(value => {
-                            console.log("Actual signatureCount value:", value);
+                        $wire.call("get", "count").then(value => {
+                            console.log("Actual count value:", value);
                         });
                         let text = $event.target.value;
                         text = text.replace(/\s+/g, "");
@@ -77,8 +77,8 @@ class CountingResource extends Resource
                                 let count = parseInt(match[1]);
                                 console.log("parsed count", count);
                                 if (count >= 1 && count <= 12) {
-                                    $wire.set("signatureCount", count);
-                                    console.log("Set signatureCount", count);
+                                    $wire.set("count", count);
+                                    console.log("Set count", count);
 
                                     source_part = match[2];
                                     // if source_part not empty
@@ -142,13 +142,13 @@ class CountingResource extends Resource
                 ->extraAttributes([
                     'wire:model' => 'source_id',
                 ]),
-            Forms\Components\TextInput::make('signatureCount')
+            Forms\Components\TextInput::make('count')
                 ->label(__('counting.fields.count'))
                 ->required()
                 ->live(onBlur: true)
                 ->numeric()
                 ->extraAttributes([
-                    'wire:model' => 'signatureCount',
+                    'wire:model' => 'count',
                 ]),
             Forms\Components\Checkbox::make('confirm_large_count')
                 ->label(__('counting.fields.confirmLargeCount'))
@@ -180,9 +180,14 @@ class CountingResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('created_at')
+                    ->label(__('counting.fields.created_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('date')
+                    ->label(__('counting.fields.date'))
+                    ->date()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()
@@ -191,21 +196,29 @@ class CountingResource extends Resource
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('date')
-                    ->date()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('name')
-                    ->searchable(),
                 Tables\Columns\TextColumn::make('count')
-                    ->numeric()
-                    ->sortable(),
+                    ->numeric(),
+                Tables\Columns\TextColumn::make('source.code')
+                    ->label(__('source.name'))
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('name')
+                    ->label(__('counting.fields.name'))
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('description')
+                    ->label(__('counting.fields.description'))
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
+                Tables\Filters\SelectFilter::make('source_id')
+                    ->label(__('source.name'))
+                    ->options(Source::all()->pluck('code', 'id'))
+                    ->searchable(),
+                Tables\Filters\Filter::make('description_not_null')
+                    ->label(__('counting.filters.descriptionNotNull'))
+                    ->query(fn (Builder $query) => $query->whereNotNull('description')),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

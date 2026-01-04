@@ -74,7 +74,7 @@ class CreateBatch extends Page implements HasTable
                     ->numeric(),
             ])
             ->bulkActions([
-                \App\Filament\Actions\BulkActions\ExportBatchesBulkActionGroup::make(),
+                \App\Filament\Actions\BulkActions\ShowBatchLettersBulkAction::make(),
             ])
             ->defaultSort('created_at', 'desc')
             ->paginated(false);

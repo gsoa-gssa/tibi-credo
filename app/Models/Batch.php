@@ -11,11 +11,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Collection;
+use App\Traits\HasActivityComments;
 
 
 class Batch extends Model
 {
-    use HasFactory, SoftDeletes, LogsActivity;
+    use HasFactory, SoftDeletes, LogsActivity, HasActivityComments;
 
     protected $fillable = [
         'status',
@@ -28,6 +29,7 @@ class Batch extends Model
         'send_kind',
         'receive_kind',
         'letter_html',
+        'priority',
     ];
 
     protected $casts = [
@@ -40,6 +42,7 @@ class Batch extends Model
         'open' => 'boolean',
         'send_kind' => 'integer',
         'receive_kind' => 'integer',
+        'priority' => 'string',
     ];
 
     protected $attributes = [
@@ -212,11 +215,18 @@ class Batch extends Model
 
         // side effects
         $this->letter_html = $html;
+        $this->priority = $priority;
         $this->save();
         return $html;
     }
         
-
+    /**
+     * @deprecated This function is deprecated and should not be used in new code.
+     *
+     * Generates a pdf of the letter using a limited pdf renderer. Not all features are rendered.
+     *
+     * @return \Symfony\Component\HttpFoundation\StreamedResponse
+     */
     public function get_letter_pdf(): \Symfony\Component\HttpFoundation\StreamedResponse
     {
         if( $this->letter_html === null ) {
@@ -246,7 +256,12 @@ class Batch extends Model
         $components .= $this->created_at->format('ymd'); // Auftragsnummer, 6 Stellen, YYMMDD
         $components .= str_pad($this->id, 9, '0', STR_PAD_LEFT); // Auftragsnummer, 9 Stellen, Batch ID with leading zeros
         $components .= "1"; // Addressblock
-        $components .= "00"; // 01=A, 02=B1, 04=B2. How do I get it?
+        // 00=B (not specified B1/B2), 01=A, 02=B1, 04=B2.
+        if($this->priority === 'A') {
+            $components .= "01";
+        } else {
+            $components .= "00";
+        }
         $components .= "0"; // Retouren physisch normal
         $components .= "0"; // freies Feld, nicht verwendet
         $components .= "0"; // Zusatzleistungen: Keine

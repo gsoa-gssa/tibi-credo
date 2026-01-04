@@ -8,10 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\Activitylog\Traits\LogsActivity;
+use App\Traits\HasActivityComments;
 
 class Commune extends Model
 {
-    use HasFactory, LogsActivity;
+    use HasFactory, LogsActivity, HasActivityComments;
 
     protected $fillable = [
         // ...existing fields...
@@ -276,6 +277,53 @@ class Commune extends Model
         $html .= '</tbody></table>';
 
         return $html;
+    }
+
+    /**
+     * Stream a CSV with reminder rows for the given communes.
+     * Accepts an iterable of Commune objects.
+     *
+     * @param iterable $items
+     * @return \Illuminate\Http\StreamedResponse
+     */
+    public static function streamRemindersCSV(iterable $items)
+    {
+        $input = collect($items);
+        // assert they are all Commune objects
+        $communes = $input->filter(function ($item) {
+            return $item instanceof Commune;
+        })->values();
+
+        $csv = fopen('php://temp', 'r+');
+        fputcsv($csv, [
+            'ID',
+            'Name',
+            'Email',
+            'Phone',
+            'Address',
+            'Canton',
+        ]);
+
+        foreach ($communes as $commune) {
+            fputcsv($csv, [
+                $commune->id,
+                $commune->name,
+                $commune->email,
+                $commune->phone,
+                $commune->address,
+                $commune->canton?->label ?? '',
+            ]);
+        }
+
+        rewind($csv);
+
+        $filename = 'commune-reminders-' . $communes->count() . '-' . now()->format('Ymd_His') . '.csv';
+
+        return response()->streamDownload(function () use ($csv) {
+            fpassthru($csv);
+        }, $filename, [
+            'Content-Type' => 'text/csv',
+        ]);
     }
 
     public function getActivitylogOptions(): LogOptions

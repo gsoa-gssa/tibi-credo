@@ -20,13 +20,9 @@ use App\Filament\Resources\CommuneResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\CommuneResource\RelationManagers;
 use Spatie\Activitylog\Models\Activity;
-use App\Filament\Actions\ImportAddressCorrectionsAction;
-use App\Filament\Actions\ScrapeAddressesAction;
-use App\Filament\Actions\ScrapeAddressesBulkAction;
-use App\Filament\Actions\ExportAuthorityCandidatesBulkAction;
-use App\Filament\Actions\FillNameWithCantonAction;
-use App\Filament\Actions\ImportBfsAction;
+use App\Filament\Actions;
 use Filament\Tables\Enums\FiltersLayout;
+use \App\Filament\Resources\CommuneResource\Filters;
 use App\Filament\Resources\CommuneResource\BulkActions\RemindersBulkActionGroup;
 
 class CommuneResource extends Resource
@@ -266,11 +262,11 @@ class CommuneResource extends Resource
                         ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                \App\Filament\Filters\CheckedOnFilter::make(),
-                \App\Filament\Filters\BatchCreatedSinceFilter::make(),
-                \App\Filament\Filters\NoBatchCreatedSinceFilter::make(),
-                \App\Filament\Filters\LastContactedBeforeFilter::make(),
-                \App\Filament\Filters\LastContactedAfterFilter::make(),
+                Filters\CheckedOnFilter::make(),
+                Filters\BatchCreatedSinceFilter::make(),
+                Filters\NoBatchCreatedSinceFilter::make(),
+                Filters\HasCommentsAfterFilter::make(),
+                Filters\NoCommentsAfterFilter::make(),
                 Tables\Filters\Filter::make('has_zipcodes')
                     ->label(__('commune.filters.has_zipcodes'))
                     ->toggle()
@@ -305,21 +301,20 @@ class CommuneResource extends Resource
             ])
             ->headerActions([
                 Tables\Actions\ActionGroup::make([
-                    ImportAddressCorrectionsAction::make(),
-                    ImportBfsAction::make(),
+                    Actions\ImportAddressCorrectionsAction::make(),
+                    Actions\ImportBfsAction::make(),
                     ImportAction::make()->importer(CommuneImporter::class),
                     ExportAction::make()->exporter(CommuneExporter::class),
-                    FillNameWithCantonAction::make(),
                 ])
-                    ->label(__('commune.headerActionGroup.address_maintenance'))
-                    ->icon('heroicon-o-map-pin')
-                    ->color('gray')
-                    ->button(),
+                ->label(__('commune.headerActionGroup.address_maintenance'))
+                ->icon('heroicon-o-map-pin')
+                ->color('gray')
+                ->button(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    ScrapeAddressesBulkAction::make(),
-                    ExportAuthorityCandidatesBulkAction::make(),
+                    Actions\ScrapeAddressesBulkAction::make(),
+                    Actions\ExportAuthorityCandidatesBulkAction::make(),
                     Tables\Actions\BulkAction::make('print_labels')
                         ->label('Print Labels')
                         ->icon('heroicon-o-printer')
@@ -329,26 +324,10 @@ class CommuneResource extends Resource
                             return redirect()->route('labels.communes', ['ids' => $ids]);
                         })
                         ->requiresConfirmation(),
-                    Tables\Actions\BulkAction::make('fix_canton_suffix')
-                        ->label('Fix Canton Suffix')
-                        ->icon('heroicon-o-exclamation-triangle')
-                        ->color('danger')
-                        ->action(function ($records) {
-                            foreach ($records as $record) {
-                                $record->fixCantonSuffix();
-                                $record->save();
-                            }
-                            Notification::make()
-                                ->title('Canton suffix fixed for selected communes.')
-                                ->success()
-                                ->send();
-                        })
-                        ->requiresConfirmation(),
-                    Tables\Actions\DeleteBulkAction::make(),
                 ])
-                    ->label(__('commune.bulkActionGroup.addressMaintenance'))
-                    ->icon('heroicon-o-map-pin')
-                    ->color('gray'),
+                ->label(__('commune.bulkActionGroup.addressMaintenance'))
+                ->icon('heroicon-o-map-pin')
+                ->color('gray'),
                 RemindersBulkActionGroup::make(),
             ]);
     }

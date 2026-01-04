@@ -12,10 +12,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Parallax\FilamentComments\Models\Traits\HasFilamentComments;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use App\Traits\HasActivityComments;
 
 class Maeppli extends Model
 {
-    use SoftDeletes, LogsActivity, HasFilamentComments;
+    use SoftDeletes, LogsActivity, HasFilamentComments, HasActivityComments;
 
     protected $casts = [
         'no_matching' => 'boolean',

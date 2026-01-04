@@ -11,7 +11,6 @@ use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-
 class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 {
     /**
@@ -85,7 +84,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
             'login_code_expiration' => 'datetime',
         ];
     }
-
+    
     public function generateLoginCodeForAdminIP(string $ip): string
     {
         // 6-char alphanumeric, uppercase; valid 30 seconds

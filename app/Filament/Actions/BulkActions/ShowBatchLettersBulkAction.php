@@ -11,13 +11,13 @@ class ShowBatchLettersBulkAction
     {
         return BulkAction::make('show_letters')
             ->modal()
-            ->modalHeading(__('batch.notification.choose_letter_variant'))
-            ->modalDescription(__('batch.notification.choose_letter_variant_body'))
+            ->modalHeading('')
+            ->modalSubmitAction(false)
             ->modalWidth('2xl')
             ->modalContent(fn (?Collection $records) => view('filament.modals.batch-letters-modal', [
                 'records' => $records,
             ]))
-            ->label(__('batch.action.showLetter'))
+            ->label(__('batch.action.generate_letters'))
             ->icon('heroicon-o-link');
     }
 }

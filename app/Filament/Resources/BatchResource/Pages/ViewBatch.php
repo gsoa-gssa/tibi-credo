@@ -19,107 +19,76 @@ class ViewBatch extends ViewRecord
     {
         return [
             ActionGroup::make([
-                Action::make("exportLetterLeftA4")
+                Action::make('viewLetterLeftA4')
                     ->label(__('batch.action.exportLetterLeftA4'))
-                    ->icon("heroicon-o-envelope")
-                    ->action(function (Model $batch){
-                        $batch->get_letter_html('left', 'B1');
-                        return $batch->get_letter_pdf();
-                    }),
-                Action::make("exportLetterLeftA4")
+                    ->icon('heroicon-o-envelope')
+                    ->url(fn (Model $batch) => route('batches.html', [
+                        'ids' => $batch->getKey(),
+                        'addressPosition' => 'left',
+                        'priority' => 'B1',
+                    ]))
+                    ->openUrlInNewTab(),
+                Action::make('viewLetterLeftA4MassDelivery')
                     ->label(__('batch.action.exportLetterLeftA4MassDelivery'))
-                    ->icon("heroicon-o-envelope")
-                    ->action(function (Model $batch){
-                        $batch->get_letter_html('left', 'B2');
-                        return $batch->get_letter_pdf();
-                    }),
-                Action::make("exportLetterLeftA4Priority")
+                    ->icon('heroicon-o-envelope')
+                    ->url(fn (Model $batch) => route('batches.html', [
+                        'ids' => $batch->getKey(),
+                        'addressPosition' => 'left',
+                        'priority' => 'B2',
+                    ]))
+                    ->openUrlInNewTab(),
+                Action::make('viewLetterLeftA4Priority')
                     ->label(__('batch.action.exportLetterLeftA4Priority'))
-                    ->icon("heroicon-o-envelope")
-                    ->action(function (Model $batch){
-                        $batch->get_letter_html('left', 'A');
-                        return $batch->get_letter_pdf();
-                    }),
-                Action::make('exportLetterRightA4')
+                    ->icon('heroicon-o-envelope')
+                    ->url(fn (Model $batch) => route('batches.html', [
+                        'ids' => $batch->getKey(),
+                        'addressPosition' => 'left',
+                        'priority' => 'A',
+                    ]))
+                    ->openUrlInNewTab(),
+                Action::make('viewLetterRightA4')
                     ->label(__('batch.action.exportLetterRightA4'))
                     ->icon('heroicon-o-envelope')
-                    ->action(function (Model $batch){
-                        $batch->get_letter_html('right', 'B1');
-                        return $batch->get_letter_pdf();
-                    }),
-                Action::make('exportLetterRightA4')
+                    ->url(fn (Model $batch) => route('batches.html', [
+                        'ids' => $batch->getKey(),
+                        'addressPosition' => 'right',
+                        'priority' => 'B1',
+                    ]))
+                    ->openUrlInNewTab(),
+                Action::make('viewLetterRightA4MassDelivery')
                     ->label(__('batch.action.exportLetterRightA4MassDelivery'))
                     ->icon('heroicon-o-envelope')
-                    ->action(function (Model $batch){
-                        $batch->get_letter_html('right', 'B2');
-                        return $batch->get_letter_pdf();
-                    }),
-                Action::make('exportLetterRightA4Priority')
+                    ->url(fn (Model $batch) => route('batches.html', [
+                        'ids' => $batch->getKey(),
+                        'addressPosition' => 'right',
+                        'priority' => 'B2',
+                    ]))
+                    ->openUrlInNewTab(),
+                Action::make('viewLetterRightA4Priority')
                     ->label(__('batch.action.exportLetterRightA4Priority'))
                     ->icon('heroicon-o-envelope')
-                    ->action(function (Model $batch){
-                        $batch->get_letter_html('right', 'A');
-                        return $batch->get_letter_pdf();
-                    }),
-            ])
-            ->button()
-            ->label(__('batch.action.exportLetter')),
-            ActionGroup::make([
-                Action::make('viewLetterLeftA4')
-                    ->label(__('batch.action.viewLetterLeftA4'))
-                    ->icon('heroicon-o-envelope')
-                    ->url(fn (Model $batch) => route('batches.html', [
-                        'ids' => $batch->getKey(),
-                        'addressPosition' => 'left',
-                        'priority' => 'B1',
-                    ])),
-                Action::make('viewLetterLeftA4MassDelivery')
-                    ->label(__('batch.action.viewLetterLeftA4MassDelivery'))
-                    ->icon('heroicon-o-envelope')
-                    ->url(fn (Model $batch) => route('batches.html', [
-                        'ids' => $batch->getKey(),
-                        'addressPosition' => 'left',
-                        'priority' => 'B2',
-                    ])),
-                Action::make('viewLetterLeftA4Priority')
-                    ->label(__('batch.action.viewLetterLeftA4Priority'))
-                    ->icon('heroicon-o-envelope')
-                    ->url(fn (Model $batch) => route('batches.html', [
-                        'ids' => $batch->getKey(),
-                        'addressPosition' => 'left',
-                        'priority' => 'A',
-                    ])),
-                Action::make('viewLetterRightA4')
-                    ->label(__('batch.action.viewLetterRightA4'))
-                    ->icon('heroicon-o-envelope')
-                    ->url(fn (Model $batch) => route('batches.html', [
-                        'ids' => $batch->getKey(),
-                        'addressPosition' => 'right',
-                        'priority' => 'B1',
-                    ])),
-                Action::make('viewLetterRightA4MassDelivery')
-                    ->label(__('batch.action.viewLetterRightA4MassDelivery'))
-                    ->icon('heroicon-o-envelope')
-                    ->url(fn (Model $batch) => route('batches.html', [
-                        'ids' => $batch->getKey(),
-                        'addressPosition' => 'right',
-                        'priority' => 'B2',
-                    ])),
-                Action::make('viewLetterRightA4Priority')
-                    ->label(__('batch.action.viewLetterRightA4Priority'))
-                    ->icon('heroicon-o-envelope')
                     ->url(fn (Model $batch) => route('batches.html', [
                         'ids' => $batch->getKey(),
                         'addressPosition' => 'right',
                         'priority' => 'A',
-                    ])),
+                    ]))
+                    ->openUrlInNewTab(),
             ])
             ->button()
-            ->label(__('batch.action.viewLetterHtml') . 'TEST'),
+            ->visible($this->record->letter_html === null)
+            ->label(__('batch.action.generate_letter')),
+            Action::make('viewGeneratedLetter')
+                ->label(__('batch.action.view_generated_letter'))
+                ->icon('heroicon-o-eye')
+                ->url(fn (Model $batch) => route('batches.html', [
+                    'ids' => $batch->getKey(),
+                ]))
+                ->openUrlInNewTab()
+                ->visible($this->record->letter_html !== null),
             Action::make('setLetterHtmlNull')
                     ->label(__('batch.action.setLetterHtmlNull'))
                     ->icon('heroicon-o-trash')
-                    ->visible(fn () => auth()->user()?->hasRole('super_admin'))
+                    ->visible(fn () => auth()->user()?->hasRole('super_admin') && $this->record->letter_html !== null)
                     ->requiresConfirmation()
                     ->action(function (Model $batch) {
                         $batch->letter_html = null;

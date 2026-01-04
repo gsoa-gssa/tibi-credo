@@ -14,6 +14,7 @@ use Filament\Resources\Resource;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Enums\FiltersLayout;
 use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\BatchResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -23,6 +24,7 @@ use App\Filament\Actions\BulkActions\ShowBatchLettersBulkAction;
 use Filament\Infolists\Components;
 use Filament\Infolists\Infolist;
 use Illuminate\Support\Collection;
+use App\Models\User;
 
 class BatchResource extends Resource
 {
@@ -74,6 +76,9 @@ class BatchResource extends Resource
                 ->tooltip(fn ($record) => $record->open ? __('batch.filters.open.open') : __('batch.filters.open.closed')),
             Components\TextEntry::make('expected_delivery_date')
                 ->label(__('batch.fields.expected_delivery_date')),
+            Components\TextEntry::make('priority')
+                ->label(__('batch.fields.priority'))
+                ->columnSpan(1),
             Components\TextEntry::make('expected_return_date')
                 ->label(__('batch.fields.expected_return_date')),
             Components\TextEntry::make('sendKind.short_name_de')
@@ -216,6 +221,10 @@ class BatchResource extends Resource
                     ->label(__('batch.fields.sheets_count'))
                     ->numeric()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('priority')
+                    ->label(__('batch.fields.priority'))
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('signature_count')
                     ->label(__('batch.fields.signature_count'))
                     ->numeric()
@@ -258,20 +267,24 @@ class BatchResource extends Resource
         return $table
             ->columns(self::getTableSchema())
             ->defaultSort('created_at', 'desc')
+            ->filtersLayout(FiltersLayout::AboveContentCollapsible)
             ->filters([
                 SelectFilter::make('commune')
                     ->relationship('commune', 'name')
                     ->getOptionLabelFromRecordUsing(fn ($record) => $record->nameWithCanton())
                     ->searchable()
                     ->multiple()
-                    ->preload()
                     ->label(__('batch.filters.commune')),
-                Filter::make('created_by_me')
-                    ->label(__('batch.filters.created_by_me'))
-                    ->toggle()
-                    ->query(function (Builder $query): Builder {
-                        return $query->whereHas('activities', function (Builder $q) {
-                            $q->where('causer_id', auth()->id())
+                SelectFilter::make('created_by')
+                    ->label(__('batch.filters.created_by'))
+                    ->options(fn () => User::where('signature_collection_id', auth()->user()->signature_collection_id)->orderBy('name')->pluck('name', 'id')->toArray())
+                    ->multiple()
+                    ->query(function (Builder $query, array $data): Builder {
+                        if (empty($data['values'])) {
+                            return $query;
+                        }
+                        return $query->whereHas('activities', function (Builder $q) use ($data) {
+                            $q->whereIn('causer_id', $data['values'])
                               ->where('event', 'created');
                         });
                     }),
@@ -282,63 +295,53 @@ class BatchResource extends Resource
                     ])
                     ->label(__('batch.filters.open'))
                     ->multiple(),
+                SelectFilter::make('priority')
+                    ->options([
+                        'A' => 'A',
+                        'B1' => 'B1',
+                        'B2' => 'B2',
+                    ])
+                    ->label(__('batch.fields.priority'))
+                    ->multiple(),
                 SelectFilter::make('send_kind')
                     ->relationship('sendKind', 'short_name_de')
-                    ->label(__('batch.filters.send_kind'))
-                    ->multiple()
-                    ->preload(),
+                    ->label(__('batch.fields.send_kind'))
+                    ->multiple(),
                 SelectFilter::make('receive_kind')
                     ->relationship('receiveKind', 'short_name_de')
-                    ->label(__('batch.filters.receive_kind'))
-                    ->multiple()
-                    ->preload(),
-                Filter::make('expected_return_date')
+                    ->label(__('batch.fields.receive_kind'))
+                    ->multiple(),
+                Filter::make('expected_return_date_from')
                     ->form([
                         Forms\Components\DatePicker::make('expected_return_date_from')
                             ->label(__('batch.filters.expected_return_date_from')),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when($data['expected_return_date_from'] ?? null, fn (Builder $q, $date) => $q->whereDate('expected_return_date', '>=', $date));
+                    })
+                    ->label(__('batch.filters.expected_return_date_from')),
+
+                Filter::make('expected_return_date_to')
+                    ->form([
                         Forms\Components\DatePicker::make('expected_return_date_to')
                             ->label(__('batch.filters.expected_return_date_to')),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
-                            ->when($data['expected_return_date_from'] ?? null, fn (Builder $q, $date) => $q->whereDate('expected_return_date', '>=', $date))
                             ->when($data['expected_return_date_to'] ?? null, fn (Builder $q, $date) => $q->whereDate('expected_return_date', '<=', $date));
                     })
-                    ->label(__('batch.filters.expected_return_date')),
-                SelectFilter::make('age')
-                    ->label(__('batch.filters.age'))
-                    ->options([
-                        'today' => __('batch.filters.age.today'),
-                        '2_weeks' => __('batch.filters.age.2_weeks'),
-                        '4_weeks' => __('batch.filters.age.4_weeks'),
-                        '6_weeks' => __('batch.filters.age.6_weeks'),
-                        '8_weeks' => __('batch.filters.age.8_weeks'),
+                    ->label(__('batch.filters.expected_return_date_to')),
+                Filter::make('age')
+                    ->form([
+                        Forms\Components\DatePicker::make('age_before')
+                            ->label(__('batch.filters.age')),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
-                        return $query->when(
-                            $data['value'],
-                            function (Builder $query, $value): Builder {
-                                if ($value == 'today') {
-                                    return $query->whereDate('created_at', today());
-                                } else {
-                                    $weeks = match($value) {
-                                        '2_weeks' => 2,
-                                        '4_weeks' => 4,
-                                        '6_weeks' => 6,
-                                        '8_weeks' => 8,
-                                        default => 0,
-                                    };
-                                    
-                                    if ($weeks > 0) {
-                                        return $query->where('created_at', '<', now()->subWeeks($weeks));
-                                    }
-                                    
-                                    return $query;
-                                }
-                                
-                            }
-                        );
-                    }),
+                        return $query
+                            ->when($data['age_before'] ?? null, fn (Builder $q, $date) => $q->whereDate('created_at', '<', $date));
+                    })
+                    ->label(__('batch.filters.age')),
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
@@ -347,33 +350,13 @@ class BatchResource extends Resource
                     ->label("Activity Log")
                     ->url(fn (Batch $batch) => BatchResource::getUrl('activities', ['record' => $batch])),
             ])
-            ->headerActions([
-                Tables\Actions\Action::make('filter_my_pending_today')
-                    ->label(__('batch.filters.my_pending_today'))
-                    ->icon('heroicon-o-funnel')
-                    ->action(function ($livewire) {
-                            $filters = [
-                                'age' => ['value' => 'today'],
-                                'created_by_me' => ['isActive' => true],
-                                'status' => ['values' => ['pending']],
-                            ];
-
-                            // Redirect to the index with filters in the query string so they persist after reload.
-                            return redirect()->to(
-                                \App\Filament\Resources\BatchResource::getUrl('index') .
-                                '?' . http_build_query(['tableFilters' => $filters])
-                            );
-                    })
-                    ->color('info'),
-            ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
-                ExportBatchesBulkActionGroup::make(),
                 ShowBatchLettersBulkAction::make(),
                 Tables\Actions\BulkAction::make('setLetterHtmlNull')
-                    ->label(__('batch.action.setLetterHtmlNull'))
+                    ->label(__('batch.action.setLettersHtmlNull'))
                     ->icon('heroicon-o-trash')
                     ->requiresConfirmation()
                     ->visible(fn () => auth()->user()?->hasRole('super_admin'))
