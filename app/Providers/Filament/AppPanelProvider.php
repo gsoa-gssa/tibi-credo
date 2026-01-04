@@ -23,6 +23,7 @@ use Rmsramos\Activitylog\ActivitylogPlugin;
 use Filament\Support\Facades\FilamentView;
 use Filament\View\PanelsRenderHook;
 use Illuminate\Support\Facades\Blade;
+use App\Filament\Resources\SignatureCollectionResource\Widgets\CountingChart;
 
 
 class AppPanelProvider extends PanelProvider
@@ -96,6 +97,7 @@ class AppPanelProvider extends PanelProvider
                 \App\Filament\Resources\CountingResource\Widgets\SignatureCountStats::class,
                 \App\Filament\Resources\MaeppliResource\Widgets\SignatureCountStats::class,
                 \App\Filament\Resources\BoxResource\Widgets\BoxStats::class,
+                CountingChart::class,
             ])
             ->middleware([
                 EncryptCookies::class,
