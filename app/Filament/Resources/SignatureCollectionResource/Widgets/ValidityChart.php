@@ -253,8 +253,8 @@ class ValidityChart extends LineChartWidget
         $startDate = $collection->publication_date;
         $endDate = $collection->end_date;
         $totalRequired = 103000;//$collection->required_signature_count;
-        $percentile_best = 0.7;
-        $percentile_worst = 0.7;
+        $percentile_best = 0.4;
+        $percentile_worst = 0.4;
 
         $weeklyData = $this->weeklyAverageValidity($collection, $startDate, $endDate);
         $bestWorstData = $this->weeklyBestWorstValidity($collection, $startDate, $endDate, $percentile_best, $percentile_worst);

@@ -47,7 +47,7 @@
     <x-slot name="subjectLine">
       <b>
         {{ $batch->signatureCollection->getLocalized('official_name') }}<br>
-        {{ __('letter.subject') }}
+        {{ $batch->sendKind->getLocalized('subject') }}
         @if($batch->anyOtherBatchOpen())
           - {{__('batch.letter.reminder.subject_addition')}}
         @endif
@@ -72,6 +72,11 @@
         Die Bögen haben folgende Referenznummern: {!! $sheet_labels !!}.
       @endif
     </p>
+    @if($batch->sendKind->getLocalized('body'))
+      <p>
+        {!! $batch->sendKind->getLocalized('body') !!}
+      </p>
+    @endif
     <p>
       {{ __('letter.request', ['deadline' => $batch->expected_return_date->format("d.m.Y")]) }}
     </p>

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+
 class BatchKind extends Model
 {
     use HasFactory, HasLocalizedFields;
@@ -21,7 +22,18 @@ class BatchKind extends Model
         'body_de',
         'body_fr',
         'body_it',
+        'signature_collection_id',
     ];
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new \App\Models\Scopes\SignatureCollectionScope);
+    }
+
+    public function signatureCollection()
+    {
+        return $this->belongsTo(\App\Models\SignatureCollection::class);
+    }
 
     public function sendBatches(): HasMany
     {

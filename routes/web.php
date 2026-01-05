@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Filament\Pages\PublicSignatureSheetList;
 use App\Filament\Pages\PublicSignatureSheetShow;
+use App\Filament\Pages\PublicSourceList;
 use App\Http\Controllers\PublicSignatureSheetController;
 use App\Http\Controllers\BatchCollectionHtmlController;
 
@@ -45,3 +46,7 @@ Route::get('/public-signature-sheets/{sheet}', PublicSignatureSheetShow::class)
 Route::get('/public-signature-sheets/{sheet}/source/{source}/download', [PublicSignatureSheetController::class, 'download'])
     ->middleware('signed')
     ->name('public.signature-sheets.download');
+
+Route::get('/public-sources', PublicSourceList::class)
+    ->middleware('signed')
+    ->name('public.sources');

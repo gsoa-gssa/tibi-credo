@@ -67,7 +67,6 @@ class SignatureSheetResource extends Resource
                     ->disk('public')
                     ->directory('signature-sheets')
                     ->maxSize(2048)
-                    ->preserveFilenames()
                     ->downloadable()
                     ->openable()
                     ->required()

@@ -37,35 +37,104 @@ class BatchKindResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Short Names')
+                Forms\Components\Hidden::make('signature_collection_id')
+                    ->default(fn () => auth()->user()?->signature_collection_id)
+                    ->required(),
+                Forms\Components\Section::make(__('batchKind.sections.short_names'))
                     ->schema([
                         Forms\Components\TextInput::make('short_name_de')
-                            ->label('German')
+                            ->label('Deutsch')
                             ->required(),
                         Forms\Components\TextInput::make('short_name_fr')
-                            ->label('French')
+                            ->label('Français')
                             ->required(),
                         Forms\Components\TextInput::make('short_name_it')
-                            ->label('Italian')
+                            ->label('Italiano')
                             ->required(),
                     ]),
-                Forms\Components\Section::make('Subjects')
+                Forms\Components\Section::make(__('batchKind.sections.subject_fixed'))
                     ->schema([
-                        Forms\Components\Textarea::make('subject_de')
-                            ->label('German'),
-                        Forms\Components\Textarea::make('subject_fr')
-                            ->label('French'),
-                        Forms\Components\Textarea::make('subject_it')
-                            ->label('Italian'),
+                        Forms\Components\Placeholder::make('subject_fixed_de')
+                            ->label('')
+                            ->content(fn ($record) => $record?->signatureCollection?->official_name_de ?? ''),
+                        Forms\Components\Placeholder::make('subject_fixed_fr')
+                            ->label('')
+                            ->content(fn ($record) => $record?->signatureCollection?->official_name_fr ?? ''),
+                        Forms\Components\Placeholder::make('subject_fixed_it')
+                            ->label('')
+                            ->content(fn ($record) => $record?->signatureCollection?->official_name_it ?? ''),
                     ]),
-                Forms\Components\Section::make('Bodies')
+                Forms\Components\Section::make(__('batchKind.sections.subject_variable'))
+                    ->schema([
+                        Forms\Components\TextInput::make('subject_de')
+                            ->label('Deutsch'),
+                        Forms\Components\TextInput::make('subject_fr')
+                            ->label('Français'),
+                        Forms\Components\TextInput::make('subject_it')
+                            ->label('Italiano'),
+                    ]),
+                Forms\Components\Section::make(__('batchKind.sections.subject_addition'))
+                    ->schema([
+                        Forms\Components\Placeholder::make('reminder_subject_addition_de')
+                            ->label('Deutsch')
+                            ->content(fn () => __('batch.letter.reminder.subject_addition')),
+                        Forms\Components\Placeholder::make('reminder_subject_addition_fr')
+                            ->label('Français')
+                            ->content(fn () => __('batch.letter.reminder.subject_addition')),
+                        Forms\Components\Placeholder::make('reminder_subject_addition_it')
+                            ->label('Italiano')
+                            ->content(fn () => __('batch.letter.reminder.subject_addition')),
+                    ]),
+                Forms\Components\Section::make(__('batchKind.sections.body_fixed_intro'))
+                    ->schema([
+                        Forms\Components\Placeholder::make('body_fixed_de')
+                            ->label('Deutsch')
+                            ->content(fn ($record) => new \Illuminate\Support\HtmlString(
+                                __('letter.greeting', [], 'de') . '<br>' . app('translator')->get('letter.intro.' . $record->signatureCollection->type->value, [
+                                    'sheets_count' => 'XXX',
+                                    'signature_count' => 'YYY',
+                                    'name' => $record->signatureCollection->official_name_de
+                                ], 'de')
+                            )),
+                        Forms\Components\Placeholder::make('body_fixed_fr')
+                            ->label('Français')
+                            ->content(fn ($record) => new \Illuminate\Support\HtmlString(
+                                __('letter.greeting', [], 'fr') . '<br>' . app('translator')->get('letter.intro.' . $record->signatureCollection->type->value, [
+                                    'sheets_count' => 'XXX',
+                                    'signature_count' => 'YYY',
+                                    'name' => $record->signatureCollection->official_name_fr
+                                ], 'fr')
+                            )),
+                        Forms\Components\Placeholder::make('body_fixed_it')
+                            ->label('Italiano')
+                            ->content(fn ($record) => new \Illuminate\Support\HtmlString(
+                                __('letter.greeting', [], 'it') . '<br>' . app('translator')->get('letter.intro.' . $record->signatureCollection->type->value, [
+                                    'sheets_count' => 'XXX',
+                                    'signature_count' => 'YYY',
+                                    'name' => $record->signatureCollection->official_name_it
+                                ], 'it')
+                            )),
+                    ]),
+                Forms\Components\Section::make(__('batchKind.sections.body_variable'))
                     ->schema([
                         Forms\Components\RichEditor::make('body_de')
-                            ->label('German'),
+                            ->label('Deutsch'),
                         Forms\Components\RichEditor::make('body_fr')
-                            ->label('French'),
+                            ->label('Français'),
                         Forms\Components\RichEditor::make('body_it')
-                            ->label('Italian'),
+                            ->label('Italiano'),
+                    ]),
+                Forms\Components\Section::make(__('batchKind.sections.body_fixed_request'))
+                    ->schema([
+                        Forms\Components\Placeholder::make('body_fixed_de')
+                            ->label('Deutsch')
+                            ->content(fn ($record) => app('translator')->get('letter.request', ['deadline' => 'XXX'], 'de')),
+                        Forms\Components\Placeholder::make('body_fixed_fr')
+                            ->label('Français')
+                            ->content(fn ($record) => app('translator')->get('letter.request', ['deadline' => 'XXX'], 'fr')),
+                        Forms\Components\Placeholder::make('body_fixed_it')
+                            ->label('Italiano')
+                            ->content(fn ($record) => app('translator')->get('letter.request', ['deadline' => 'XXX'], 'it')),
                     ]),
             ]);
     }
@@ -75,13 +144,13 @@ class BatchKindResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('short_name_de')
-                    ->label('German')
+                    ->label('Deutsch')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('short_name_fr')
-                    ->label('French')
+                    ->label('Français')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('short_name_it')
-                    ->label('Italian')
+                    ->label('Italiano')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
