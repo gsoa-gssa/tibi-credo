@@ -34,7 +34,9 @@ class PublicSignatureSheetShow extends Page implements HasTable
 
     protected function getTableQuery()
     {
-        return Source::query()->where('signature_collection_id', $this->sheet->signature_collection_id);
+        return Source::query()
+            ->where('signature_collection_id', $this->sheet->signature_collection_id)
+            ->orderBy('code');
     }
 
     protected function getTableColumns(): array

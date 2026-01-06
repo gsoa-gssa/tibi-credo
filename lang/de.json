@@ -639,6 +639,7 @@
     "widgets.signature_count_stats.valid": "Gültige Unterschriften",
     "widgets.sourceStats.countings": "Separate Zählungen von dieser Quelle",
     "widgets.source_chart_single.chart_label": "Unterschriften von: :name",
+    "signature_collection.fields.valid_signatures_goal": "Ziel: Anzahl gültige Unterschriften",
     "widgets.sourceStats.signatures": "Anzahl Unterschriften",
     "zipcode.fields.code": "PLZ",
     "zipcode.fields.name": "Ort",

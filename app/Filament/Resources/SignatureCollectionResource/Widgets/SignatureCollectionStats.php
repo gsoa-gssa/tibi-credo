@@ -14,7 +14,12 @@ class SignatureCollectionStats extends BaseWidget
         return [
             Stat::make(
                 __("widgets.signature_count_stats.missing_valid"),
-                max(0, 103000-Maeppli::sum('signatures_valid_count'))
+                max(
+                    0,
+                    optional(Maeppli::first())->signatureCollection->valid_signatures_goal
+                        ? (optional(Maeppli::first())->signatureCollection->valid_signatures_goal - Maeppli::sum('signatures_valid_count'))
+                        : 0
+                )
             ),
             Stat::make(
                 __("widgets.signature_count_stats.valid"),

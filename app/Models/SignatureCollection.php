@@ -40,6 +40,7 @@ class SignatureCollection extends Model
         'pp_sender_name_it',
         'color',
         'post_ch_ag_billing_number',
+        'valid_signatures_goal',
     ];
 
     protected $casts = [
@@ -47,6 +48,7 @@ class SignatureCollection extends Model
         'publication_date' => 'date',
         'end_date' => 'date',
         'return_workdays' => 'integer',
+        'valid_signatures_goal' => 'integer',
     ];
 
     public function signatureSheets(): HasMany

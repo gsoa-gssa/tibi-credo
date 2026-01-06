@@ -26,6 +26,11 @@ class Maeppli extends Model
         'no_matching' => false,
     ];
 
+    public function signatureCollection(): BelongsTo
+    {
+        return $this->belongsTo(SignatureCollection::class, 'signature_collection_id');
+    }
+
     protected static function booted()
     {
         static::addGlobalScope(new SignatureCollectionScope);

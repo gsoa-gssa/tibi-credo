@@ -18,7 +18,9 @@ class PublicSignatureSheetList extends Page implements HasTable
     protected function getTableQuery()
     {
         $scopeId = request()->query('signature_collection_id');
-        return SignatureSheet::query()->where('signature_collection_id', $scopeId);
+        return SignatureSheet::query()
+            ->where('signature_collection_id', $scopeId)
+            ->orderBy('short_name');
     }
 
     protected function getTableColumns(): array

@@ -252,7 +252,7 @@ class ValidityChart extends LineChartWidget
 
         $startDate = $collection->publication_date;
         $endDate = $collection->end_date;
-        $totalRequired = 103000;//$collection->required_signature_count;
+        $totalRequired = $collection->valid_signatures_goal;
         $percentile_best = 0.4;
         $percentile_worst = 0.4;
 

@@ -20,9 +20,9 @@ class CreateCounting extends Page
         return __('navigation.group.workflows');
     }
 
-    public static function canAccess(): bool
+    public static function shouldRegisterNavigation(): bool
     {
-        return auth()->check();
+        return static::canAccess();
     }
 
     public function mount()

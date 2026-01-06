@@ -41,8 +41,7 @@ class SignatureCollectionResource extends Resource
         return $form->schema([
             TextInput::make('short_name')
                 ->label(__('signature_collection.fields.short_name'))
-                ->required()
-                ->columnSpan(2),
+                ->required(),
             Forms\Components\Select::make('type')
                 ->label(__('signature_collection.fields.type'))
                 ->options(SignatureCollectionType::options())
@@ -55,6 +54,10 @@ class SignatureCollectionResource extends Resource
                 ->formatStateUsing(fn ($state) => $state ? strtoupper($state) : null)
                 ->live()
                 ->rule('regex:/^#[A-Fa-f0-9]{6}$/'),
+            TextInput::make('valid_signatures_goal')
+                ->label(__('signature_collection.fields.valid_signatures_goal'))
+                ->numeric()
+                ->minValue(0),
             Forms\Components\Textarea::make('return_address_letters')
                 ->label(__('signature_collection.fields.return_address_letters'))
                 ->helperText(__('signature_collection.return_address_letters_helper'))
@@ -179,6 +182,9 @@ class SignatureCollectionResource extends Resource
                     ->label(__('signature_collection.fields.type'))
                     ->formatStateUsing(fn (SignatureCollectionType $state): string => $state->label())
                     ->badge(),
+                TextColumn::make('valid_signatures_goal')
+                    ->label(__('signature_collection.fields.valid_signatures_goal'))
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('return_address_letters')
                     ->label(__('signature_collection.fields.return_address_letters'))
                     ->toggleable(isToggledHiddenByDefault: true),

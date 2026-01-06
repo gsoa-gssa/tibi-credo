@@ -20,11 +20,6 @@ class CreateBatchWorkflow extends Page
         return __('pages.createBatchWorkflow.navigationGroup');
     }
 
-    public static function canAccess(): bool
-    {
-        return auth()->check();
-    }
-
     public function mount()
     {
         return redirect()->to(BatchResource::getUrl('create'));

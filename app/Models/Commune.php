@@ -300,7 +300,9 @@ class Commune extends Model
             'Name',
             'Email',
             'Phone',
-            'Address',
+            'Address HTML',
+            'BatchOverviewHTML',
+            'overviewHTML',
             'Canton',
         ]);
 
@@ -310,8 +312,10 @@ class Commune extends Model
                 $commune->name,
                 $commune->email,
                 $commune->phone,
-                $commune->address,
-                $commune->canton?->label ?? '',
+                $commune->address_html(),
+                $commune->openBatchOverviewHTML(),
+                $commune->overviewHTML(),
+                $commune->canton?->label,
             ]);
         }
 
