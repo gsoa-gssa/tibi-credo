@@ -119,8 +119,10 @@ class SignatureCollectionResource extends Resource
                 ])
                 ->columnSpan(2),
             DatePicker::make('publication_date')
+                ->required()
                 ->label(__('signature_collection.fields.publication_date')),
             DatePicker::make('end_date')
+                ->required()
                 ->label(__('signature_collection.fields.end_date')),
             Forms\Components\Section::make(__('signature_collection.sections.pp'))
                 ->schema([
@@ -161,6 +163,7 @@ class SignatureCollectionResource extends Resource
                 ->columnSpan('full'),
             TextInput::make('return_workdays')
                 ->label(__('signature_collection.fields.return_workdays'))
+                ->required()
                 ->numeric()
                 ->minValue(0)
                 ->helperText(__('signature_collection.return_workdays_helper')),

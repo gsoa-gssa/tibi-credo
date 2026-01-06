@@ -16,8 +16,8 @@ class SignatureCollectionStats extends BaseWidget
                 __("widgets.signature_count_stats.missing_valid"),
                 max(
                     0,
-                    optional(Maeppli::first())->signatureCollection->valid_signatures_goal
-                        ? (optional(Maeppli::first())->signatureCollection->valid_signatures_goal - Maeppli::sum('signatures_valid_count'))
+                    optional(optional(Maeppli::first())->signatureCollection)->valid_signatures_goal
+                        ? (optional(optional(Maeppli::first())->signatureCollection)->valid_signatures_goal - Maeppli::sum('signatures_valid_count'))
                         : 0
                 )
             ),
