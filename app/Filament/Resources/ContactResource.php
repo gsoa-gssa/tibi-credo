@@ -329,8 +329,12 @@ class ContactResource extends Resource
                 Tables\Actions\EditAction::make(),
             ])
             ->headerActions([
-                ExportAction::make()->exporter(ContactExporter::class),
-                ImportAction::make()->importer(ContactImporter::class),
+                ExportAction::make()
+                    ->exporter(ContactExporter::class)
+                    ->visible(fn () => auth()->user()?->hasAnyRole(['admin', 'super_admin'])),
+                ImportAction::make()
+                    ->importer(ContactImporter::class)
+                    ->visible(fn () => auth()->user()?->hasAnyRole(['admin', 'super_admin'])),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -353,7 +357,7 @@ class ContactResource extends Resource
                         }
                     })
                     ->deselectRecordsAfterCompletion(),
-                ]),
+                ])->visible(fn () => auth()->user()?->hasAnyRole(['admin', 'super_admin'])),
                 Tables\Actions\BulkActionGroup::make([
                     ExportContactsPdfBulkAction::make('letters_left')
                         ->addressPosition('left')

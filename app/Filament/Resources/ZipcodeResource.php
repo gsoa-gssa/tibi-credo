@@ -121,10 +121,11 @@ class ZipcodeResource extends Resource
                         })
                         ->requiresConfirmation(),
                 ])
-                    ->label(__('zipcode.headerActionGroup.management'))
-                    ->icon('heroicon-o-table-cells')
-                    ->color('gray')
-                    ->button()
+                ->label(__('zipcode.headerActionGroup.management'))
+                ->icon('heroicon-o-table-cells')
+                ->color('gray')
+                ->button()
+                ->visible(fn () => auth()->user()?->hasRole('super_admin')),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -142,7 +143,7 @@ class ZipcodeResource extends Resource
                         ->requiresConfirmation()
                         ->color('primary'),
                     Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                ])->visible(fn () => auth()->user()?->hasRole('super_admin')),
             ]);
     }
 
