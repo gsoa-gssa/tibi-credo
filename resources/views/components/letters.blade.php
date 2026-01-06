@@ -14,7 +14,7 @@
         }
 
         .letter-content .main-body {
-            margin-top: 7cm;
+            margin-top: 11cm;
         }
 
         .letter-content {
@@ -25,7 +25,10 @@
             width: 8cm;
             height: 2.5cm;
             position: absolute;
+            top: 5.2cm;
             /*display: flex;*/
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 3mm;
             justify-content: center;
             padding-left: 1cm;
             padding-right: 1cm;
@@ -37,12 +40,11 @@
         }
 
         .letter-content .address-block-right {
-          right: 0;
-          top: 3.2cm;
+          right: 0.9cm;
         }
 
         .letter-content .address-block-left {
-          top: 3.2cm;
+          left: 0.9cm;
         }
 
         .letter-content .date-and-subject {
