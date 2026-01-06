@@ -309,6 +309,7 @@ class CommuneResource extends Resource
                 ->label(__('commune.headerActionGroup.address_maintenance'))
                 ->icon('heroicon-o-map-pin')
                 ->color('gray')
+                ->visible(fn () => auth()->user()?->hasRole('super_admin'))
                 ->button(),
             ])
             ->bulkActions([
@@ -327,6 +328,7 @@ class CommuneResource extends Resource
                 ])
                 ->label(__('commune.bulkActionGroup.addressMaintenance'))
                 ->icon('heroicon-o-map-pin')
+                ->visible(fn () => auth()->user()?->hasRole('super_admin'))
                 ->color('gray'),
                 RemindersBulkActionGroup::make(),
             ]);

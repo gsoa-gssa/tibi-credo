@@ -22,6 +22,7 @@ class RemindersBulkActionGroup
             ->color('warning')
             ->modalHeading(__('commune.bulkActions.reminders.label'))
             ->modalDescription(__('commune.bulkActions.reminders.description'))
+            ->visible(fn () => auth()->user()?->hasAnyRole(['certifier', 'admin', 'super_admin']))
             ->form([
                 Radio::make('choice')
                     ->label('')
