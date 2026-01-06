@@ -67,6 +67,8 @@ class CommuneResource extends Resource
                                 ->url()
                                 ->nullable(),
                             Forms\Components\TextInput::make('phone')
+                                ->label(__('commune.fields.phone'))
+                                ->tel()
                                 ->nullable(),
                             Forms\Components\TextInput::make('authority_address_name')
                                 ->label(__('commune.fields.authority_address_name'))
@@ -204,6 +206,12 @@ class CommuneResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->date()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('email')
+                    ->label(__('commune.fields.email'))
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('phone')
+                    ->label(__('commune.fields.phone'))
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('website')
                     ->label(__('commune.fields.website'))
                     ->url(fn(Model $record) => $record->website)

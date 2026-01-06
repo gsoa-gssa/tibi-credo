@@ -158,6 +158,7 @@
     "commune.fields.checked_on": "Geprüft am",
     "commune.fields.dissolved": "Aufgelöst (Gemeinde existiert nicht mehr)",
     "commune.fields.email": "E-Mail",
+    "commune.fields.phone": "Telefon",
     "commune.fields.invalid_signatures_in_maepplis": "Ungültige Unterschriften in Couverts",
     "commune.fields.lang": "Sprache",
     "commune.fields.last_contacted_on": "Letzter Kontakt am",
