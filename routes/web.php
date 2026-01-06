@@ -8,6 +8,7 @@ use App\Filament\Pages\PublicSignatureSheetShow;
 use App\Filament\Pages\PublicSourceList;
 use App\Http\Controllers\PublicSignatureSheetController;
 use App\Http\Controllers\BatchCollectionHtmlController;
+use App\Filament\Pages\PublicSourceView;
 
 Route::get('/batches-html', [BatchCollectionHtmlController::class, 'show'])
     ->name('batches.html')
@@ -50,3 +51,7 @@ Route::get('/public-signature-sheets/{sheet}/source/{source}/download', [PublicS
 Route::get('/public-sources', PublicSourceList::class)
     ->middleware('signed')
     ->name('public.sources');
+
+Route::get('/public/source/{source}/view', PublicSourceView::class)
+    ->middleware('signed')
+    ->name('public.source.view');

@@ -30,4 +30,10 @@ class ListSources extends ListRecords
         }
         return $actions;
     }
+    protected function getFooterWidgets(): array
+    {
+        return [
+            \App\Filament\Resources\SourceResource\Widgets\SourcePieChart::make(),
+        ];
+    }
 }

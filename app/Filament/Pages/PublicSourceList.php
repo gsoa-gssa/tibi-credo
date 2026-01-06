@@ -18,16 +18,34 @@ class PublicSourceList extends Page implements HasTable
     protected function getTableQuery()
     {
         $scopeId = request()->query('signature_collection_id');
-        return Source::query()->where('signature_collection_id', $scopeId);
+        // Sort by the total countings (objects) for each source, descending
+        return Source::query()
+            ->where('signature_collection_id', $scopeId)
+            ->withSum(['countings as countings_total' => function ($q) use ($scopeId) {
+                $q->whereHas('source', function ($q2) use ($scopeId) {
+                    $q2->where('signature_collection_id', $scopeId);
+                });
+            }], 'count')
+            ->orderByDesc('countings_total');
     }
 
     protected function getTableColumns(): array
     {
         return [
-            Tables\Columns\TextColumn::make('code')->searchable()->label(__('source.fields.code')),
-            Tables\Columns\TextColumn::make('short_description_de')->label(__('source.fields.short_description_de')),
-            Tables\Columns\TextColumn::make('short_description_fr')->label(__('source.fields.short_description_fr')),
-            Tables\Columns\TextColumn::make('short_description_it')->label(__('source.fields.short_description_it')),
+            Tables\Columns\TextColumn::make('countings_total')
+                ->label(__('source.computed_fields.total')),
+            Tables\Columns\TextColumn::make('code')
+                ->searchable()
+                ->label(__('source.fields.code')),
+            Tables\Columns\TextColumn::make('short_description_de')
+                ->label(__('source.fields.short_description_de'))
+                ->toggleable(isToggledHiddenByDefault: false),
+            Tables\Columns\TextColumn::make('short_description_fr')
+                ->label(__('source.fields.short_description_fr'))
+                ->toggleable(isToggledHiddenByDefault: true),
+            Tables\Columns\TextColumn::make('short_description_it')
+                ->label(__('source.fields.short_description_it'))
+                ->toggleable(isToggledHiddenByDefault: true),
         ];
     }
 
@@ -46,11 +64,31 @@ class PublicSourceList extends Page implements HasTable
 
     protected function getTableActions(): array
     {
-        return [];
+        return [
+            Tables\Actions\Action::make('view')
+                ->label(__('View'))
+                ->icon('heroicon-o-eye')
+                ->url(fn($record) => \Illuminate\Support\Facades\URL::signedRoute('public.source.view', [
+                    'source' => $record->id,
+                    'signature_collection_id' => request()->query('signature_collection_id'),
+                ]))
+                ->openUrlInNewTab(),
+        ];
     }
 
     public static function canAccess(): bool
     {
         return request()->hasValidSignature();
+    }
+
+    protected function getHeaderWidgets(): array
+    {
+        $scopeId = request()->query('signature_collection_id');
+        return [
+            \App\Filament\Resources\SourceResource\Widgets\SourcePieChart::make([
+                'signatureCollectionId' => $scopeId,
+                'columnSpan' => 'full',
+            ]),
+        ];
     }
 }

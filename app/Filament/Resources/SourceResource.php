@@ -122,6 +122,7 @@ class SourceResource extends Resource implements HasShieldPermissions
     public static function table(Table $table): Table
     {
         return $table
+            ->paginated([10])
             ->columns([
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()

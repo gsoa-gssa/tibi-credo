@@ -111,16 +111,12 @@ class CountingChart extends ChartWidget
 
         // Always build the full graph range from the signature collection (or data),
         // ignore the widget form fields for determining the graph bounds.
-        $start = $signatureCollection?->start_date ?? $signatureCollection?->publication_date ?? null;
+        $start = $signatureCollection?->publication_date ?? null;
         $end = $signatureCollection?->end_date ?? Carbon::today();
 
-        $start = $start ? Carbon::parse($start)->startOfDay() : null;
-        $end = $end ? Carbon::parse($end)->startOfDay() : Carbon::today();
-
-        if (! $start) {
-            // if start unknown, try to use earliest counting date
-            $first = Counting::whereNotNull('date')->orderBy('date')->first();
-            $start = $first ? Carbon::parse($first->date)->startOfDay() : $end->copy()->subDays(30);
+        // if $start is null throw an error, not displaying widget
+        if ($start === null) {
+            throw new \Exception('Cannot display CountingChart widget: start date is not defined.');
         }
 
         // load daily totals within the range

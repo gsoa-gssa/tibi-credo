@@ -12,8 +12,13 @@ class SourceStats extends BaseWidget
 
     protected function getStats(): array
     {
+        $sourceCountings = $this->record->countings()->sum('count');
+        $totalCountings = $this->record->countings()->getRelated()::sum('count');
+        $share = $totalCountings > 0 ? round(($sourceCountings / $totalCountings) * 100, 2) : 0;
+
         return [
             Stat::make(__("widgets.sourceStats.signatures"), $this->record->countings()->sum('count')),
+            Stat::make(__("widgets.sourceStats.share"), $share . '%'),
             Stat::make(__("widgets.sourceStats.countings"), $this->record->countings()->count()),
         ];
     }

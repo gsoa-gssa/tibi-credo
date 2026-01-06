@@ -1,0 +1,1 @@
+<livewire:source-chart-single :source="$source" />

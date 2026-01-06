@@ -14,6 +14,7 @@ class ViewSource extends ViewRecord
     {
         return [
             SourceResource\Widgets\SourceStats::make(),
+            SourceResource\Widgets\SourceChartSingle::make(),
         ];
     }
 
