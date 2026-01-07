@@ -248,13 +248,18 @@ class Batch extends Model
 
     public function datamatrixContent(): string
     {
+        $rnn = $this->signatureCollection->post_ch_ag_billing_number;
+        // throw an exception if rnn is not set and 8 digits long
+        if (empty($rnn) || !preg_match('/^\d{8}$/', $rnn)) {
+            throw new \Exception('Post CH AG billing number (RNN) is not set or invalid for Signature Collection ID ' . $this->signature_collection_id);
+        }
         $components = "";
-        $components .= "756"; // Swiss country code / Post CH AG
-        $components .= "80"; // Brief national
-        $components .= "21"; // Fixer Wert «21» = Datamatrix-Code Typ 21
-        $components .= "00000000"; // RNN, die ersten 8 der 9 Stellen
-        $components .= $this->created_at->format('ymd'); // Auftragsnummer, 6 Stellen, YYMMDD
-        $components .= str_pad($this->id, 9, '0', STR_PAD_LEFT); // Auftragsnummer, 9 Stellen, Batch ID with leading zeros
+        $components .= "756"; // Fix: Swiss country code / Post CH AG
+        $components .= "80"; // Fix: Brief national
+        $components .= "21"; // Fixer Wert «21» = Datamatrix-Code Typ 21, steht für Grösse des Codes und ist ok, wenn wir keine Zusatzdaten am Ende anhängen
+        $components .= $rnn; // RNN, die ersten 8 der 9 Stellen
+        $components .= $this->created_at->format('ymd'); // Auftragsnummer, 6 Stellen, YYMMDD. Für jeden Auftrag anders, darf nach 360 Tagen wiederholen
+        $components .= str_pad($this->id, 9, '0', STR_PAD_LEFT); // Sendungsnummer, 9 Stellen, Batch ID with leading zeros
         $components .= "1"; // Addressblock
         // 00=B (not specified B1/B2), 01=A, 02=B1, 04=B2.
         if($this->priority === 'A') {
