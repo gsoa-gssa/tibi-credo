@@ -53,7 +53,7 @@
     "batch.filters.status.sent": "Inviato",
     "batch.letter.reminder.batches_header": "Firme non ancora restituite",
     "batch.letter.reminder.header": "Promemoria: attestazioni del diritto di voto",
-    "batch.letter.reminder.intro": "Vi ricordiamo che siamo ancora in attesa delle attestazioni del diritto di voto richieste nelle precedenti comunicazioni. Vi preghiamo cortesemente di inviarcele al più presto. Non è opportuno attendere il rilascio delle ultime attestazioni prima di restituirle. Se questo promemoria incrocia liste già restituite, considerate questo messaggio irrilevante. Se i dati elencati non corrispondono ai vostri registri, contattateci immediatamente.",
+    "batch.letter.reminder.intro": "Vi ricordiamo che siamo ancora in attesa delle attestazioni del diritto di voto richieste nelle precedenti comunicazioni. Vi preghiamo cortesemente di inviarcele al più presto. Non è opportuno attendere il rilascio delle ultime attestazioni prima di restituirle, anche nel caso in cui nel frattempo dovessimo aver presentato ulteriori liste. Se questo promemoria incrocia liste già restituite, considerate questo messaggio irrilevante. Se i dati elencati non corrispondono ai vostri registri, contattateci immediatamente.",
     "batch.letter.reminder.refer_to_second_page": "Si prega di consultare anche il promemoria a pagina due.",
     "batch.letter.reminder.overview_header": "Riepilogo firme",
     "batch.letter.reminder.overview_intro": "Un saldo positivo indica che la vostra autorità non ci ha ancora restituito le firme. Piccole discrepanze sono normali a causa di conteggi differenti. In caso di differenze maggiori, vi preghiamo di contattarci.",

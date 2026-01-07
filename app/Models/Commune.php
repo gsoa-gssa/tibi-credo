@@ -16,6 +16,7 @@ class Commune extends Model
 
     protected $fillable = [
         // ...existing fields...
+        'lang',
         'authority_address_name',
         'authority_address_street',
         'authority_address_house_number',
@@ -128,9 +129,14 @@ class Commune extends Model
                     $batchMessage .= ' ' . __('communeOverview.batchWithReceiveKindMessage', ['kind' => $batch->receiveKind->getLocalized('short_name')]);
                 }
             }
+            if($batch->receiveKind !== null && $batch->receiveKind !== $batch->signatureCollection->default_send_kind && !$batch->open) {
+                $balance = 'XX';
+            } else {
+                $balance = $batch->signature_count;
+            }
             $rows[] = [
                 'datetime' => $batch->created_at,
-                'signaturesBalance' => $batch->signature_count ?? 0,
+                'signaturesBalance' => $balance,
                 'eventDescription' => $batchMessage,
             ];
         }
@@ -169,6 +175,9 @@ class Commune extends Model
         $lastBalance = 0;
         for ($i = count($rows) - 1; $i >= 0; $i--) {
             $row = &$rows[$i];
+            if ($row['signaturesBalance'] == 'XX') {
+                continue;
+            }
             if ($row['signaturesBalance'] === null) {
                 $change = 0;
             } else {
@@ -219,7 +228,11 @@ class Commune extends Model
             if ($balance === null || $balance === '') {
                 $balanceHtml = '';
             } else {
-                $balanceHtml = number_format((int)$balance, 0, '.', "'");
+                if (is_numeric($balance)) {
+                    $balanceHtml = number_format((int)$balance, 0, '.', "'");
+                } else {
+                    $balanceHtml = $balance;
+                }
             }
 
             $html .= '<tr>';
@@ -298,24 +311,34 @@ class Commune extends Model
         fputcsv($csv, [
             'ID',
             'Name',
+            'Canton',
             'Email',
             'Phone',
+            'ReminderHeader',
+            'ReminderIntro',
+            'BatchesHeader',
+            'OverviewHeader',
+            'OverviewIntro',
             'Address HTML',
             'BatchOverviewHTML',
             'overviewHTML',
-            'Canton',
         ]);
 
         foreach ($communes as $commune) {
             fputcsv($csv, [
                 $commune->id,
                 $commune->name,
+                $commune->canton->label,
                 $commune->email,
                 $commune->phone,
+                __('batch.letter.reminder.header', [], $commune->lang),
+                __('batch.letter.reminder.intro', [], $commune->lang),
+                __('batch.letter.reminder.batches_header', [], $commune->lang),
+                __('batch.letter.reminder.overview_header', [], $commune->lang),
+                __('batch.letter.reminder.overview_intro', [], $commune->lang),
                 $commune->address_html(),
                 $commune->openBatchOverviewHTML(),
                 $commune->overviewHTML(),
-                $commune->canton?->label,
             ]);
         }
 
