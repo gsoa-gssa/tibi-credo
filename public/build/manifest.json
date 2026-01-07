@@ -10,6 +10,12 @@
     "src": "resources/js/app.js",
     "isEntry": true
   },
+  "resources/js/bwip-datamatrix.js": {
+    "file": "assets/bwip-datamatrix-D39fK-IW.js",
+    "name": "bwip-datamatrix",
+    "src": "resources/js/bwip-datamatrix.js",
+    "isEntry": true
+  },
   "resources/js/stats/signatureCount.js": {
     "file": "assets/signatureCount-B9IYlGVR.js",
     "name": "signatureCount",

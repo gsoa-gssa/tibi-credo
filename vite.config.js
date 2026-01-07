@@ -8,6 +8,7 @@ export default defineConfig({
                 'resources/css/app.scss',
                 'resources/js/app.js',
                 "resources/js/stats/signatureCount.js",
+                'resources/js/bwip-datamatrix.js',
             ],
             refresh: true,
         }),
