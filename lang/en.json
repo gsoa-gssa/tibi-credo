@@ -590,4 +590,5 @@
     "zipcode.headerActionGroup.management": "Postleitzahlverwaltung",
     "zipcode.name": "Postal Code and Place",
     "zipcode.namePlural": "Postal Codes and Places"
+    ,"source.validations.code_unique": "This code already exists. Please choose a different code."
 }

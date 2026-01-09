@@ -49,8 +49,20 @@ class SourceResource extends Resource implements HasShieldPermissions
                 Forms\Components\TextInput::make('code')
                     ->label(__('source.fields.code'))
                     ->required()
-                    ->columnSpan(3)
+                    ->columnSpan('full')
                     ->maxLength(2)
+                    ->rule(function (Forms\Get $get) {
+                        $code = strtoupper($get('code'));
+                        $id = $get('id');
+                        $query = \App\Models\Source::query()->where('code', $code);
+                        if ($id) {
+                            $query->where('id', '!=', $id);
+                        }
+                        return $query->exists() ? 'prohibited' : 'nullable';
+                    })
+                    ->validationMessages([
+                        'prohibited' => __('source.validations.code_unique'),
+                    ])
                     ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set, $state) {
                         $set('code', strtoupper($state));
                     })
@@ -116,7 +128,10 @@ class SourceResource extends Resource implements HasShieldPermissions
                     ->columnSpan('full')
                     ->nullable(),
             ])
-            ->columns(3);
+            ->columns([
+                'default' => 1,
+                'md' => 3,
+            ]);
     }
 
     public static function table(Table $table): Table
