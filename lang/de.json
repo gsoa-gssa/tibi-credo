@@ -275,7 +275,7 @@
     "contactTypes.namePlural": "Kontaktarten",
     "counting.fields.confirmLargeCount": "Ich bestätige, dass diese Zählung mehr als 100 Unterschriften enthält",
     "counting.fields.count": "Anzahl",
-    "counting.fields.countAndSourceShortcut": "Quelle und Anzahl - Schnelleingabe (optional)",
+    "counting.fields.countAndSourceShortcut": "Anzahl und Quelle - Schnelleingabe (optional)",
     "counting.fields.created_at": "Gezählt am",
     "counting.fields.date": "Datum",
     "counting.fields.description": "Beschreibung",
