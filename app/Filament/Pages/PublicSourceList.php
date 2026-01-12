@@ -15,6 +15,13 @@ class PublicSourceList extends Page implements HasTable
     protected static bool $shouldRegisterNavigation = false;
     protected static string $view = 'filament.pages.public-source-list';
 
+    public function mount(): void
+    {
+        if ($lang = request()->query('lang')) {
+            app()->setLocale($lang);
+        }
+    }
+
     protected function getTableQuery()
     {
         $scopeId = request()->query('signature_collection_id');
@@ -66,11 +73,11 @@ class PublicSourceList extends Page implements HasTable
     {
         return [
             Tables\Actions\Action::make('view')
-                ->label(__('View'))
+                ->label(__('source.actions.view'))
                 ->icon('heroicon-o-eye')
                 ->url(fn($record) => \Illuminate\Support\Facades\URL::signedRoute('public.source.view', [
                     'source' => $record->id,
-                    'signature_collection_id' => request()->query('signature_collection_id'),
+                    'lang' => app()->getLocale(),
                 ]))
                 ->openUrlInNewTab(),
         ];

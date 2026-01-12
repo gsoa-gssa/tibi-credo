@@ -58,6 +58,11 @@ class Source extends Model implements HasAllowedFilters
         return $filters;
     }
 
+    public function nameAndCode(): string
+    {
+        return $this->getLocalized('short_description') . ' (' . $this->code . ')';
+    }
+
     public function signatureCollection()
     {
         return $this->belongsTo(\App\Models\SignatureCollection::class, 'signature_collection_id');

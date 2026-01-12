@@ -23,9 +23,8 @@ class SourceChartSingle extends ChartWidget
 
     protected function getData(): array
     {
-              // determine date range from widget properties or user's signature collection
-        $signatureCollection = auth()->user()?->signatureCollection;
-
+        // determine date range from widget properties or user's signature collection
+        $signatureCollection = $this->record->signatureCollection;
         // Always build the full graph range from the signature collection (or data),
         // ignore the widget form fields for determining the graph bounds.
         $start = $signatureCollection?->publication_date ?? null;
@@ -57,7 +56,10 @@ class SourceChartSingle extends ChartWidget
             'labels' => $labels,
             'datasets' => [
                 [
-                    'label' => __('Cumulative Objects'),
+                    'label' => __('widgets.source_chart_single.heading_detailed', [
+                        'code' => $this->record->nameAndCode(),
+                        'name' => $this->record->signatureCollection?->short_name,
+                    ]),
                     'data' => $data,
                     'fill' => true,
                     'pointRadius' => 0.5,

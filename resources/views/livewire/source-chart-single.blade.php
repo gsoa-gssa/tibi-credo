@@ -22,7 +22,7 @@
                             fill: true,
                             backgroundColor: 'rgba(59,130,246,0.2)',
                             borderColor: 'rgba(59,130,246,1)',
-                            tension: 0.3,
+                            borderWidth: 0.2,
                             pointRadius: 0.5,
                         }],
                     },

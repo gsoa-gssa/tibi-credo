@@ -24,7 +24,7 @@ class ListSources extends ListRecords
                 ->icon('heroicon-o-link')
                 ->url(function () {
                     $scopeId = Filament::auth()->user()->signature_collection_id;
-                    return URL::signedRoute('public.sources', ['signature_collection_id' => $scopeId]);
+                    return URL::signedRoute('public.sources', ['signature_collection_id' => $scopeId, 'lang' => app()->getLocale()]);
                 })
                 ->openUrlInNewTab();
         }

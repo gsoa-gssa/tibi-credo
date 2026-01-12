@@ -45,7 +45,7 @@ class SourcePieChart extends ChartWidget
         foreach ($sources as $source) {
             $total = $source->countings->first()->total_count ?? 0;
             $sourceData[] = [
-                'code' => $source->code,
+                'code' => $source->nameAndCode(),
                 'total' => (int) $total,
             ];
         }
