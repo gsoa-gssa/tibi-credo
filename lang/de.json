@@ -320,7 +320,6 @@
     "maeppli.actions.remove_from_box": "Aus Kiste entfernen",
     "maeppli.actions.remove_selected_from_box": "Ausgewählte aus Kiste entfernen",
     "maeppli.button.save": "Speichern",
-    "maeppli.created_at": "Rückgebucht am",
     "maeppli.fields_short.sheets_count": "Bögen",
     "maeppli.fields_short.signatures_invalid_count": "Ungültig",
     "maeppli.fields_short.signatures_valid_count": "Gültig",

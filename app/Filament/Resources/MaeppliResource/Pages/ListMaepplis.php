@@ -14,6 +14,8 @@ class ListMaepplis extends ListRecords
     {
         return [
             Actions\CreateAction::make(),
+            Actions\ExportAction::make()
+                ->exporter(\App\Filament\Exports\MaeppliExporter::class),
         ];
     }
 }
