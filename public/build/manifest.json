@@ -1,17 +1,21 @@
 {
   "resources/css/app.scss": {
-    "file": "assets/app-6e1c-hyQ.css",
+    "file": "assets/app-1ziBJGIq.css",
     "src": "resources/css/app.scss",
-    "isEntry": true
+    "isEntry": true,
+    "name": "app",
+    "names": [
+      "app.css"
+    ]
   },
   "resources/js/app.js": {
-    "file": "assets/app-DDHSmqfi.js",
+    "file": "assets/app-CHMaxZb1.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true
   },
   "resources/js/bwip-datamatrix.js": {
-    "file": "assets/bwip-datamatrix-D39fK-IW.js",
+    "file": "assets/bwip-datamatrix-BEiYYWD6.js",
     "name": "bwip-datamatrix",
     "src": "resources/js/bwip-datamatrix.js",
     "isEntry": true
