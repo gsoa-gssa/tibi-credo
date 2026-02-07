@@ -72,18 +72,22 @@ class CommuneResource extends Resource
                                 ->nullable(),
                             Forms\Components\TextInput::make('authority_address_name')
                                 ->label(__('commune.fields.authority_address_name'))
+                                ->maxLength(30)
+                                ->columnSpan(3)
+                                ->nullable(),
+                            Forms\Components\TextInput::make('authority_address_extra')
+                                ->label(__('commune.fields.authority_address_extra'))
+                                ->maxLength(30)
                                 ->columnSpan(3)
                                 ->nullable(),
                             Forms\Components\TextInput::make('authority_address_street')
                                 ->label(__('commune.fields.authority_address_street'))
+                                ->maxLength(25)
                                 ->columnSpan(2)
                                 ->nullable(),
                             Forms\Components\TextInput::make('authority_address_house_number')
                                 ->label(__('commune.fields.authority_address_house_number'))
-                                ->nullable(),
-                            Forms\Components\TextInput::make('authority_address_extra')
-                                ->label(__('commune.fields.authority_address_extra'))
-                                ->columnSpan(3)
+                                ->maxLength(4)
                                 ->nullable(),
                             Forms\Components\TextInput::make('authority_address_postcode')
                                 ->label(__('commune.fields.authority_address_postcode'))
@@ -93,6 +97,7 @@ class CommuneResource extends Resource
                                 ->nullable(),
                             Forms\Components\TextInput::make('authority_address_place')
                                 ->label(__('commune.fields.authority_address_place'))
+                                ->maxLength(25)
                                 ->columnSpan(2)
                                 ->nullable(),
                             Forms\Components\Toggle::make('address_checked')
@@ -289,6 +294,25 @@ class CommuneResource extends Resource
                         true: fn(Builder $query) => $query->where('address_checked', true),
                         false: fn(Builder $query) => $query->where('address_checked', false),
                     ),
+                Tables\Filters\Filter::make('overly_long_address')
+                    ->label(__('commune.filters.overly_long_address'))
+                    ->toggle()
+                    ->query(fn(Builder $query) => 
+                        $query->whereRaw(
+                            'COALESCE(CHAR_LENGTH(authority_address_name),0) > ? ' .
+                            'OR COALESCE(CHAR_LENGTH(authority_address_extra),0) > ? ' .
+                            'OR COALESCE(CHAR_LENGTH(authority_address_street),0) > ? ' .
+                            'OR COALESCE(CHAR_LENGTH(authority_address_house_number),0) > ? ' .
+                            'OR COALESCE(CHAR_LENGTH(authority_address_place),0) > ?',
+                            [
+                                30, // authority_address_name
+                                30, // authority_address_extra
+                                25, // authority_address_street
+                                4,  // authority_address_house_number
+                                25, // authority_address_place
+                            ]
+                        )
+                    ),
                 Tables\Filters\SelectFilter::make('lang')
                     ->label(__('commune.fields.lang'))
                     ->options([
@@ -333,6 +357,7 @@ class CommuneResource extends Resource
                             return redirect()->route('labels.communes', ['ids' => $ids]);
                         })
                         ->requiresConfirmation(),
+                    Actions\SplitAuthorityNameBulkAction::make(),
                 ])
                 ->label(__('commune.bulkActionGroup.addressMaintenance'))
                 ->icon('heroicon-o-map-pin')

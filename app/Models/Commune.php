@@ -117,19 +117,19 @@ class Commune extends Model
     {
         $rows = [];
         // add batches
-        foreach ($this->batches as $batch) {
+        $batches = $this->batches()->with(['sendKind', 'receiveKind', 'signatureCollection'])->get();
+        foreach ($batches as $batch) {
             $batchMessage = __('communeOverview.batchOpenMessage', ['signatures_count' => $batch->signature_count, 'sheets_count' => $batch->sheets_count]);
-            if($batch->send_kind !== $batch->signatureCollection->default_send_kind_id) {
-                \Log::debug('Non-default send kind for batch ' . $batch->id . ' default: ' . ($batch->signatureCollection->default_send_kind_id ?? 'null') . ' actual: ' . ($batch->send_kind ?? 'null'));
+            if($batch->sendKind !== null && $batch->sendKind !== $batch->signatureCollection->defaultSendKind) {
                 $batchMessage .= ' ' . __('communeOverview.batchNonDefaultSendKindMessage', ['subject' => $batch->sendKind->getLocalized('subject')]);
             }
             if(!$batch->open) {
                 $batchMessage .= ' ' . __('communeOverview.batchClosedMessage');
-                if($batch->receiveKind !== null && $batch->receiveKind !== $batch->signatureCollection->default_send_kind) {
+                if($batch->receiveKind !== null && $batch->receiveKind !== $batch->signatureCollection->defaultSendKind) {
                     $batchMessage .= ' ' . __('communeOverview.batchWithReceiveKindMessage', ['kind' => $batch->receiveKind->getLocalized('short_name')]);
                 }
             }
-            if($batch->receiveKind !== null && $batch->receiveKind !== $batch->signatureCollection->default_send_kind && !$batch->open) {
+            if($batch->receiveKind !== null && $batch->receiveKind !== $batch->signatureCollection->defaultSendKind && !$batch->open) {
                 $balance = 'XX';
             } else {
                 $balance = $batch->signature_count;

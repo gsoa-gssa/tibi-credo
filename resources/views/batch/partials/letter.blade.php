@@ -23,7 +23,19 @@
       {{ $batch->signatureCollection->getLocalized('pp_sender_name') }}
     </x-slot>
     <x-slot name="address">
-      {!! $batch->commune->address !!}
+      {{ $batch->commune->authority_address_name }}
+      <br>
+      @if ($batch->commune->authority_address_extra)
+        {{ $batch->commune->authority_address_extra }}
+        <br>
+      @endif
+      @if($batch->commune->authority_address_street)
+        {{ $batch->commune->authority_address_street }}
+        {{ $batch->commune->authority_address_house_number }}
+        <br>
+      @endif
+      {{ $batch->commune->authority_address_postcode }}
+      {{ $batch->commune->authority_address_place }}
     </x-slot>
     @if ($batch->signatureCollection->post_ch_ag_billing_number)
       <x-slot name="datamatrix_content">{{ $batch->datamatrixContent() }}</x-slot>
