@@ -65,6 +65,11 @@ class CodeLogin extends SimplePage
 
         $data = $this->form->getState();
         $ip = request()->ip();
+        $ipv4 = null;
+        if (is_string($ip) && preg_match('/([0-9]{1,3}(?:\.[0-9]{1,3}){3})/', $ip, $m)) {
+            $ipv4 = $m[1];
+        }
+        $ipToUse = $ipv4 ?? $ip;
         $code = strtoupper($data['code']);
 
         $user = User::where('login_code', $code)
@@ -89,7 +94,7 @@ class CodeLogin extends SimplePage
             return;
         }
 
-        if ($user->login_code_valid_ip !== $ip) {
+        if ($user->login_code_valid_ip !== $ipToUse) {
             Notification::make()
                 ->danger()
                 ->title(__('code_login.code_invalid_ip'))

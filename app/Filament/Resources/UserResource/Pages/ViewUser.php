@@ -47,7 +47,12 @@ class ViewUser extends ViewRecord
                                 if ($record->hasAnyRole(['admin', 'super_admin'])) {
                                     return 'N/A';
                                 }
-                                return $record->generateLoginCodeForAdminIP(request()->ip());
+                                $ip = request()->ip();
+                                $ipv4 = null;
+                                if (is_string($ip) && preg_match('/([0-9]{1,3}(?:\.[0-9]{1,3}){3})/', $ip, $m)) {
+                                    $ipv4 = $m[1];
+                                }
+                                return $record->generateLoginCodeForAdminIP($ipv4 ?? $ip);
                             })
                             ->copyable()
                             ->copyMessage('Code copied!')
