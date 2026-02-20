@@ -210,7 +210,8 @@ class BatchResource extends Resource
                 Tables\Columns\TextColumn::make('commune.name_with_canton_and_zipcode')
                     ->label(__('commune.name'))
                     ->url(fn (Batch $record) => static::getUrl('view', ['record' => $record]))
-                    ->sortable(),
+                    ->sortable()
+                    ->searchable(query: fn (Builder $query, string $search) => $query->orWhereHas('commune', fn (Builder $q) => $q->where('name_with_canton_and_zipcode', 'like', "%{$search}%"))),
                 Tables\Columns\IconColumn::make('open')
                     ->label(__('batch.fields.open'))
                     ->icon(fn (Batch $batch) => $batch->open ? 'heroicon-o-clock' : 'heroicon-o-archive-box')
