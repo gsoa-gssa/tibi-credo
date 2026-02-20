@@ -56,13 +56,13 @@ class BatchKindResource extends Resource
                     ->schema([
                         Forms\Components\Placeholder::make('subject_fixed_de')
                             ->label('')
-                            ->content(fn ($record) => $record?->signatureCollection?->official_name_de ?? ''),
+                            ->content(fn () => auth()->user()?->signatureCollection?->official_name_de ?? ''),
                         Forms\Components\Placeholder::make('subject_fixed_fr')
                             ->label('')
-                            ->content(fn ($record) => $record?->signatureCollection?->official_name_fr ?? ''),
+                            ->content(fn () => auth()->user()?->signatureCollection?->official_name_fr ?? ''),
                         Forms\Components\Placeholder::make('subject_fixed_it')
                             ->label('')
-                            ->content(fn ($record) => $record?->signatureCollection?->official_name_it ?? ''),
+                            ->content(fn () => auth()->user()?->signatureCollection?->official_name_it ?? ''),
                     ]),
                 Forms\Components\Section::make(__('batchKind.sections.subject_variable'))
                     ->schema([
@@ -89,29 +89,29 @@ class BatchKindResource extends Resource
                     ->schema([
                         Forms\Components\Placeholder::make('body_fixed_de')
                             ->label('Deutsch')
-                            ->content(fn ($record) => new \Illuminate\Support\HtmlString(
-                                __('letter.greeting', [], 'de') . '<br>' . app('translator')->get('letter.intro.' . $record->signatureCollection->type->value, [
+                            ->content(fn () => new \Illuminate\Support\HtmlString(
+                                __('letter.greeting', [], 'de') . '<br>' . app('translator')->get('letter.intro.' . (auth()->user()?->signatureCollection?->type?->value ?? ''), [
                                     'sheets_count' => 'XXX',
                                     'signature_count' => 'YYY',
-                                    'name' => $record->signatureCollection->official_name_de
+                                    'name' => auth()->user()?->signatureCollection?->official_name_de ?? ''
                                 ], 'de')
                             )),
                         Forms\Components\Placeholder::make('body_fixed_fr')
                             ->label('Français')
-                            ->content(fn ($record) => new \Illuminate\Support\HtmlString(
-                                __('letter.greeting', [], 'fr') . '<br>' . app('translator')->get('letter.intro.' . $record->signatureCollection->type->value, [
+                            ->content(fn () => new \Illuminate\Support\HtmlString(
+                                __('letter.greeting', [], 'fr') . '<br>' . app('translator')->get('letter.intro.' . (auth()->user()?->signatureCollection?->type?->value ?? ''), [
                                     'sheets_count' => 'XXX',
                                     'signature_count' => 'YYY',
-                                    'name' => $record->signatureCollection->official_name_fr
+                                    'name' => auth()->user()?->signatureCollection?->official_name_fr ?? ''
                                 ], 'fr')
                             )),
                         Forms\Components\Placeholder::make('body_fixed_it')
                             ->label('Italiano')
-                            ->content(fn ($record) => new \Illuminate\Support\HtmlString(
-                                __('letter.greeting', [], 'it') . '<br>' . app('translator')->get('letter.intro.' . $record->signatureCollection->type->value, [
+                            ->content(fn () => new \Illuminate\Support\HtmlString(
+                                __('letter.greeting', [], 'it') . '<br>' . app('translator')->get('letter.intro.' . (auth()->user()?->signatureCollection?->type?->value ?? ''), [
                                     'sheets_count' => 'XXX',
                                     'signature_count' => 'YYY',
-                                    'name' => $record->signatureCollection->official_name_it
+                                    'name' => auth()->user()?->signatureCollection?->official_name_it ?? ''
                                 ], 'it')
                             )),
                     ]),
