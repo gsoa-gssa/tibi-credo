@@ -44,15 +44,7 @@ class ViewUser extends ViewRecord
                         TextEntry::make('login_code')
                             ->label('Code (click to copy)')
                             ->getStateUsing(function ($record) {
-                                if ($record->hasAnyRole(['admin', 'super_admin'])) {
-                                    return 'N/A';
-                                }
-                                $ip = request()->ip();
-                                $ipv4 = null;
-                                if (is_string($ip) && preg_match('/([0-9]{1,3}(?:\.[0-9]{1,3}){3})/', $ip, $m)) {
-                                    $ipv4 = $m[1];
-                                }
-                                return $record->generateLoginCodeForAdminIP($ipv4 ?? $ip);
+                                return $record->generateLoginCodeForAdminIP(request()->ip());
                             })
                             ->copyable()
                             ->copyMessage('Code copied!')
@@ -66,8 +58,8 @@ class ViewUser extends ViewRecord
                             ->color('primary'),
                         TextEntry::make('login_code_expiration')
                             ->label('Valid until'),
-                        TextEntry::make('login_code_valid_ip')
-                            ->label('Valid from IP'),
+                        // TextEntry::make('login_code_valid_ip')
+                        //     ->label('Valid from IP'),
                     ]),
             ]);
     }
