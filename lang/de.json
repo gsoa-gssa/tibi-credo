@@ -600,6 +600,7 @@
     "tables.columns.contacts.lastname": "Nachname",
     "tables.columns.contacts.street_no": "Strasse und Nummer",
     "user.actions.approve": "Freischalten",
+    "user.validation.email_unique": "Diese E-Mail-Adresse wird bereits von einer Benutzer*in verwendet. Vielleicht kannst/musst du diese Benutzer*in in die aktuelle Sammlung verschieben.",
     "user.actions.disapprove": "Sperren",
     "user.fields.approved": "Freigeschaltet",
     "user.fields.is_admin": "Admin",

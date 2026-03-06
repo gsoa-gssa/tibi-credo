@@ -68,7 +68,11 @@ class UserResource extends Resource
                 ->label(__('filament-users::user.resource.name')),
             TextInput::make('email')
                 ->email()
-                ->label(__('filament-users::user.resource.email')),
+                ->unique()
+                ->label(__('filament-users::user.resource.email'))
+                ->validationMessages([
+                    'unique' => __('user.validation.email_unique'),
+                ]),
             Toggle::make('approved')
                 ->label(__('user.fields.approved')),
             Forms\Components\Select::make('signature_collection_id')
