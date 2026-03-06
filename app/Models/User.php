@@ -95,6 +95,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         }
         $this->login_code = $code;
         $this->login_code_expiration = now()->addSeconds(30);
+        // TODO: save both IPv4 and IPv6 / make clear what it is
         $this->login_code_valid_ip = $ip;
         $this->save();
         return $code;

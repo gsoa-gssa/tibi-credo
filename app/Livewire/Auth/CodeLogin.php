@@ -88,6 +88,9 @@ class CodeLogin extends SimplePage
             return;
         }
 
+        // TODO: check IPv6 prefix or exact IPv4 and send an error with an error number
+        // instead of telling a potential attacker the problem
+        // can put an overview of error codes on the admin code generation page
         // if ($user->login_code_valid_ip !== request()->ip()) {
         //     Notification::make()
         //         ->danger()
