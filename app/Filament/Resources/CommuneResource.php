@@ -374,7 +374,7 @@ class CommuneResource extends Resource
             RelationManagers\BatchesRelationManager::class,
             RelationManagers\MaepplisRelationManager::class,
             RelationManagers\ZipcodesRelationManager::class,
-            RelationManagers\CommuneActivitylogRelationManager::class,
+            RelationManagers\CommuneActivityLogRelationManager::class,
         ];
     }
 
