@@ -68,7 +68,7 @@ class UserResource extends Resource
                 ->label(__('filament-users::user.resource.name')),
             TextInput::make('email')
                 ->email()
-                ->unique()
+                ->unique(ignoreRecord: true)
                 ->label(__('filament-users::user.resource.email'))
                 ->validationMessages([
                     'unique' => __('user.validation.email_unique'),
