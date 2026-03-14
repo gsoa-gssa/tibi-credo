@@ -8,6 +8,10 @@ use Illuminate\Support\Carbon;
 
 class ValidityChart extends LineChartWidget
 {
+    protected const float MIN_VALIDITY_FOR_PROJECTION = 0.4;
+
+    protected const float MAX_VALIDITY_FOR_PROJECTION = 0.95;
+
     protected array|string|int $columnSpan = 'full';
 
     public function getHeading(): ?string
@@ -109,7 +113,7 @@ class ValidityChart extends LineChartWidget
 
         $allWeeks = $this->yearWeeks($start, $end);
 
-        // Build cumulative total, filling null for missing weeks
+        // Build cumulative total, filling zero for missing weeks
         $result = [];
         $cumulative = 0;
         foreach ($allWeeks as $week) {
@@ -198,8 +202,19 @@ class ValidityChart extends LineChartWidget
         for ($i = 0; $i < $count; $i++) {
             $week = $cumulativeValid[$i]['week_start'];
             $validSoFar = $cumulativeValid[$i]['cumulative_certified'];
-            $best = $bestWorst[$i]['best_validity'];
-            $worst = $bestWorst[$i]['worst_validity'];
+            // $best = $bestWorst[$i]['best_validity'];
+            // $worst = $bestWorst[$i]['worst_validity'];
+
+            // if ($best !== null) {
+            //     $best = max(self::MIN_VALIDITY_FOR_PROJECTION, min(self::MAX_VALIDITY_FOR_PROJECTION, $best));
+            // }
+
+            // if ($worst !== null) {
+            //     $worst = max(self::MIN_VALIDITY_FOR_PROJECTION, min(self::MAX_VALIDITY_FOR_PROJECTION, $worst));
+            // }
+            $best = self::MAX_VALIDITY_FOR_PROJECTION;
+            $worst = self::MIN_VALIDITY_FOR_PROJECTION;
+
             $avgValiditySoFar = $average[$i]['avg_validity'];
 
             // if any of those values is null, return null for this week
@@ -285,20 +300,20 @@ class ValidityChart extends LineChartWidget
                     'borderWidth' => 0,
                 ],
                 [
-                    'label' => 'Projected Validity (Best)',
+                    'label' => __('widgets.validity_chart.projected_best', ['max' => self::MAX_VALIDITY_FOR_PROJECTION * 100]),
                     'data' => $projectedBest,
                     'borderWidth' => 0.5,
                     'pointRadius' => 0,
                     'borderDash' => [6, 2],
-                    'fill' => '0',
+                    'fill' => '4',
                 ],
                 [
-                    'label' => 'Projected Validity (Worst)',
+                    'label' => __('widgets.validity_chart.projected_worst', ['min' => self::MIN_VALIDITY_FOR_PROJECTION * 100]),
                     'data' => $projectedWorst,
                     'borderWidth' => 0.5,
                     'pointRadius' => 0,
                     'borderDash' => [6, 2],
-                    'fill' => '0',
+                    // 'fill' => '0',
                 ],
             ],
             'labels' => $labels,

@@ -61,6 +61,8 @@
     "batch.filters.expected_return_date_null": "Kein erwartetes Rücksendedatum",
     "batch.filters.expected_delivery_date_null": "Kein erwartetes Zustellungsdatum",
     "batch.filters.open.closed": "Abgeschlossen",
+    "widgets.validity_chart.projected_best": "Projizierte Gültigkeit (Maximum)",
+    "widgets.validity_chart.projected_worst": "Projizierte Gültigkeit (Minimum)",
     "batch.filters.open.open": "Offen",
     "batch.filters.partially_returned": "Teilweise retourniert",
     "batch.filters.status": "Status",
