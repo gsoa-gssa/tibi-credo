@@ -25,6 +25,7 @@ use Filament\Infolists\Components;
 use Filament\Infolists\Infolist;
 use Illuminate\Support\Collection;
 use App\Models\User;
+use App\Models\BatchKind;
 
 class BatchResource extends Resource
 {
@@ -301,16 +302,111 @@ class BatchResource extends Resource
                         'A' => 'A',
                         'B1' => 'B1',
                         'B2' => 'B2',
+                        '__null__' => __('batch.filters.null_option'),
                     ])
                     ->label(__('batch.fields.priority'))
+                    ->query(function (Builder $query, array $data): Builder {
+                        $values = collect($data['values'] ?? []);
+                        if ($values->isEmpty()) {
+                            return $query;
+                        }
+
+                        $includeNull = $values->contains('__null__');
+                        $nonNullValues = $values
+                            ->reject(fn ($value) => $value === '__null__')
+                            ->values()
+                            ->all();
+
+                        return $query->where(function (Builder $q) use ($includeNull, $nonNullValues) {
+                            if (!empty($nonNullValues)) {
+                                $q->whereIn('priority', $nonNullValues);
+                            }
+
+                            if ($includeNull) {
+                                if (!empty($nonNullValues)) {
+                                    $q->orWhereNull('priority');
+                                } else {
+                                    $q->whereNull('priority');
+                                }
+                            }
+                        });
+                    })
                     ->multiple(),
                 SelectFilter::make('send_kind')
-                    ->relationship('sendKind', 'short_name_de')
+                    ->options(function (): array {
+                        $options = BatchKind::query()
+                            ->orderBy('short_name_de')
+                            ->pluck('short_name_de', 'id')
+                            ->toArray();
+
+                        return ['__null__' => __('batch.filters.send_kind_null_option')] + $options;
+                    })
                     ->label(__('batch.fields.send_kind'))
+                    ->searchable()
+                    ->query(function (Builder $query, array $data): Builder {
+                        $values = collect($data['values'] ?? []);
+                        if ($values->isEmpty()) {
+                            return $query;
+                        }
+
+                        $includeNull = $values->contains('__null__');
+                        $nonNullValues = $values
+                            ->reject(fn ($value) => $value === '__null__')
+                            ->values()
+                            ->all();
+
+                        return $query->where(function (Builder $q) use ($includeNull, $nonNullValues) {
+                            if (!empty($nonNullValues)) {
+                                $q->whereIn('send_kind', $nonNullValues);
+                            }
+
+                            if ($includeNull) {
+                                if (!empty($nonNullValues)) {
+                                    $q->orWhereNull('send_kind');
+                                } else {
+                                    $q->whereNull('send_kind');
+                                }
+                            }
+                        });
+                    })
                     ->multiple(),
                 SelectFilter::make('receive_kind')
-                    ->relationship('receiveKind', 'short_name_de')
+                    ->options(function (): array {
+                        $options = BatchKind::query()
+                            ->orderBy('short_name_de')
+                            ->pluck('short_name_de', 'id')
+                            ->toArray();
+
+                        return ['__null__' => __('batch.filters.receive_kind_null_option')] + $options;
+                    })
                     ->label(__('batch.fields.receive_kind'))
+                    ->searchable()
+                    ->query(function (Builder $query, array $data): Builder {
+                        $values = collect($data['values'] ?? []);
+                        if ($values->isEmpty()) {
+                            return $query;
+                        }
+
+                        $includeNull = $values->contains('__null__');
+                        $nonNullValues = $values
+                            ->reject(fn ($value) => $value === '__null__')
+                            ->values()
+                            ->all();
+
+                        return $query->where(function (Builder $q) use ($includeNull, $nonNullValues) {
+                            if (!empty($nonNullValues)) {
+                                $q->whereIn('receive_kind', $nonNullValues);
+                            }
+
+                            if ($includeNull) {
+                                if (!empty($nonNullValues)) {
+                                    $q->orWhereNull('receive_kind');
+                                } else {
+                                    $q->whereNull('receive_kind');
+                                }
+                            }
+                        });
+                    })
                     ->multiple(),
                 Filter::make('expected_return_date_from')
                     ->form([
@@ -343,6 +439,14 @@ class BatchResource extends Resource
                             ->when($data['age_before'] ?? null, fn (Builder $q, $date) => $q->whereDate('created_at', '<', $date));
                     })
                     ->label(__('batch.filters.age')),
+                Filter::make('expected_return_date_null')
+                    ->label(__('batch.filters.expected_return_date_null'))
+                    ->toggle()
+                    ->query(fn (Builder $query): Builder => $query->whereNull('expected_return_date')),
+                Filter::make('expected_delivery_date_null')
+                    ->label(__('batch.filters.expected_delivery_date_null'))
+                    ->toggle()
+                    ->query(fn (Builder $query): Builder => $query->whereNull('expected_delivery_date')),
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
