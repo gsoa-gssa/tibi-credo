@@ -65,5 +65,13 @@ class CommuneLink extends Page implements HasTable
             ]);
     }
 
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            \App\Filament\Resources\CommuneResource\Widgets\PendingBatchesByDateChart::class,
+            \App\Filament\Resources\CommuneResource\Widgets\PendingSignaturesByDateChart::class,
+        ];
+    }
+
     protected static string $view = 'filament.pages.commune-link';
 }
