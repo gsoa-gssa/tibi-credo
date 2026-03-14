@@ -16,4 +16,12 @@ class ListBatches extends ListRecords
             Actions\CreateAction::make(),
         ];
     }
+
+    protected function getFooterWidgets(): array
+    {
+        return [
+            \App\Filament\Resources\BatchResource\Widgets\BatchesByCreationDateChart::make(),
+            \App\Filament\Resources\BatchResource\Widgets\SignaturesByCreationDateChart::make(),
+        ];
+    }
 }
